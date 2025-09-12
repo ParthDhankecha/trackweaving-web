@@ -1,0 +1,45 @@
+/* You can add global styles to this file, and also import other style files */
+
+@use './app/styles/index';
+
+
+
+:root {
+    --header-height: 60px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+
+.img-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.min-w-unset {
+    min-width: unset !important;
+}
+
+.sticky-inner-header {
+    position: sticky;
+    top: 0;
+    z-index: 99; // Ensure it stays above other content
+    background-color: #ffffff; // Background color to avoid transparency issues
+    box-shadow: 8px 1px 6px 2px rgba(0, 0, 0, 0.1);
+    // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Optional shadow for better visibility
+    height: var(--header-height);
+}
+
+.w-1-percent {
+    width: 1% !important;
+}
+
+.d-contents {
+    display: contents !important;
+}

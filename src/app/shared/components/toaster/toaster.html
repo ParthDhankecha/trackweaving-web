@@ -1,0 +1,21 @@
+@if(toasters.length){
+<div class="toast-container position-fixed end-0 p-3" style="top: 80px;">
+    <!-- Loop through the toasters -->
+    @for (toaster of toasters; track toaster.id;) {
+    <div class="toast show bg-white rounded-3 p-2 border border-{{toaster.type}} border-opacity-25" role="alert"
+        aria-live="assertive" aria-atomic="true" (mouseenter)="onMouseEnter($event, toaster)"
+        (mouseleave)="onMouseLeave($event, toaster)">
+        <div class="d-flex">
+            <div class="bg-{{toaster.type}} ps-1 align-self-stretch rounded"></div>
+            <div class="toast-body flex-grow-1 align-self-stretch p-2">
+                <p class="message m-0">
+                    {{ toaster?.message }}
+                </p>
+            </div>
+            <button type="button" class="btn-close flex-shrink-0 p-0" data-bs-dismiss="toast" aria-label="Close"
+                (click)="removeToaster(toaster)"></button>
+        </div>
+    </div>
+    }
+</div>
+}

@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;400;600;700;800&display=swap');
+
+// 100 Thin or with Italic
+// 200 ExtraLight or with Italic
+// 300 Light or with Italic
+// 400 Regular or with Italic
+// 500 Medium or with Italic
+// 600 SemiBold or with Italic
+// 700 Bold or with Italic
+// 800 ExtraBold or with Italic
+// 900 Black or with Italic
+
+// @font-face {
+//     font-family: 'Raleway 400';
+//     src: url('../assets/fonts/Raleway-Regular.ttf');
+// }
+
+$base-font-family: 'Inter', 'sans-serif';
+$base-line-height: 1.36;
+
+$title-font-family: 'Georgia Italic';
+$title-line-height: 1.27;
+
+$highlight-font-family: 'Inter', 'sans-serif';
+$highlight-line-height: 1.15;
+
+
+// $raleway-400: 'Raleway 400';

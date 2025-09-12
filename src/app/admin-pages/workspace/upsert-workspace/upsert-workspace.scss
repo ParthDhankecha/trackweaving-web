@@ -1,0 +1,18 @@
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.password-eye-line {
+    position: absolute;
+    display: block;
+    width: 2px;
+    height: 60%;
+    background: #737373;
+    transform: rotate(315deg);
+    left: 50%;
+    top: 20%;
+
+    &.hide {
+        display: none;
+    }
+}

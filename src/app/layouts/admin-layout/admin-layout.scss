@@ -1,0 +1,88 @@
+@use './../../styles' as *;
+
+
+:host {
+    display: contents;
+}
+
+
+.side-nav {
+    width: 100%;
+    max-width: 250px;
+    height: 100vh;
+    max-height: 100vh;
+
+    .side-nav-wrapper {
+        width: 100%;
+        max-width: 250px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .side-nav-header {
+            height: var(--header-height);
+            display: flex;
+
+            .brand-logo {
+                display: block;
+                margin: auto;
+            }
+        }
+
+        .nav-menu-wrapper {
+            margin: 0;
+            padding: 6px 12px;
+            min-height: 300px;
+            flex: 1;
+            flex-wrap: nowrap;
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            @include custom-scrollbar();
+
+            .menu-item {
+                a {
+                    &:hover {
+                        background-color: $gray;
+                    }
+
+                    span {
+                        @include custom-ellipses();
+                    }
+                }
+
+                &.active {
+                    a {
+                        background-color: $gray;
+                    }
+                }
+            }
+        }
+
+        .side-nav-footer {
+            padding: 12px 12px;
+        }
+    }
+
+    &.collapsed {
+        max-width: max-content;
+
+        .side-nav-wrapper {
+            .nav-menu-wrapper {
+                .menu-item {
+                    a {
+                        span {
+                            display: none;
+                        }
+                    }
+                }
+            }
+
+            .side-nav-footer {
+                button span {
+                    display: none;
+                }
+            }
+        }
+    }
+}

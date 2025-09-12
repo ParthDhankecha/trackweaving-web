@@ -1,0 +1,89 @@
+<div class="container-fluid">
+    <div class="min-vh-100 p-3 d-flex">
+        <!-- Right column (Login form or router outlet) -->
+        <div class="w-100 my-auto">
+            <div class="d-flex w-100 h-100">
+                <div class="w-100 p-4 mx-auto shadow rounded" style="max-width: 420px;">
+
+                    <!-- Login Form -->
+                    <div class="auth-header text-center">
+                        <h3>Admin Sign In</h3>
+                    </div>
+                    <form [formGroup]="loginForm" novalidate (ngSubmit)="onSubmit()">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <small>Email <span class="text-danger">*</span></small>
+                            </label>
+                            <input type="email" class="form-control mobile-input" formControlName="email"
+                                placeholder="Enter your email">
+
+                            @if(email?.touched && email?.invalid) {
+                            <div class="text-danger mt-1">
+                                @if(email?.errors?.['required']) {
+                                <small>Email is required.</small>
+                                }
+                                @if(email?.errors?.['email']) {
+                                <small>Please enter a valid email.</small>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <small>Password <span class="text-danger">*</span></small>
+                            </label>
+                            <div class="input-group flex-nowrap">
+                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control"
+                                    formControlName="password" maxlength="20" placeholder="Enter your password"
+                                    aria-describedby="password">
+                                <span class="input-group-text user-select-none position-relative cursor-pointer"
+                                    id="password" (click)="isEyeOpen = !isEyeOpen">
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
+                                        fill="#737373">
+                                        <path
+                                            d='M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3' />
+                                        <path
+                                            d='M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5' />
+                                    </svg>
+                                    <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
+                                </span>
+                            </div>
+                            @if(password?.touched && password?.invalid) {
+                            <div class="text-danger mt-1">
+                                @if(password?.errors?.['required']) {
+                                <small>Password is required.</small>
+                                }
+                                @if(password?.errors?.['minlength']) {
+                                <small>Password must be at least 6 characters long.</small>
+                                }
+                                @if(password?.errors?.['maxlength']) {
+                                <small>Password cannot exceed 20 characters.</small>
+                                }
+                            </div>
+                            }
+                        </div>
+
+
+                        <div class="d-grid mt-4">
+                            <button type="submit"
+                                class="btn btn-primary d-flex align-items-center justify-content-center"
+                                [class.disabled]="isReqAlive" [disabled]="isReqAlive">
+                                @if(!isReqAlive) {
+                                <span>Login</span>
+                                } @else {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span role="status">
+                                    &nbsp; Please wait...
+                                </span>
+                                }
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<app-toaster></app-toaster>

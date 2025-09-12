@@ -1,0 +1,88 @@
+<!-- inner header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+    <!-- left side -->
+    <div class="d-flex flex-grow-1 gap-2">
+
+    </div>
+    <!-- right side -->
+    <div></div>
+</div>
+
+<!-- main content -->
+<div class="p-4">
+    <div class="card">
+        <div class="card-body">
+            <!-- Show dropdown to select number of entries per page -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-3 align-items-center">
+                    <app-entries-per-page-selector [pageSize]="pageSize"
+                        (pageSizeChange)="onEntriesPerPageChange($event)" />
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-primary d-flex align-items-center gap-2"
+                        (click)="onOpenUpsertUserModal()">
+                        <svg height="20" width="20" viewBox="0 0 48 48" class="flex-shrink-0">
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                        </svg>
+                        <span class="text-nowrap">New User</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Designs Table -->
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Full Name</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Workspace Name</th>
+                        <th scope="col">Mobile</th>
+                        <th scope="col">Email</th>
+                        <th scope="col" class="text-center">Is Active</th>
+                        <th scope="col" class="w-1-percent text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(user of userList; track user._id; let i = $index){
+                    <tr>
+                        <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
+                        <td>{{ user.fullname }}</td>
+                        <td>{{ user?.userName }}</td>
+                        <td>{{ user?.workspaceId?.firmName }}</td>
+                        <td>{{ user?.mobile || '-' }}</td>
+                        <td>{{ user?.email || '-' }}</td>
+                        <td class="text-center">
+                            <span class="badge text-bg-{{(user?.isActive ? 'success':'danger')}}">
+                                {{(user?.isActive ? 'Active':'Inactive')}}
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary me-2" (click)="onOpenUpsertUserModal(user)">
+                                Edit
+                            </button>
+                            <!-- <button class="btn btn-sm btn-outline-danger" (click)="openDeleteConfirmModal(user)">
+                                Delete
+                            </button> -->
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            <!-- Pagination Component -->
+            <app-pagination class="d-block mt-3" [pageSize]="pageSize" [totalEntries]="totalEntries"
+                [currentPage]="currentPage" (pageChange)="onPageChange($event)" />
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Create/Upsert User Modal -->
+@if(isUpsertUserModalOpen){
+<app-upsert-user [workspaceList]="workspaceList" [userData]="upsertUserModalData"
+    (closeOrCancel)="onCloseUserModal()"></app-upsert-user>
+}

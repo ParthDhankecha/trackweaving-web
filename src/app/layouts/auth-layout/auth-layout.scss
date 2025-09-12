@@ -1,0 +1,31 @@
+// @use './../../styles/mixins' as *;
+
+
+// .auth-layout-container {
+//     margin: 0;
+//     padding: 24px;
+//     width: 100%;
+//     height: 100vh;
+//     display: flex;
+//     // background: url('/assets/images/auth/auth-bg.png') lightgray 50% / cover no-repeat;
+//     @include custom-scrollbar();
+
+//     .auth-layout-wrapper {
+//         margin: auto;
+//         padding: 2px;
+//         width: 100%;
+//         max-width: 640px;
+//         min-height: 70vh;
+//         height: max-content;
+//         border-radius: 40px;
+//         border: 2px solid #FFF;
+//         background: rgba(255, 255, 255, 0.50);
+//         box-shadow: 0px 0px 4px -1px #9122FF, 0px 0px 0px 8px #F4E9FF;
+//         backdrop-filter: blur(16.049999237060547px);
+
+//         &:has(.onboarding-wrapper) {
+//             display: flex;
+//             flex-direction: column;
+//         }
+//     }
+// }

@@ -1,0 +1,296 @@
+<div class="modal modal-lg fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="workspaceForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit Workspace' : 'Create Workspace'}}
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Workspace Fields -->
+                    <div class="row">
+                        <!-- Workspace Name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="workspaceName" class="form-label">
+                                Workspace Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="workspaceName" formControlName="workspaceName" class="form-control"
+                                placeholder="Enter Workspace Name">
+
+                            @if(workspaceName?.touched && workspaceName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(workspaceName?.errors?.['required']){
+                                <span>Workspace Name is required.</span>
+                                }
+                                @if(workspaceName?.errors?.['maxlength']){
+                                <span>
+                                    Workspace Name cannot exceed
+                                    {{workspaceName?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- GST Number -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="gstNumber" class="form-label">GST Number</label>
+                            <input id="gstNumber" type="text" formControlName="GSTNo" class="form-control"
+                                placeholder="Enter GST Number ">
+
+                            @if(gstNumber?.touched && gstNumber?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(gstNumber?.errors?.['pattern']){
+                                <span>Enter a valid GST Number.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Shift Type -->
+                        <!-- <div class="col-12 col-md-6 mb-3">
+                            <label for="shiftType" class="form-label">
+                                Shift Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="shiftType" formControlName="shiftType" class="form-select">
+                                <option value="" disabled selected>
+                                    Select Shift Type
+                                </option>
+                                <option value="day">Day</option>
+                                <option value="night">Night</option>
+                            </select>
+                            @if(shiftType?.touched && shiftType?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(shiftType?.errors?.['required']){
+                                <span>Shift Type is required.</span>
+                                }
+                            </div>
+                            }
+                        </div> -->
+                        <!-- Day Shift Times -->
+                        <ng-container formGroupName="dayShift">
+                            <!-- Day Shift Start Time -->
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="dayShiftStartTime" class="form-label">
+                                    Day Shift Start Time
+                                </label>
+                                <input type="time" id="dayShiftStartTime" formControlName="startTime"
+                                    class="form-control">
+
+                                @if(dayStartTime?.touched && dayStartTime?.errors){
+                                <div class="invalid-feedback d-block">
+                                    @if(dayStartTime?.errors?.['required']){
+                                    <span>Day Shift Start Time is required.</span>
+                                    }
+                                    @if(dayStartTime?.errors?.['invalidTimeRange']){
+                                    <span>Day Shift Start Time must be before Day Shift End Time.</span>
+                                    }
+                                </div>
+                                }
+                            </div>
+                            <!-- Day Shift End Time -->
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="dayShiftEndTime" class="form-label">
+                                    Day Shift End Time
+                                </label>
+                                <input type="time" id="dayShiftEndTime" formControlName="endTime" class="form-control">
+
+                                @if(dayEndTime?.touched && dayEndTime?.errors){
+                                <div class="invalid-feedback d-block">
+                                    @if(dayEndTime?.errors?.['required']){
+                                    <span>Day Shift End Time is required.</span>
+                                    }
+                                    @if(dayEndTime?.errors?.['invalidTimeRange']){
+                                    <span>Day Shift End Time must be after Day Shift Start Time.</span>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </ng-container>
+                        <!-- Night Shift Times -->
+                        <ng-container formGroupName="nightShift">
+                            <!-- Night Shift Start Time -->
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="nightShiftStartTime" class="form-label">
+                                    Night Shift Start Time
+                                </label>
+                                <input type="time" id="nightShiftStartTime" formControlName="startTime"
+                                    class="form-control">
+
+                                @if(nightStartTime?.touched && nightStartTime?.errors){
+                                <div class="invalid-feedback d-block">
+                                    @if(nightStartTime?.errors?.['required']){
+                                    <span>Night Shift Start Time is required.</span>
+                                    }
+                                    @if(nightStartTime?.errors?.['invalidTimeRange']){
+                                    <span>Night Shift Start Time must be before Day Shift End Time.</span>
+                                    }
+                                </div>
+                                }
+                            </div>
+                            <!-- Day Shift End Time -->
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="nightShiftEndTime" class="form-label">
+                                    Night Shift End Time
+                                </label>
+                                <input type="time" id="nightShiftEndTime" formControlName="endTime" class="form-control">
+
+                                @if(nightEndTime?.touched && nightEndTime?.errors){
+                                <div class="invalid-feedback d-block">
+                                    @if(nightEndTime?.errors?.['required']){
+                                    <span>Night Shift End Time is required.</span>
+                                    }
+                                    @if(nightEndTime?.errors?.['invalidTimeRange']){
+                                    <span>Night Shift End Time must be after Night Shift Start Time.</span>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </ng-container>
+                        <!-- Is Active -->
+                        <div class="col-12 col-md-6 mb-3 d-flex">
+                            <div class="form-check form-switch my-auto">
+                                <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive"
+                                    [checked]="isActive?.value">
+                                <label class="form-check-label" for="isActive">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Fields -->
+                    @if(!isEditMode){
+                    <div class="row">
+                        <!-- userName -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="userName" class="form-label">
+                                User Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="userName" formControlName="userName" class="form-control"
+                                placeholder="Enter User Name/Mobile">
+
+                            @if(userName?.touched && userName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(userName?.errors?.['required']){
+                                <span>User Name is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- password -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="password" class="form-label">
+                                Password <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group flex-nowrap">
+                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control"
+                                    formControlName="password" maxlength="20" placeholder="Enter your password"
+                                    aria-describedby="password">
+                                <span class="input-group-text user-select-none position-relative cursor-pointer"
+                                    id="password" (click)="isEyeOpen = !isEyeOpen">
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
+                                        fill="#737373">
+                                        <path
+                                            d='M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3' />
+                                        <path
+                                            d='M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5' />
+                                    </svg>
+                                    <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
+                                </span>
+                            </div>
+
+                            @if(password?.touched && password?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(password?.errors?.['required']){
+                                <span>Password is required.</span>
+                                }
+                                @if(password?.errors?.['minlength']){
+                                <span>
+                                    Password must be at least
+                                    {{password?.errors?.['minlength']?.requiredLength}}
+                                    characters long.
+                                </span>
+                                }
+                                @if (password?.errors?.['maxlength']){
+                                <span>
+                                    Password cannot exceed
+                                    {{password?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="name" class="form-label">
+                                Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="name" formControlName="name" class="form-control"
+                                placeholder="Enter Name">
+
+                            @if(name?.touched && name?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(name?.errors?.['required']){
+                                <span>Name is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- userEmail -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="userEmail" class="form-label">
+                                User Email
+                            </label>
+                            <input type="email" id="userEmail" formControlName="userEmail" class="form-control"
+                                placeholder="Enter User Email">
+
+                            @if(userEmail?.touched && userEmail?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(userEmail?.errors?.['required']){
+                                <span>User Email is required.</span>
+                                }
+                                @if(userEmail?.errors?.['email']){
+                                <span>Enter a valid email address.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- mobile -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="mobile" class="form-label">
+                                Mobile Number
+                            </label>
+                            <input type="text" id="mobile" formControlName="mobile" class="form-control"
+                                placeholder="Enter Mobile Number">
+
+                            @if(mobile?.touched && mobile?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(mobile?.errors?.['required']){
+                                <span>Mobile Number is required.</span>
+                                }
+                                @if(mobile?.errors?.['pattern']){
+                                <span>Enter a valid 10-digit mobile number.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        {{isEditMode ? 'Update' : 'Create'}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

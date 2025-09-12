@@ -1,0 +1,161 @@
+@mixin custom-ellipses($line: 1) {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-clamp: $line;
+	-webkit-line-clamp: $line;
+	word-break: break-all;
+}
+
+
+@mixin scrollbar-none {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
+	// For Chrome
+	-ms-overflow-style: none; // For IE and Edge
+	scrollbar-width: none; // For Firfox
+}
+
+
+@mixin user-select-none {
+	-webkit-user-select: none; // For Safari
+	-ms-user-select: none; // For IE and Edge
+	user-select: none; // Standard syntax
+}
+
+
+
+@mixin custom-scrollbar($axis: both, $hide-scrollbar: true, $width: 6px, $height: 6px, $track-color: #FFF, $thumb-color: #E1E4EA) {
+	@if $axis ==x {
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	@else if $axis ==y {
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	@else {
+		overflow: auto;
+	}
+
+	overscroll-behavior: contain;
+
+	@if $hide-scrollbar {
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		// For Chrome
+		-ms-overflow-style: none; // For IE and Edge
+		scrollbar-width: none; // For Firfox
+	}
+
+	@else {
+		&::-webkit-scrollbar {
+			width: $width;
+			height: $height;
+		}
+
+		&::-webkit-scrollbar-track {
+			background-color: $track-color;
+			border-radius: $width;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background-color: $thumb-color;
+			border-radius: $width;
+		}
+	}
+}
+
+
+@mixin custom-reset-number-input {
+
+	/* Remove spinner for Webkit browsers (Chrome, Safari, Edge) */
+	&::-webkit-outer-spin-button,
+	&::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	/* Remove spinner for Firefox */
+	&[type="number"] {
+		-moz-appearance: textfield;
+	}
+
+	/* Remove spinner for IE/Edge */
+	&[type="number"]::-ms-expand {
+		display: none;
+	}
+}
+
+
+@mixin custom-placeholder {
+	&::-webkit-input-placeholder {
+		@content;
+	}
+
+	&::-moz-placeholder {
+		@content;
+	}
+
+	&:-ms-input-placeholder {
+		@content;
+	}
+
+	&::-ms-input-placeholder {
+		@content;
+	}
+
+	&::placeholder {
+		@content;
+	}
+}
+
+
+// Responsive media queries
+@mixin device($breakpoints...) {
+
+	@each $breakpoint in $breakpoints {
+		@if $breakpoint ==xs {
+			@media only screen and (max-width: 576px) {
+				@content;
+			}
+		}
+
+		@if $breakpoint ==s {
+			@media only screen and (min-width: 577px) and (max-width: 768px) {
+				@content;
+			}
+		}
+
+		@if $breakpoint ==m {
+			@media only screen and (min-width: 769px) and (max-width: 992px) {
+				@content;
+			}
+		}
+
+		@if $breakpoint ==l {
+			@media only screen and (min-width: 993px) and (max-width: 1280px) {
+				@content;
+			}
+		}
+
+		@if $breakpoint ==xl {
+			@media only screen and (min-width: 1281px) and (max-width: 1440px) {
+				@content;
+			}
+		}
+
+		@if $breakpoint ==xxl {
+			@media only screen and (min-width: 1441px) {
+				@content;
+			}
+		}
+	}
+}

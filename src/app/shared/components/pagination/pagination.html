@@ -1,0 +1,52 @@
+@if(totalEntries !== 0) {
+<nav class="d-flex gap-2 align-items-center" aria-label="Page navigation">
+    <small class="me-auto text-muted">
+        {{showingEntriesText}}
+    </small>
+
+    <ul class="pagination justify-content-center m-0 user-select-none">
+        <!-- Previous Button -->
+        <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+                <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' class="d-block">
+                    <path d='m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z'
+                        fill="currentColor" />
+                    <path d='M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z'
+                        fill="currentColor" />
+                </svg>
+            </button>
+        </li>
+        <!-- Loop through pages and display them -->
+        @for(page of pages; track page){
+        <!-- Ellipsis -->
+        @if(isEllipsis(page)){
+        <li class="page-item disabled">
+            <span class="page-link">...</span>
+        </li>
+        }@else {
+        <!-- Normal Page Number -->
+        <li class="page-item" [class.active]="page === currentPage">
+            <button class="page-link" (click)="onPageChange(page)">
+                {{ page }}
+            </button>
+        </li>
+        }
+        <!-- No pages to display -->
+        }@empty{
+        <li class="page-item disabled">
+            <span class="page-link">1</span>
+        </li>
+        }
+        <!-- Next Button -->
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
+                <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' class="d-block">
+                    <path d='M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z'
+                        fill="currentColor" />
+                    <path d='M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z' fill="currentColor" />
+                </svg>
+            </button>
+        </li>
+    </ul>
+</nav>
+}
