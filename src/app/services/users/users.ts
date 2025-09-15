@@ -33,4 +33,8 @@ export class Users {
   update(id: string, payload: any): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/update/${id}`, payload);
   }
+
+  delete(id: string): Observable<IResponse> {
+    return this._http.delete(`${this._baseUrl}/delete/${id}`);
+  }
 }

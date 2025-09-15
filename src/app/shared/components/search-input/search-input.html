@@ -1,0 +1,10 @@
+<div class="search-input-wrap" (click)="focusSearchInput($event)" #searchInputWrapRef>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="search-icon">
+        <path
+            d="M7.4 2C10.3808 2 12.8 4.4192 12.8 7.4C12.8 10.3808 10.3808 12.8 7.4 12.8C4.4192 12.8 2 10.3808 2 7.4C2 4.4192 4.4192 2 7.4 2ZM7.4 11.6C9.7202 11.6 11.6 9.7202 11.6 7.4C11.6 5.0792 9.7202 3.2 7.4 3.2C5.0792 3.2 3.2 5.0792 3.2 7.4C3.2 9.7202 5.0792 11.6 7.4 11.6ZM12.491 11.6426L14.1884 13.3394L13.3394 14.1884L11.6426 12.491L12.491 11.6426Z"
+            fill="#A3A3A3" />
+    </svg>
+
+    <input #searchInput class="search-input" type="text" name="searchTerms" [(ngModel)]="searchTerms"
+        (ngModelChange)="onSearchTerms($event)" placeholder="Search...">
+</div>

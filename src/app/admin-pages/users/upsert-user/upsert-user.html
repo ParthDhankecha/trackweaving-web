@@ -11,25 +11,37 @@
 
                 <div class="modal-body">
                     <div class="row">
-                        <!-- User Name -->
+                        <!-- Workspace -->
                         <div class="col-12 col-md-6 mb-3">
                             <label for="userName" class="form-label">
-                                User Name <span class="text-danger">*</span>
+                                Workspace <span class="text-danger">*</span>
                             </label>
-                            <input type="text" id="userName" formControlName="userName" class="form-control"
-                                placeholder="Enter User Name/Mobile">
+                            <div class="dropdown position-relative">
+                                <button class="btn btn-light w-100 dropdown-toggle text-capitalize" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    {{workspace?.value?.firmName || 'Select Workspace'}}
+                                </button>
+                                <ul class="dropdown-menu pt-0 w-100">
+                                    <div class="search-list-height">
+                                        <div class="bg-secondary-subtle position-sticky top-0 border-bottom">
+                                            <app-search-input (onSearch)="onSearchTerms($event)"></app-search-input>
+                                        </div>
+                                        @for(wItem of filteredWorkspaceList; track wItem._id){
+                                        <li (click)="onWorkspaceChange(wItem)">
+                                            <span class="dropdown-item text-capitalize"
+                                                [class.active]="wItem?._id === workspace?.value?._id">
+                                                {{wItem.firmName}}
+                                            </span>
+                                        </li>
+                                        }
+                                    </div>
+                                </ul>
+                            </div>
 
-                            @if(userName?.touched && userName?.errors){
+                            @if(workspace?.touched && workspace?.errors){
                             <div class="invalid-feedback d-block">
-                                @if(userName?.errors?.['required']){
-                                <span>User Name is required.</span>
-                                }
-                                @if(userName?.errors?.['maxlength']){
-                                <span>
-                                    User Name cannot exceed
-                                    {{userName?.errors?.['maxlength']?.requiredLength}}
-                                    characters.
-                                </span>
+                                @if(workspace?.errors?.['required']){
+                                <span>Workspace is required.</span>
                                 }
                             </div>
                             }
@@ -86,11 +98,11 @@
                                 Password <span class="text-danger">*</span>
                             </label>
                             <div class="input-group flex-nowrap">
-                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control"
+                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
                                     formControlName="password" maxlength="20" placeholder="Enter your password"
                                     aria-describedby="password">
                                 <span class="input-group-text user-select-none position-relative cursor-pointer"
-                                    id="password" (click)="isEyeOpen = !isEyeOpen">
+                                    (click)="isEyeOpen = !isEyeOpen">
                                     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
                                         fill="#737373">
                                         <path
@@ -172,19 +184,62 @@
                                 </label>
                             </div>
                         </div>
+                    </div>
+                    <!-- Plan -->
+                    <div formGroupName="plan" class="row">
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="startDate" class="form-label">
+                                Plan Start Date
+                            </label>
+                            <input type="date" id="startDate" formControlName="startDate" class="form-control">
 
-                        <div class="col-12 col-md-6 mb-3 d-flex">
-                            {{workspace?.value}}
-                            <input class="form-control" list="ice-cream-flavors" id="ice-cream-choice" formControlName="workspace" />
-                            <datalist id="ice-cream-flavors">
-                                @for(workspace of workspaceList; track workspace._id){
-                                <option [value]="workspace.firmName"></option>
+                            @if(planStartDate?.touched && planStartDate?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(planStartDate?.errors?.['required']){
+                                <span>Start Date is required.</span>
+                                }
+                                @if(planStartDate?.errors?.['invalidTimeRange']){
+                                <span>Start Date must be before End Date.</span>
+                                }
+                            </div>
                             }
-                            <option value="Coconut"></option>
-                            <option value="Mint"></option>
-                            <option value="Strawberry"></option>
-                            <option value="Vanilla"></option>
-                            </datalist>
+                        </div>
+
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="endDate" class="form-label">
+                                Plan End Date
+                            </label>
+                            <input type="date" id="endDate" formControlName="endDate" class="form-control">
+
+                            @if(planEndDate?.touched && planEndDate?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(planEndDate?.errors?.['required']){
+                                <span>End Date is required.</span>
+                                }
+                                @if(planEndDate?.errors?.['invalidTimeRange']){
+                                <span>End Date must be after Start Date.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- subUserLimit -->
+                        <div class="col-12 col-md-6">
+                            <label for="subUserLimit" class="form-label">
+                                Plan Sub User Limit
+                            </label>
+                            <input type="text" id="subUserLimit" formControlName="subUserLimit" class="form-control"
+                                placeholder="Enter Sub User Limit" (keypress)="onlyDigits($event, 2)">
+
+                            @if(mobile?.touched && mobile?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(mobile?.errors?.['required']){
+                                <span>Mobile Number is required.</span>
+                                }
+                                @if(mobile?.errors?.['pattern']){
+                                <span>Enter a valid 10-digit mobile number.</span>
+                                }
+                            </div>
+                            }
                         </div>
                     </div>
                 </div>

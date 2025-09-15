@@ -59,6 +59,9 @@ export class Workspace {
     if (this.statusFilter) {
       Object.assign(payload, { isActive: JSON.parse(this.statusFilter) });
     }
+    if (this.workspaceSearchTerms) {
+      Object.assign(payload, { firmName: this.workspaceSearchTerms });
+    }
 
     this._apiFs.workspace.listWithPagination(payload).subscribe({
       next: (res: IResponse) => {
@@ -73,6 +76,13 @@ export class Workspace {
 
   protected onApplyFilter(): void {
     this.currentPage = 1; // Reset to first page on filter apply
+    this.loadList();
+  }
+
+  protected workspaceSearchTerms: string = '';
+  protected onWorkspaceSearch(event: Event): void {
+    event.stopPropagation();
+    this.currentPage = 1; // Reset to first page on search
     this.loadList();
   }
 

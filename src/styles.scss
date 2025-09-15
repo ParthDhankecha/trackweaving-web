@@ -1,6 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 
-@use './app/styles/index';
+@use './app/styles/index' as *;
 
 
 
@@ -42,4 +42,9 @@ body {
 
 .d-contents {
     display: contents !important;
+}
+
+.search-list-height {
+    max-height: 300px;
+    @include custom-scrollbar();
 }
