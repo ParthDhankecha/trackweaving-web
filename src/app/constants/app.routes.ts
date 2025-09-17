@@ -11,7 +11,8 @@ export const ROUTES = {
         BASE: 'admin',
         LOGIN: 'login',
         WORKSPACE: 'workspace',
-        USERS: 'users',
+        USER: 'user',
+        MACHINE: 'machine',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
     PAGE_NOT_FOUND: '**'

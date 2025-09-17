@@ -27,8 +27,12 @@ export class AdminLayout {
       url: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.WORKSPACE)
     },
     {
-      label: ROUTES.ADMIN.USERS,
-      url: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.USERS)
+      label: ROUTES.ADMIN.USER,
+      url: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.USER)
+    },
+    {
+      label: ROUTES.ADMIN.MACHINE,
+      url: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.MACHINE)
     }
   ];
   isSidebarCollapsed: boolean = false;

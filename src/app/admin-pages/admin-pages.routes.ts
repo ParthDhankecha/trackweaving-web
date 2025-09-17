@@ -7,6 +7,7 @@ import { AdminLayout } from '../layouts/admin-layout/admin-layout';
 import { AdminLogin } from './admin-login/admin-login';
 import { Workspace } from './workspace/workspace';
 import { Users } from './users/users';
+import { Machine } from './machine/machine';
 
 import { authGuard } from '../core/guards/auth-guard';
 import { adminRoleGuard } from '../core/guards/admin-role-guard';
@@ -30,9 +31,14 @@ export const routes: Routes = [
                 component: Workspace
             },
             {
-                path: ROUTES.ADMIN.USERS,
-                title: APP_PAGE_TITLE.ADMIN.USERS,
+                path: ROUTES.ADMIN.USER,
+                title: APP_PAGE_TITLE.ADMIN.USER,
                 component: Users
+            },
+            {
+                path: ROUTES.ADMIN.MACHINE,
+                title: APP_PAGE_TITLE.ADMIN.MACHINE,
+                component: Machine
             }
         ],
     },

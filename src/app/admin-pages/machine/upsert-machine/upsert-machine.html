@@ -1,0 +1,127 @@
+<div class="modal modal-lg fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="machineForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit Machine' : 'Create Machine'}}
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Machine Fields -->
+                    <div class="row">
+                        <!-- machineCode, machineName, ip, workspaceId -->
+                        <!-- Workspace -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="userName" class="form-label">
+                                Workspace <span class="text-danger">*</span>
+                            </label>
+                            <div class="dropdown position-relative">
+                                <button class="btn btn-light w-100 dropdown-toggle text-capitalize" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    {{workspace?.value?.firmName || 'Select Workspace'}}
+                                </button>
+                                <ul class="dropdown-menu pt-0 w-100">
+                                    <div class="search-list-height">
+                                        <div class="bg-secondary-subtle position-sticky top-0 border-bottom">
+                                            <app-search-input (onSearch)="onSearchTerms($event)"></app-search-input>
+                                        </div>
+                                        @for(wItem of filteredWorkspaceList; track wItem._id){
+                                        <li (click)="onWorkspaceChange(wItem)">
+                                            <span class="dropdown-item text-capitalize"
+                                                [class.active]="wItem?._id === workspace?.value?._id">
+                                                {{wItem.firmName}}
+                                            </span>
+                                        </li>
+                                        }
+                                    </div>
+                                </ul>
+                            </div>
+
+                            @if(workspace?.touched && workspace?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(workspace?.errors?.['required']){
+                                <span>Workspace is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Machine Code -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="machineCode" class="form-label">
+                                Machine Code <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
+                                placeholder="Enter Machine Code">
+
+                            @if(machineCode?.touched && machineCode?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineCode?.errors?.['required']){
+                                <span>Machine Code is required.</span>
+                                }
+                                @if(machineCode?.errors?.['pattern']){
+                                <span>
+                                    Machine Code must start with 'M' followed by numbers only.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Machine Name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="machineName" class="form-label">
+                                Machine Name <span class="text-danger">*</span>
+                            </label>
+                            <select id="machineName" formControlName="machineName" class="form-select text-capitalize">
+                                <option value="" disabled selected>Select Machine Name</option>
+                                @for(mName of _machineNames; track mName;){
+                                <option [value]="mName">
+                                    {{mName}}
+                                </option>
+                                }
+                            </select>
+
+                            @if(machineName?.touched && machineName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineName?.errors?.['required']){
+                                <span>Machine Name is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- IP Address -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="ip" class="form-label">
+                                IP Address <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="ip" formControlName="ip" class="form-control"
+                                placeholder="Enter IP address (e.g. 0.0.0.0)">
+
+                            @if(machineIp?.touched && machineIp?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineIp?.errors?.['required']){
+                                <span>IP Address is required.</span>
+                                }
+                                @if(machineIp?.errors?.['pattern']){
+                                <span>Invalid IP Address format.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        {{isEditMode ? 'Update' : 'Create'}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
