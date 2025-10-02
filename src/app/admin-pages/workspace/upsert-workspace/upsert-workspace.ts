@@ -40,12 +40,12 @@ export class UpsertWorkspace {
       // GST number - Create - Edit - .e.x '24AAACC1206D1ZM'
       GSTNo: ['', [Validators.pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/)]],
       dayShift: this._fb.group({
-        startTime: ['', [this.shiftTimeValidatorFactory('endTime', 'start')]],
-        endTime: ['', [this.shiftTimeValidatorFactory('startTime', 'end')]],
+        startTime: ['', [Validators.required]],// this.shiftTimeValidatorFactory('endTime', 'start')
+        endTime: ['', [Validators.required]],// this.shiftTimeValidatorFactory('startTime', 'end')
       }),
       nightShift: this._fb.group({
-        startTime: ['', [this.shiftTimeValidatorFactory('endTime', 'start')]],
-        endTime: ['', [this.shiftTimeValidatorFactory('startTime', 'end')]],
+        startTime: ['', [Validators.required]],// this.shiftTimeValidatorFactory('endTime', 'start')
+        endTime: ['', [Validators.required]],// this.shiftTimeValidatorFactory('startTime', 'end')
       }),
     },
     // for user only
