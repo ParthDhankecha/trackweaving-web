@@ -24,7 +24,11 @@ export class Login {
     private _coreService: CoreFacadeService,
   ) {
     if (this._coreService.utils.isAuthenticated) {
-      this._router.navigateByUrl(ROUTES.HOME);
+      if (this._coreService.utils.isAdmin) {
+        this._router.navigateByUrl(ROUTES.HOME);
+      } else {
+        this._router.navigateByUrl(ROUTES.ADMIN.BASE);
+      }
       return;
     }
   }
@@ -81,7 +85,7 @@ export class Login {
       next: (res: IResponse) => {
         this.isReqAlive = false;
         if (res.code === 'OK') {
-          this._router.navigateByUrl(ROUTES.HOME).then(() => {
+          this._router.navigateByUrl(ROUTES.BASE).then(() => {
             this._coreService.utils.showToaster(EToasterType.Success, res.message || 'Login successful');
           });
         }

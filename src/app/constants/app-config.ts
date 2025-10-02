@@ -16,6 +16,7 @@ export const APP_PAGE_TITLE = {
         WORKSPACE: `Workspace Management ${TITLE_POSTFIX}`,
         USER: `User Management ${TITLE_POSTFIX}`,
         MACHINE: `Machine Management ${TITLE_POSTFIX}`,
+        APK_VERSION: `APK Version Management ${TITLE_POSTFIX}`,
     },
     PAGE_NOT_FOUND: `404 - Page Not Found ${TITLE_POSTFIX}`,
 };

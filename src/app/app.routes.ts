@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 
-
 import { ROUTES } from './constants/app.routes';
 import { APP_PAGE_TITLE } from './constants/app-config';
 

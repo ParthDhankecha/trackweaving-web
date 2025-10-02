@@ -1,0 +1,174 @@
+<!-- inner header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+    <!-- left side -->
+    <div class="d-flex flex-grow-1 gap-2">
+
+    </div>
+    <!-- right side -->
+    <div></div>
+</div>
+
+<!-- main content -->
+<div class="p-4">
+    <div class="card">
+        <div class="card-body">
+            <!-- Show dropdown to select number of entries per page -->
+            <div class="d-flex align-items-center mb-3 gap-4">
+                <div class="flex-grow-1">
+                    <ul class="nav nav-tabs nav-fill">
+                        @for(appType of appTypeList; track appType;) {
+                        <li class="nav-item cursor-pointer" (click)="onTabChange(appType)">
+                            <span class="nav-link text-capitalize"
+                                [class]="appType === selectedAppType ? 'bg-primary text-white': ''">
+                                {{ appType }}
+                            </span>
+                        </li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-primary d-flex align-items-center gap-2"
+                        (click)="onOpenUpsertUserModal()">
+                        <svg height="20" width="20" viewBox="0 0 48 48" class="flex-shrink-0">
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                        </svg>
+                        <span class="text-nowrap">
+                            New Version
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">App Type</th>
+                        <th scope="col">Version</th>
+                        <th scope="col" class="text-center">Show Popup</th>
+                        <th scope="col" class="text-center">Hard Update</th>
+                        <th scope="col" class="w-1-percent text-center">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(apkV of apkVersionList; track apkV._id; let i = $index){
+                    <tr>
+                        <th scope="row">
+                            {{ i + 1 }}
+                        </th>
+                        <td class="text-capitalize">{{ apkV?.appType }}</td>
+                        <td>{{ apkV?.version }}</td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-flex p-0">
+                                <input class="form-check-input mx-auto fs-5" type="checkbox" [checked]="apkV?.showPopup"
+                                    (click)="onStatusChange($event, apkV, 'showPopup')">
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-flex p-0">
+                                <input class="form-check-input mx-auto fs-5" type="checkbox"
+                                    [checked]="apkV?.hardUpdate" (click)="onStatusChange($event, apkV, 'hardUpdate')">
+                            </div>
+                        </td>
+                        <td class="text-nowrap text-end">
+                            <button class="btn btn-sm btn-outline-primary" (click)="onOpenUpsertUserModal(apkV)">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" (click)="onOpenDeleteConfirmModal(apkV)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    }@empty {
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No records found.
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Create/Upsert APK Version Modal -->
+@if(isUpsertModalOpen){
+<app-upsert-apk-version [apkVersionData]="upsertModalData" (closeOrCancel)="onCloseOrCancelModal()"
+    (upsert)="upsertModalEvent($event)"></app-upsert-apk-version>
+}
+
+<!-- Status Change Confirmation Modal -->
+@if (isStatusChangeConfirmationModalOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Status Change</h5>
+                <button type="button" class="btn-close" (click)="closeStatusChangeConfirmationModal()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">
+                    Are you sure you want to
+                    <strong>{{userStatusChangeData?.[userStatusChangeData?.keyToChange] ? 'Disable' :
+                        'Enable'}}</strong>
+                    {{userStatusChangeData?.keyToChange === 'showPopup' ? 'Show Popup' : 'Hard Update'}}
+                    for <strong class="text-capitalize text-nowrap">
+                        {{userStatusChangeData?.appType}} ({{ userStatusChangeData?.version}})
+                    </strong>?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeStatusChangeConfirmationModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmStatusChange()">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (deleteConfirmModalConfig.isOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <p class="m-0">
+                        Are you sure you want to delete this APK version?
+                    </p>
+                    <strong class="text-capitalize">
+                        {{deleteConfirmModalConfig.data?.appType}}
+                    </strong>
+                    <strong class="text-capitalize">
+                        ({{ deleteConfirmModalConfig.data?.version}})
+                    </strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeDeleteConfirmModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" (click)="confirmDelete()">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

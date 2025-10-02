@@ -36,6 +36,10 @@ body {
     height: var(--header-height);
 }
 
+.word-break-all {
+    word-break: break-all;
+}
+
 .w-1-percent {
     width: 1% !important;
 }

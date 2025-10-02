@@ -37,7 +37,10 @@ export class Toaster {
 
 
   protected toasters: any[] = [];
-
+  
+  get toasterTop(): string {
+    return this._coreService.utils.isAuthenticated && this._coreService.utils.isAdmin ? '80px' : '20px';
+  }
 
   protected onMouseEnter(event: MouseEvent, toaster: any): void {
     event.stopPropagation();
@@ -59,9 +62,17 @@ export class Toaster {
 
   protected removeToaster(toaster: any): void {
     const toasterIdx = this.toasters.findIndex(t => t.id === toaster.id);
-    this.toasters.splice(toasterIdx, 1); // Remove toaster at the given index
+    if (toasterIdx !== -1) {
+      this.toasters.splice(toasterIdx, 1);// Remove the toaster from the array
+    }
     if (toaster && toaster.timeoutId) {
       clearTimeout(toaster.timeoutId); // Clear the timeout if it exists
     }
+  }
+
+  ngOnDestroy(): void {
+    // Clear all timeouts when the component is destroyed
+    this.toasters.forEach(t => { if (t && t.timeoutId) clearTimeout(t.timeoutId) });
+    this.toasters = [];
   }
 }

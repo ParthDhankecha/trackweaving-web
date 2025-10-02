@@ -10,7 +10,8 @@ export type LayoutOption = 'default' | '1x1' | '2x2' | '3x2' | '4x2' | '4x3' | '
 export interface LayoutConfig {
   rows: number;
   cols: number;
-  fs?: string
+  fs?: string;
+  bootstrap?: string; // optional bootstrap class
 };
 
 
@@ -39,13 +40,23 @@ export class Dashboard {
     '2x2': { rows: 2, cols: 2, fs: 'fs-2' },
     '3x2': { rows: 2, cols: 3, fs: 'fs-3' },
     '4x2': { rows: 2, cols: 4, fs: 'fs-5' },
-    '4x3': { rows: 3, cols: 4, fs: 'fs-5' },
+    '4x3': { rows: 3, cols: 4, fs: 'fs-6' },
     '5x3': { rows: 3, cols: 5, fs: 'fs-6' },
   };
 
 
   ngOnInit(): void { }
 
+  openFullscreen() {
+    const elem = document.body; // or any element you want
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if ((elem as any).webkitRequestFullscreen) { // Safari
+      (elem as any).webkitRequestFullscreen();
+    } else if ((elem as any).msRequestFullscreen) { // IE/Edge
+      (elem as any).msRequestFullscreen();
+    }
+  }
 
 
   protected onChangeLayout(opt: LayoutOption): void {
@@ -73,10 +84,10 @@ export class Dashboard {
   }
 
   get rowClass(): string {
-    if (this.selectedLayout === 'default') {
-      return 'default-grid';
-    }
     const config = this.layoutMap[this.selectedLayout];
+    if (this.selectedLayout === 'default') {
+      return `default-grid ${config.fs || ''}`;
+    }
     return `row-cols-${config.cols} ${config.fs || ''}`;
   }
 

@@ -44,11 +44,11 @@
                         <th scope="col">#</th>
                         <th scope="col">Full Name</th>
                         <th scope="col">Username</th>
-                        <th scope="col">Workspace Name</th>
+                        <th scope="col" class="text-nowrap">Workspace Name</th>
                         <th scope="col">Uid</th>
                         <th scope="col">Mobile</th>
                         <th scope="col">Email</th>
-                        <th scope="col" class="text-center">Is Active</th>
+                        <th scope="col" class="text-center text-nowrap">Is Active</th>
                         <th scope="col" class="w-1-percent text-center">Actions</th>
                     </tr>
                 </thead>
@@ -56,9 +56,9 @@
                     @for(user of userList; track user._id; let i = $index){
                     <tr>
                         <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
-                        <td>{{ user.fullname }}</td>
+                        <td class="word-break-all">{{ user.fullname }}</td>
                         <td>{{ user?.userName }}</td>
-                        <td>{{ user?.workspaceId?.firmName }}</td>
+                        <td class="word-break-all">{{ user?.workspaceId?.firmName }}</td>
                         <td>{{ user?.workspaceId?.uid }}</td>
                         <td>{{ user?.mobile || '-' }}</td>
                         <td>{{ user?.email || '-' }}</td>

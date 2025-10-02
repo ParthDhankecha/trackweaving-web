@@ -19,7 +19,7 @@ export class Machine {
 
 
   listWithPagination(payload: { page?: number, limit?: number }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/pagination`, payload);
+    return this._http.post(`${this._baseUrl}`, payload);
   }
 
   getMachineCode(workspaceId: string): Observable<IResponse> {

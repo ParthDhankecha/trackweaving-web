@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
-import { Toaster } from '@src/app/shared/components/toaster/toaster';
 
 import { ROUTES } from '@src/app/constants/app.routes';
 import { IResponse } from '@src/app/models/http-response.model';
@@ -15,8 +14,7 @@ import { EToasterType } from '@src/app/models/utils.model';
   selector: 'app-admin-login',
   imports: [
     FormsModule,
-    ReactiveFormsModule,
-    Toaster
+    ReactiveFormsModule
   ],
   templateUrl: './admin-login.html',
   styleUrl: './admin-login.scss'
@@ -26,7 +24,11 @@ export class AdminLogin {
     private _coreService: CoreFacadeService,
   ) {
     if (this._coreService.utils.isAuthenticated) {
-      this._router.navigateByUrl(ROUTES.HOME);
+      if (this._coreService.utils.isSuperAdmin) {
+        this._router.navigateByUrl(ROUTES.ADMIN.BASE);
+      } else {
+        this._router.navigateByUrl(ROUTES.HOME);
+      }
       return;
     }
   }

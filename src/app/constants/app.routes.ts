@@ -13,6 +13,7 @@ export const ROUTES = {
         WORKSPACE: 'workspace',
         USER: 'user',
         MACHINE: 'machine',
+        APK_VERSION: 'apk-version',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
     PAGE_NOT_FOUND: '**'

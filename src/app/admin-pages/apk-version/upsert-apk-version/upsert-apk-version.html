@@ -1,0 +1,106 @@
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="apkVForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit APK Version' : 'Create APK Version'}}
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- appType, version, showPopup, hardUpdate -->
+                        <!-- App Type -->
+                        <div class="col-12 mb-3">
+                            <label for="appType" class="form-label">
+                                App Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="appType" class="form-select text-capitalize" formControlName="appType">
+                                <option value="" disabled>Select App Type</option>
+                                @for(appType of appTypeList; track appType){
+                                <option [value]="appType">
+                                    {{ appType }}
+                                </option>
+                                }
+                            </select>
+
+                            @if(ff_appType?.touched && ff_appType?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(ff_appType?.errors?.['required']){
+                                <span>
+                                    App Type is required.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Version -->
+                        <div class="col-12 mb-3">
+                            <label for="version" class="form-label">
+                                Version <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="version" formControlName="version" class="form-control"
+                                placeholder="Enter Version" />
+
+                            @if(ff_version?.touched && ff_version?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(ff_version?.errors?.['required']){
+                                <span>
+                                    Version is required.
+                                </span>
+                                }
+                                @if(ff_version?.errors?.['pattern']){
+                                <span>
+                                    Version must be in the format X.Y.Z where X, Y, and Z are numbers.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Show Popup -->
+                        <div class="col-12 mb-3 d-flex">
+                            <div class="form-check form-switch my-auto ps-5">
+                                <input class="form-check-input fs-5" type="checkbox" id="showPopup"
+                                    formControlName="showPopup" [checked]="ff_showPopup?.value">
+                                <label class="form-check-label" for="showPopup">
+                                    Show Popup
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Hard Update -->
+                        <div class="col-12 mb-3 d-flex">
+                            <div class="form-check form-switch my-auto ps-5">
+                                <input class="form-check-input fs-5" type="checkbox" id="hardUpdate"
+                                    formControlName="hardUpdate" [checked]="ff_hardUpdate?.value">
+                                <label class="form-check-label" for="hardUpdate">
+                                    Hard Update
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary d-flex align-items-center justify-content-center"
+                        [class.disabled]="isReqAlive" [disabled]="isReqAlive">
+                        @if(!isReqAlive) {
+                        <span>
+                            {{isEditMode ? 'Update' : 'Create'}}
+                        </span>
+                        } @else {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span role="status">
+                            &nbsp; Please wait...
+                        </span>
+                        }
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

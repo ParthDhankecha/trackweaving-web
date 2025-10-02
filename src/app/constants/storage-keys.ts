@@ -8,5 +8,8 @@ export default class StorageKeys {
     static readonly WORKSPACE_ID = `${_prefix}workspaceId`;
 
     /** sessionStorage */
-    static readonly SST = {};
+    static readonly SST = {
+        // Selected Language
+        LANG: `${_prefix}lang`
+    };
 }

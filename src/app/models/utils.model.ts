@@ -1,3 +1,24 @@
+// Enum for language codes
+export enum ELangCode {
+    EN = 'en',
+    HI = 'hi',
+    GU = 'gu'
+};
+export interface ILanguage {
+    code: ELangCode;
+    label: string;
+}
+
+export interface IUserRoles {
+    SUPER_ADMIN: number;
+    ADMIN: number;
+}
+
+export interface IAppConfigData {
+    publicUrl: string;
+    clientUrl: string;
+    roles?: IUserRoles
+}
 // Enum for Toaster types
 export enum EToasterType {
     Info = 'info',

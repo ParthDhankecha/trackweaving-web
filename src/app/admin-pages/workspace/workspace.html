@@ -52,11 +52,19 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Uid</th>
-                        <th scope="col">Workspace Name</th>
-                        <th scope="col">GST Number</th>
-                        <th scope="col">User Name</th>
+                        <th scope="col" class="text-nowrap">
+                            Workspace Name
+                        </th>
+                        <th scope="col" class="text-nowrap">
+                            GST Number
+                        </th>
+                        <th scope="col" class="text-nowrap">
+                            User Name
+                        </th>
                         <th scope="col">Fullname</th>
-                        <th scope="col" class="text-center">Is Active</th>
+                        <th scope="col" class="text-center text-nowrap">
+                            Is Active
+                        </th>
                         <th scope="col" class="w-1-percent text-center">Actions</th>
                     </tr>
                 </thead>
@@ -65,10 +73,12 @@
                     <tr>
                         <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
                         <td>{{ workspace.uid || '-' }}</td>
-                        <td>{{ workspace.firmName }}</td>
+                        <td class="word-break-all">{{ workspace.firmName }}</td>
                         <td>{{ workspace.GSTNo }}</td>
-                        <td>{{ workspace?.userId?.userName }}</td>
-                        <td>{{ workspace?.userId?.fullname }}</td>
+                        <td class="word-break-all">{{ workspace?.userId?.userName }}</td>
+                        <td class="word-break-all">
+                            {{ workspace?.userId?.fullname }}
+                        </td>
                         <td class="text-center">
                             <div class="form-check form-switch d-flex p-0">
                                 <input class="form-check-input mx-auto fs-5" type="checkbox" id="isActive"

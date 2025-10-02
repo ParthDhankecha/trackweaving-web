@@ -8,17 +8,18 @@ import { AdminLogin } from './admin-login/admin-login';
 import { Workspace } from './workspace/workspace';
 import { Users } from './users/users';
 import { Machine } from './machine/machine';
+import { ApkVersion } from './apk-version/apk-version';
 
 import { authGuard } from '../core/guards/auth-guard';
-import { adminRoleGuard } from '../core/guards/admin-role-guard';
+import { superAdminGuard } from '../core/guards/super-admin-guard';
 
 
 export const routes: Routes = [
     {
         path: '',
         component: AdminLayout,
-        canActivate: [authGuard, adminRoleGuard],
-        canActivateChild: [authGuard, adminRoleGuard],
+        canActivate: [authGuard, superAdminGuard],
+        canActivateChild: [authGuard, superAdminGuard],
         children: [
             {
                 path: ROUTES.BASE,
@@ -39,6 +40,11 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.MACHINE,
                 title: APP_PAGE_TITLE.ADMIN.MACHINE,
                 component: Machine
+            },
+            {
+                path: ROUTES.ADMIN.APK_VERSION,
+                title: APP_PAGE_TITLE.ADMIN.APK_VERSION,
+                component: ApkVersion
             }
         ],
     },

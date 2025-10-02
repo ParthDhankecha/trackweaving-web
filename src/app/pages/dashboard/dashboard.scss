@@ -4,8 +4,11 @@
 }
 
 .fs-normal {
-    font-size: 0.9em;
+    font-size: 0.75em;
 }
+// small {
+//     font-size: 0.75em;
+// }
 
 .custom-table {
     display: grid;
@@ -16,14 +19,24 @@
         &.rounded-inherit-top-left {
             border-top-left-radius: inherit;
         }
+
         &.rounded-inherit-top-right {
             border-top-right-radius: inherit;
         }
+
         &.rounded-inherit-bottom-left {
             border-bottom-left-radius: inherit;
         }
+
         &.rounded-inherit-bottom-right {
             border-bottom-right-radius: inherit;
         }
     }
+}
+
+.box-content {
+    overflow: hidden; // prevents spilling outside
+    text-overflow: ellipsis;
+    white-space: nowrap; // or remove this if you want text wrapping
+    word-wrap: break-word;
 }

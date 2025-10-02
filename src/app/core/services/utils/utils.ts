@@ -1,13 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { AES, enc } from 'crypto-js';
 import { jwtDecode } from 'jwt-decode';
+import { _, TranslateService } from '@ngx-translate/core';
 
 import StorageKeys from '@src/app/constants/storage-keys';
 import { EToasterType, IToaster } from '@src/app/models/utils.model';
 import { ROUTES } from '@src/app/constants/app.routes';
+import { AppConfig } from '../app-config/app-config';
 
 
 @Injectable({
@@ -16,7 +18,9 @@ import { ROUTES } from '@src/app/constants/app.routes';
 export class Utils {
 
   // Inject Services
+  private readonly _translate = inject(TranslateService);
   protected readonly _router = inject(Router); // Inject the Router service
+  private readonly _appConfig = inject(AppConfig);
 
   get encodeKey(): string {
     return `${window.screen.height}${window.screen.width}${window.screen.colorDepth}${new Date().getTime()}`;
@@ -55,13 +59,16 @@ export class Utils {
     return false;
   }
 
+  get isSuperAdmin(): boolean {
+    return this._appConfig.roles && this._appConfig.roles.SUPER_ADMIN === this.decodeToken?.user?.type;
+  }
   get isAdmin(): boolean {
-    return this.decodeToken?.user?.type === 0;
+    return this._appConfig.roles && this._appConfig.roles.ADMIN === this.decodeToken?.user?.type;
   }
 
   logout(): void {
     localStorage.clear();
-    const baseKey = this.isAdmin ? 'ADMIN' : 'AUTH';
+    const baseKey = this.isSuperAdmin ? 'ADMIN' : 'AUTH';
     this.decodeTokenData = null;
     this._router.navigateByUrl(`${ROUTES[baseKey].getFullRoute(ROUTES[baseKey].LOGIN)}`);
   }
@@ -75,5 +82,13 @@ export class Utils {
 
   clearAllToaster(): void {
     this.clearToasters$.next(true);
+  }
+
+
+  translate(key: string, interpolateParams: Object = {}): Observable<string> {
+    return this._translate.get(_(key), interpolateParams);
+  }
+  translateStream(key: string, interpolateParams: Object = {}): Observable<string> {
+    return this._translate.stream(_(key), interpolateParams);
   }
 }

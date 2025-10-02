@@ -28,6 +28,8 @@
     "@angular/forms": "^20.2.0",
     "@angular/platform-browser": "^20.2.0",
     "@angular/router": "^20.2.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "bootstrap": "^5.3.8",
     "crypto-js": "^4.2.0",
     "jwt-decode": "^4.0.0",
