@@ -9,7 +9,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 export class HttpClient {
 
   private readonly _http = inject(_HttpClient);
-  private baseUrl = 'http://192.168.29.74:3000/api/v1/';// environment.apiUrl; // e.g., 'https://api.example.com'
+  private baseUrl = 'https://trackweaving.com/api/v1/';// environment.apiUrl; // e.g., 'https://api.example.com'
 
   /** Default headers */
   private get headers(): HttpHeaders {
