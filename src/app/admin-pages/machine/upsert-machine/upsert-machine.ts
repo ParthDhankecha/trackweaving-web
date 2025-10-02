@@ -57,12 +57,12 @@ export class UpsertMachine {
       // Initializing form for edit mode
       this.isEditMode = true;
       const workspaceData = this.workspaceList.find((ws: any) => ws._id === this.machineData.workspaceId?._id);
-      this.machineForm = this._fb.group({
+      this.machineForm.patchValue({
         machineCode: this.machineData.machineCode || '',
         machineName: this.machineData.machineName || '',
         ip: this.machineData.ip || '',
         workspace: workspaceData || null
-      })
+      });
     }
   }
 
