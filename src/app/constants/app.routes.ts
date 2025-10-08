@@ -16,5 +16,7 @@ export const ROUTES = {
         APK_VERSION: 'apk-version',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
+    TERMS_AND_CONDITIONS: 'terms-and-condition',
+    PRIVACY_POLICY: 'privacy-policy',
     PAGE_NOT_FOUND: '**'
 };

@@ -1,7 +1,7 @@
-const TITLE_POSTFIX = '- Trackweaving';
+const TITLE_POSTFIX = '- TrackWeaving';
 
 export const APP_PAGE_TITLE = {
-    BRAND_NAME: `Trackweaving`,
+    BRAND_NAME: `TrackWeaving`,
     HOME: `Home ${TITLE_POSTFIX}`,
     AUTH: {
         BASE: `Authentication ${TITLE_POSTFIX}`,
@@ -18,5 +18,7 @@ export const APP_PAGE_TITLE = {
         MACHINE: `Machine Management ${TITLE_POSTFIX}`,
         APK_VERSION: `APK Version Management ${TITLE_POSTFIX}`,
     },
+    TERMS_AND_CONDITIONS: `Terms and Conditions ${TITLE_POSTFIX}`,
+    PRIVACY_POLICY: `Privacy Policy ${TITLE_POSTFIX}`,
     PAGE_NOT_FOUND: `404 - Page Not Found ${TITLE_POSTFIX}`,
 };

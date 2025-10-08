@@ -1,0 +1,141 @@
+<section id="terms" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="fw-bold text-primary border-2 border-bottom mb-3 pb-2">
+                Terms & Conditions – TrackWeaving
+            </h1>
+            <p class="text-muted">
+                <strong>Effective Date:</strong> {{details.effectiveDate}}
+            </p>
+        </div>
+
+        <div class="bg-white shadow-sm rounded-4 p-4 p-md-5">
+            <h2 class="h4 text-primary fw-semibold mt-0">
+                1. Introduction
+            </h2>
+            <p>
+                These Terms and Conditions (“Terms”) govern your access to and use of the
+                <strong>TrackWeaving</strong> platform (“Service”) operated by
+                <strong>{{details.companyName}}</strong> (“we,” “our,” “us”). By using our Service,
+                you agree to these Terms and our Privacy Policy.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                2. Eligibility
+            </h2>
+            <p>
+                You must be at least 18 years old and legally capable of entering into a binding contract
+                under applicable Indian law.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                3. Use of Service
+            </h2>
+            <ul class="ps-3">
+                <li>Use the Service only for lawful industrial monitoring purposes.</li>
+                <li>Do not copy, reverse-engineer, or misuse the platform.</li>
+                <li>Do not upload malicious software or interfere with system operations.</li>
+            </ul>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                4. Account Responsibilities
+            </h2>
+            <p>
+                You are responsible for safeguarding your login credentials and all activities
+                occurring under your account. Notify us immediately of any unauthorized use or breach.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                5. Intellectual Property
+            </h2>
+            <p>
+                All materials, software, and trademarks related to TrackWeaving are the exclusive
+                property of <strong>{{details.companyName}}</strong>. No license or rights are
+                granted except as expressly stated.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                6. Subscription and Payment
+            </h2>
+            <ul class="ps-3">
+                <li>Fees are billed as per the selected subscription plan.</li>
+                <li>Failure to make timely payments may result in suspension of access.</li>
+                <li>All charges are exclusive of GST or other applicable taxes.</li>
+            </ul>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                7. Limitation of Liability
+            </h2>
+            <p>
+                To the fullest extent permitted by law, we shall not be liable for any indirect,
+                incidental, or consequential damages. Our total liability shall not exceed the
+                amount paid by you in the preceding 12 months.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                8. Indemnification
+            </h2>
+            <p>
+                You agree to indemnify and hold harmless <strong>{{details.companyName}}</strong>,
+                its affiliates, and employees against any claims or damages arising from your
+                misuse of the Service or violation of these Terms.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                9. Termination
+            </h2>
+            <p>
+                We may suspend or terminate your access to the Service if you breach these Terms
+                or any applicable law. Upon termination, your right to use the Service ceases
+                immediately.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                10. Governing Law & Jurisdiction
+            </h2>
+            <p>
+                These Terms shall be governed by and construed in accordance with the laws of India.
+                Courts at <strong>{{details.companyCity}}, {{details.companyState}}</strong> shall have
+                exclusive jurisdiction.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                11. Dispute Resolution
+            </h2>
+            <p>
+                Disputes shall first be attempted to be resolved amicably. If unresolved within 30 days,
+                the matter shall be referred to arbitration under the
+                <strong>Arbitration and Conciliation Act, 1996</strong>. Seat: {{details.companyCity}},
+                India. Language: English.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                12. Force Majeure
+            </h2>
+            <p>
+                We are not responsible for failures or delays caused by circumstances beyond our control,
+                including natural disasters, cyberattacks, or technical disruptions.
+            </p>
+
+            <h2 class="h4 text-primary fw-semibold mt-4">
+                13. Contact
+            </h2>
+            <div class="border-start border-4 border-primary ps-3">
+                <p>
+                    <strong>Legal Department – TrackWeaving</strong><br />
+                    {{details.companyName}} <br />
+                    {{details.companyAddress}} <br />
+                    📧 <a href="mailto:{{details.companyEmail}}" class="text-decoration-none">
+                        {{details.companyEmail}}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="py-3 border-top bg-white">
+    <p class="small text-muted text-center m-0">
+        &copy; {{details.year}} <strong>{{details.companyName}}</strong>. All Rights Reserved. | TrackWeaving
+    </p>
+</footer>
