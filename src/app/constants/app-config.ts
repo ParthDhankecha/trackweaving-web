@@ -20,5 +20,6 @@ export const APP_PAGE_TITLE = {
     },
     TERMS_AND_CONDITIONS: `Terms and Conditions ${TITLE_POSTFIX}`,
     PRIVACY_POLICY: `Privacy Policy ${TITLE_POSTFIX}`,
+    SUPPORT: `Support ${TITLE_POSTFIX}`,
     PAGE_NOT_FOUND: `404 - Page Not Found ${TITLE_POSTFIX}`,
 };

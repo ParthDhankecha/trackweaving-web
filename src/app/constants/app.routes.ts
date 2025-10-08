@@ -18,5 +18,6 @@ export const ROUTES = {
     },
     TERMS_AND_CONDITIONS: 'terms-and-condition',
     PRIVACY_POLICY: 'privacy-policy',
+    SUPPORT: 'support',
     PAGE_NOT_FOUND: '**'
 };

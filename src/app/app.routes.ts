@@ -8,6 +8,7 @@ import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { PageNotFound } from './shared/components/page-not-found/page-not-found';
 import { TermsAndCondition } from './pages/terms-and-condition/terms-and-condition';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy';
+import { Support } from './pages/support/support';
 
 import { authGuard } from './core/guards/auth-guard';
 
@@ -40,6 +41,11 @@ export const routes: Routes = [
         path: ROUTES.PRIVACY_POLICY,
         title: APP_PAGE_TITLE.PRIVACY_POLICY,
         component: PrivacyPolicy,
+    },
+    {
+        path: ROUTES.SUPPORT,
+        title: APP_PAGE_TITLE.SUPPORT,
+        component: Support,
     },
     {
         path: ROUTES.PAGE_NOT_FOUND,
