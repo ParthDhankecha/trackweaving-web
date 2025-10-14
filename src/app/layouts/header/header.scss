@@ -1,0 +1,9 @@
+.header-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    svg {
+        width: 50px;
+    }
+}

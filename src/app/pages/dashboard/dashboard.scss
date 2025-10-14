@@ -42,18 +42,26 @@
     word-wrap: break-word;
 }
 
-@keyframes blink-bg {
-    0%,
-    100% {
-        // 255,239,154,154
-        background: rgba(255, 239, 154, 0.4);
-    }
-
-    50% {
-        background: rgb(255, 239, 154);
-    }
+@keyframes blinkBg {
+    0% { background-color: #ffcccc; }
+    50% { background-color: #f89595; } /* slightly darker red for the blink */
+    100% { background-color: #ffcccc; }
 }
 
 .blink-bg {
-    animation: blink-bg 1s infinite ease-in-out;
+    animation: blinkBg 1.5s infinite;
+}
+.table-bordered > :not(caption) > * > * {
+  border-color: #6c757d !important; /* match Bootstrap's secondary border */
+}
+tr :first-child {
+  border-left: none !important; /* remove left border from first cell */
+}
+tr :last-child {
+  border-right: none !important; /* remove right border from last cell */
+}
+tr {
+    border-top: none !important; /* remove top border from all rows */
+    border-bottom: none !important; /* remove bottom border from all cells */
+    border-top-width: 1px; /* add top border to all cells */
 }

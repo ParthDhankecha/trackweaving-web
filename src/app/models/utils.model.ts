@@ -17,7 +17,10 @@ export interface IUserRoles {
 export interface IAppConfigData {
     publicUrl: string;
     clientUrl: string;
-    roles?: IUserRoles
+    roles?: IUserRoles;
+    efficiencyAveragePer: number;
+    efficiencyGoodPer: number;
+    refreshInterval: number;
 }
 // Enum for Toaster types
 export enum EToasterType {

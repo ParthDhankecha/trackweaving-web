@@ -1,0 +1,49 @@
+// custom.scss
+// Override Bootstrap's SCSS Variables here
+
+// // Set custom colors
+// $primary: #ff5733 !important; // Custom Primary Color
+// $secondary: #6c757d; // Custom Secondary Color
+// $success: #28a745; // Custom Success Color
+// $info: #17a2b8; // Custom Info Color
+// $warning: #ffc107; // Custom Warning Color
+// $danger: #dc3545; // Custom Danger Color
+// $light: #f8f9fa; // Custom Light Color
+// $dark: #343a40; // Custom Dark Color
+// $link: #0056b3; // Custom Link Color
+
+// // Import Bootstrap SCSS after defining variables
+// @use './../../../node_modules/bootstrap' as *;
+
+/* 1. Bootstrap functions must load first */
+@import "bootstrap/scss/functions";
+
+/* 2. Override variables BEFORE loading the rest */
+// $primary: #0B0BCF;
+$primary: #043A54; //#007ACC;
+// $secondary: #00b894;
+// $success: #00d084;
+// $info: #00c2ff;
+// $warning: #fbc531;
+// $danger: #e84118;
+// $light: #f8f9fa;
+// $dark: #2d3436;
+
+/* 3. Load mixins first */
+@import "bootstrap/scss/mixins";
+
+/* 4. Load variables and maps */
+@import "bootstrap/scss/variables";
+// @import "bootstrap/scss/maps";
+
+/* 5. Finally, bring in all of Bootstrap */
+@import "bootstrap/scss/bootstrap";
+
+
+// /* 3. Now load Bootstrap internals in the right order */
+// @use "bootstrap/scss/variables" as *;
+// @use "bootstrap/scss/maps" as *;
+// @use "bootstrap/scss/mixins" as *;
+
+// /* 4. Finally, bring in all of Bootstrap */
+// @use "bootstrap/scss/bootstrap" as *;

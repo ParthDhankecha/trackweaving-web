@@ -22,6 +22,7 @@ export class AppInit {
       if (res.code === 'OK' && res.data) {
         const data = res.data || {};
         const decoded = this._coreService.utils.decodeData(data.data, data.date);
+        console.log(decoded)
         if (decoded) {
           this._coreService.appConfig.configData = decoded;
         }

@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -22,7 +23,8 @@ export interface LayoutConfig {
   selector: 'app-dashboard',
   imports: [
     FormsModule,
-    Header
+    Header,
+    NgClass
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -32,6 +34,7 @@ export class Dashboard {
   // Inject services
   readonly _apiFs = inject(ApiFacadeService);
   readonly _coreService = inject(CoreFacadeService);
+  readonly config = this._coreService.appConfig.configData;
 
 
   // Component properties
@@ -40,7 +43,7 @@ export class Dashboard {
     { key: EMachineStatusIds.Stopped, label: 'Stopped' },
     { key: EMachineStatusIds.all, label: 'All' }
   ];
-  protected selectedMachineStatus: IMachineStatus = this.machineStatus[0];
+  protected selectedMachineStatus: IMachineStatus = this.machineStatus[2];
 
   protected layoutOptions: LayoutOption[] = ['default', '1x1', '2x2', '3x2', '4x2', '4x3', '5x3'];
   protected selectedLayout: LayoutOption = 'default';
@@ -60,6 +63,9 @@ export class Dashboard {
 
   ngOnInit(): void {
     this.getMachineLogs();
+    setInterval(() => {
+      this.getMachineLogs();
+    }, this.config.refreshInterval * 1000);
   }
 
 
@@ -174,5 +180,15 @@ export class Dashboard {
     console.log('Layout changed to:', this.selectedLayout);
     console.log(this.gridArray);
     console.log(this.colClass);
+  }
+
+  efficiencyClassName(efficiency: number = 0): string {
+    if (efficiency >= this.config.efficiencyGoodPer) {
+      return 'bg-success';
+    } else if (efficiency > this.config.efficiencyAveragePer) {
+      return 'bg-warning text-dark';
+    } else {
+      return 'bg-danger bg-opacity-75';
+    }
   }
 }

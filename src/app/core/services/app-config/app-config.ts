@@ -68,7 +68,10 @@ export class AppConfig {
   private readonly _configData: IAppConfigData = {
     publicUrl: '',
     clientUrl: '',
-    roles: undefined
+    roles: undefined,
+    efficiencyAveragePer: 85,
+    efficiencyGoodPer: 90,
+    refreshInterval: 10
   };
 
   // getter and setter for config data

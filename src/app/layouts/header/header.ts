@@ -23,18 +23,19 @@ export class Header {
   @Input('containerClass') containerClass: string = '';
 
   @Input('liveMetrics') liveMetrics: any = {};
+  @Input('selectedMachineStatus') selectedMachineStatus!: any;
   @Input('machineStatus') machineStatus: IMachineStatus[] = [];
-  protected selectedMachineStatus!: any;
   @Output('onMachineStatusChange') onMachineStatusChange: EventEmitter<IMachineStatus> = new EventEmitter<IMachineStatus>();
 
 
   readonly _moment = moment;
-  protected readonly currentDateAndTimeFormat: string = 'DD-MM-YYYY, hh:mm A';
+  protected readonly currentDateAndTimeFormat: string = 'DD-MM-YYYY, hh:mm:ss A';
   protected currentDateAndTime: string = this._moment().format(this.currentDateAndTimeFormat);
 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['liveMetrics'] && this.liveMetrics) {
+      this.currentDateAndTime = this._moment().format(this.currentDateAndTimeFormat);
       if (!this.selectedMachineStatus) {
         this.selectedMachineStatus = this.machineStatus[0];
       } else {
@@ -46,30 +47,11 @@ export class Header {
     }
   }
 
-
-  ngOnInit(): void {
-    this.setCurrentTime();
-  }
-
-
-  protected currentTimeSubscription!: Subscription;
-  private setCurrentTime(): void {
-    this.currentTimeSubscription = interval(1000).subscribe(() => {
-      this.currentDateAndTime = this._moment().format(this.currentDateAndTimeFormat);
-    });
-  }
-
-
   protected onSelectMachineStatus(status: any): void {
     if (this.selectedMachineStatus.key === status.key) {
       return;
     }
     this.selectedMachineStatus = status;
     this.onMachineStatusChange.emit(this.selectedMachineStatus);
-  }
-
-
-  ngOnDestroy(): void {
-    this.currentTimeSubscription?.unsubscribe();
   }
 }
