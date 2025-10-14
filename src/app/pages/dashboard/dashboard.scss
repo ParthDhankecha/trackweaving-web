@@ -6,6 +6,7 @@
 .fs-normal {
     font-size: 0.75em;
 }
+
 // small {
 //     font-size: 0.75em;
 // }
@@ -39,4 +40,20 @@
     text-overflow: ellipsis;
     white-space: nowrap; // or remove this if you want text wrapping
     word-wrap: break-word;
+}
+
+@keyframes blink-bg {
+    0%,
+    100% {
+        // 255,239,154,154
+        background: rgba(255, 239, 154, 0.4);
+    }
+
+    50% {
+        background: rgb(255, 239, 154);
+    }
+}
+
+.blink-bg {
+    animation: blink-bg 1s infinite ease-in-out;
 }

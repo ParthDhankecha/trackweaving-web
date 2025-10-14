@@ -33,7 +33,12 @@
             </div>
 
             <div class="d-none d-md-flex gap-3 align-item-center px-3">
-                <ng-container *ngTemplateOutlet="pickingEfficiency"></ng-container>
+                <ng-container *ngTemplateOutlet="pickingEfficiency; context: {
+                    $implicit: {
+                        liveMetrics: liveMetrics,
+                        machineStatus: machineStatus
+                    }
+                }"></ng-container>
             </div>
 
             <span class="text-danger d-none d-md-block">
@@ -56,40 +61,72 @@
     <!-- for mobile view -->
     <div class="mt-3 d-block d-md-none">
         <div class="text-center">
-            <small class="text-danger">{{currentDateAndTime}}</small>
+            <small class="text-danger">
+                {{currentDateAndTime}}
+            </small>
         </div>
 
-        <div class="d-flex d-md-none gap-3 align-item-center justify-content-center px-1">
-            <ng-container *ngTemplateOutlet="pickingEfficiency"></ng-container>
+        <div class="d-block d-md-none text-center overflow-auto">
+            <div class="d-inline-flex gap-3 align-items-center px-1">
+                <ng-container *ngTemplateOutlet="pickingEfficiency; context: {
+                    $implicit: {
+                        liveMetrics: liveMetrics,
+                        machineStatus: machineStatus
+                    }
+                }"></ng-container>
+            </div>
         </div>
     </div>
 </div>
 
 
 <!-- picking efficiency template for reuse -->
-<ng-template #pickingEfficiency>
+<ng-template #pickingEfficiency let-data>
     <div class="d-flex gap-2">
         <div class="flex-shrink-0 d-flex flex-column text-center text-primary">
-            <h4 class="m-0">90%</h4>
+            <h4 class="m-0">
+                {{data?.liveMetrics?.efficiency || '0'}}%
+            </h4>
             <small>Efficiency</small>
         </div>
     </div>
     <div class="d-flex gap-2">
         <div class="flex-shrink-0 d-flex flex-column text-center text-primary">
-            <h4 class="m-0">326658</h4>
+            <h4 class="m-0">
+                {{data?.liveMetrics?.pick ?? 0}}
+            </h4>
             <small>Picks</small>
         </div>
     </div>
     <div class="d-flex gap-2">
         <div class="flex-shrink-0 d-flex flex-column text-center text-primary">
-            <h4 class="m-0">304658</h4>
+            <h4 class="m-0">
+                {{data?.liveMetrics?.avgSpeed ?? 0}}
+            </h4>
             <small>A.Picks</small>
         </div>
     </div>
     <div class="d-flex gap-2">
         <div class="flex-shrink-0 d-flex flex-column text-center text-primary">
-            <h4 class="m-0">769</h4>
+            <h4 class="m-0">
+                {{data?.liveMetrics?.avgPicks ?? 0}}
+            </h4>
             <small>A.Speed</small>
         </div>
     </div>
+    @if(data?.machineStatus) {
+    @for (item of data.machineStatus; track item.key) {
+    <div class="d-flex gap-2">
+        <div class="flex-shrink-0 d-flex flex-column text-center text-primary c-pointer"
+            [class.text-danger]="item === selectedMachineStatus" (click)="onSelectMachineStatus(item)">
+            <h4 class="m-0">
+                {{data?.liveMetrics?.[item?.key] ?? 0}}
+            </h4>
+            <small>
+                {{item?.label}}
+            </small>
+        </div>
+    </div>
+    }
+    }
 </ng-template>

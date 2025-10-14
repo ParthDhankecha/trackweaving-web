@@ -11,18 +11,15 @@
         <form [formGroup]="loginForm" novalidate (ngSubmit)="onSubmit()">
             <div class="mb-3">
                 <label class="form-label">
-                    <small>Mobile Number <span class="text-danger">*</span></small>
+                    <small>Username <span class="text-danger">*</span></small>
                 </label>
-                <input type="text" class="form-control mobile-input" formControlName="phoneNo"
-                    placeholder="Enter your mobile number" (keypress)="onlyDigits($event)" maxlength="10">
+                <input type="text" class="form-control mobile-input" formControlName="userName"
+                    placeholder="Enter username">
 
-                @if(phoneNo?.touched && phoneNo?.invalid) {
+                @if(userName?.touched && userName?.invalid) {
                 <div class="text-danger mt-1">
-                    @if(phoneNo?.errors?.['required']) {
-                    <small>Mobile number is required.</small>
-                    }
-                    @if(phoneNo?.errors?.['pattern']) {
-                    <small>Please enter a valid mobile number.</small>
+                    @if(userName?.errors?.['required']) {
+                    <small>Username is required.</small>
                     }
                 </div>
                 }

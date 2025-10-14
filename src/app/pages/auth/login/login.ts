@@ -38,14 +38,14 @@ export class Login {
   protected _fb: FormBuilder = inject(FormBuilder);
 
   protected loginForm: FormGroup = this._fb.group({
-    phoneNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+    userName: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(20)]]
   });
   protected isEyeOpen: boolean = false;
 
 
-  get phoneNo(): AbstractControl | null {
-    return this.loginForm.get('phoneNo');
+  get userName(): AbstractControl | null {
+    return this.loginForm.get('userName');
   }
 
   get password(): AbstractControl | null {
@@ -79,7 +79,7 @@ export class Login {
     this.isReqAlive = true;
     this._apiFs.auth.login({
       // `mobile number` as a `username`
-      userName: this.phoneNo?.value,
+      userName: this.userName?.value,
       password: this.password?.value
     }).subscribe({
       next: (res: IResponse) => {

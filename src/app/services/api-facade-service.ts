@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { Sync } from './sync/sync';
 import { Auth } from './auth/auth';
+import { Dashboard } from './dashboard/dashboard';
 import { Workspace } from './workspace/workspace';
 import { Users } from './users/users';
 import { Machine } from './machine/machine';
@@ -17,6 +18,8 @@ export class ApiFacadeService {
   public readonly sync: Sync = inject(Sync);
   // Inject App service
   public readonly auth: Auth = inject(Auth);
+  // Inject Dashboard service
+  public readonly dashboard: Dashboard = inject(Dashboard);
   // Inject Workspace service
   public readonly workspace: Workspace = inject(Workspace);
   // Inject Users service
