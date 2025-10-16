@@ -65,6 +65,9 @@ export class Utils {
   get isAdmin(): boolean {
     return this._appConfig.roles && this._appConfig.roles.ADMIN === this.decodeToken?.user?.type;
   }
+  get isSubUser(): boolean {
+    return this._appConfig.roles && this._appConfig.roles.SUB_USER === this.decodeToken?.user?.type;
+  }
 
   logout(): void {
     localStorage.clear();

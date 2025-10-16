@@ -1,18 +1,13 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { interval, Subscription } from 'rxjs';
-
-import moment from 'moment';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
 
-import { IMachineStatus } from '@src/app/models/machine.model';
+import moment from 'moment';
 
+import { IMachineStatus } from '@src/app/models/machine.model';
 
 @Component({
   selector: 'app-header',
   imports: [
-    RouterLink,
-    RouterLinkActive,
     NgTemplateOutlet
   ],
   templateUrl: './header.html',

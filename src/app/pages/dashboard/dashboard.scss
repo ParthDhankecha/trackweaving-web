@@ -3,6 +3,56 @@
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
 
+.custom-fs {
+    font-size: calc(1vw + 1vh);
+}
+
+.grid-1x1 {
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+}
+
+.grid-2x2 {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.grid-3x2 {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.grid-4x2 {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+
+    &.custom-fs {
+        font-size: calc(0.7vw + 0.7vh);
+    }
+}
+
+.grid-4x3 {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    &.custom-fs {
+        font-size: calc(0.65vw + 0.65vh);
+    }
+}
+
+.grid-5x3 {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    &.custom-fs {
+        font-size: calc(0.6vw + 0.6vh);
+    }
+}
+
+
+
+
+
 .fs-normal {
     font-size: 0.75em;
 }
@@ -43,25 +93,57 @@
 }
 
 @keyframes blinkBg {
-    0% { background-color: #ffcccc; }
-    50% { background-color: #f89595; } /* slightly darker red for the blink */
-    100% { background-color: #ffcccc; }
+    0% {
+        background-color: #ffcccc;
+    }
+
+    50% {
+        background-color: #f89595;
+    }
+
+    /* slightly darker red for the blink */
+    100% {
+        background-color: #ffcccc;
+    }
 }
 
 .blink-bg {
     animation: blinkBg 1.5s infinite;
 }
-.table-bordered > :not(caption) > * > * {
-  border-color: #6c757d !important; /* match Bootstrap's secondary border */
+
+
+.table-bordered> :not(caption)>*>* {
+    border-color: #6c757d !important;
+    /* match Bootstrap's secondary border */
 }
+
 tr :first-child {
-  border-left: none !important; /* remove left border from first cell */
+    border-left: none !important;
+    /* remove left border from first cell */
 }
+
 tr :last-child {
-  border-right: none !important; /* remove right border from last cell */
+    border-right: none !important;
+    /* remove right border from last cell */
 }
+
 tr {
-    border-top: none !important; /* remove top border from all rows */
-    border-bottom: none !important; /* remove bottom border from all cells */
-    border-top-width: 1px; /* add top border to all cells */
+    border-top: none !important;
+    /* remove top border from all rows */
+    border-bottom: none !important;
+    /* remove bottom border from all cells */
+    border-top-width: 1px;
+    /* add top border to all cells */
+}
+
+::ng-deep {
+    app-modal-layer {
+        .modal-container {
+            max-width: 1024px !important;
+
+            @media screen and (min-width: 1440px) {
+                max-width: 1280px !important;
+            }
+        }
+    }
 }

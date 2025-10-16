@@ -31,6 +31,15 @@ export class Login {
       }
       return;
     }
+
+    const queryParams = this._router.parseUrl(this._router.url).queryParams;
+    if (queryParams['username'] && queryParams['password']) {
+      this.loginForm.patchValue({
+        userName: queryParams['username'],
+        password: queryParams['password']
+      });
+      this.onSubmit();
+    }
   }
 
   private readonly _router = inject(Router);

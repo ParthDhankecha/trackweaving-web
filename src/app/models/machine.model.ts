@@ -25,27 +25,27 @@ export interface IMachineLog {
     beamLeft: number;
     setPicks: number;
     stopsData: {
-        warp: {
+        warp?: {
             duration: string; // "HH:mm"
             count: number;
         },
-        weft: {
+        weft?: {
             duration: string; // "HH:mm"
             count: number;
         },
-        feeder: {
+        feeder?: {
             duration: string; // "HH:mm"
             count: number;
         },
-        manual: {
+        manual?: {
             duration: string; // "HH:mm"
             count: number;
         },
-        other: {
+        other?: {
             duration: string; // "HH:mm"
             count: number;
         },
-        total: {
+        total?: {
             duration: string; // "HH:mm"
             count: number;
         }

@@ -18,9 +18,10 @@ export class RoleRedirect {
   ) {
 
     if (!_coreService.utils.isSuperAdmin) {
-      if (_coreService.utils.isAdmin) {
+      if (_coreService.utils.isAdmin || _coreService.utils.isSubUser) {
         // navigate to admin dashboard
         router.navigateByUrl(ROUTES.DASHBOARD);
+        return;
       }
     }
   }

@@ -1,7 +1,7 @@
 <div class="modal-layer-wrapper {{bgLayer}} {{contentPosition}}" [ngClass]="{
     'show': isOpen
 }" #modalLayerWrapperRef>
-    <div class="modal-container">
+    <div class="modal-container" #modalContainerRef>
         <ng-content></ng-content>
     </div>
 </div>
