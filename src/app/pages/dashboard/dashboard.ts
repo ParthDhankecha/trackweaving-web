@@ -152,7 +152,7 @@ export class Dashboard {
         if (res.code === 'OK') {
           this.liveMetrics = res.data?.aggregateReport || {};
           this.machineLogs = res.data?.machineLogs || [];
-          this.totalMachines = res.data?.totalCount || 0;
+          this.totalMachines = this.liveMetrics[payload.status] ?? 0;
           const totalPages = Math.ceil(this.totalMachines / this.selectedLayoutCardCount);
           if (this.totalPages !== totalPages) {
             this.totalPages = totalPages;
