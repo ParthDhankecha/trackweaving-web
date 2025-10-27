@@ -69,6 +69,50 @@
                             </div>
                             }
                         </div>
+                        <!-- Device Type -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="deviceType" class="form-label">
+                                Device Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="deviceType" formControlName="deviceType" class="form-select text-capitalize">
+                                <option value="" disabled selected>Select Device Type</option>
+                                @for(dtOption of deviceTypeList; track dtOption;){
+                                <option [value]="dtOption">
+                                    {{dtOption}}
+                                </option>
+                                }
+                            </select>
+
+                            @if(deviceType?.touched && deviceType?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(deviceType?.errors?.['required']){
+                                <span>Device Type is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Display Type -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="displayType" class="form-label">
+                                Display Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="displayType" formControlName="displayType" class="form-select text-capitalize">
+                                <option value="" disabled selected>Select Display Type</option>
+                                @for(dtOption of displayTypeList; track dtOption;){
+                                <option [value]="dtOption">
+                                    {{dtOption}}
+                                </option>
+                                }
+                            </select>
+
+                            @if(displayType?.touched && displayType?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(displayType?.errors?.['required']){
+                                <span>Display Type is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
                         <!-- Machine Name -->
                         <div class="col-12 col-md-6 mb-3">
                             <label for="machineName" class="form-label">

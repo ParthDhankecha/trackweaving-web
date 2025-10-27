@@ -158,14 +158,12 @@ export class Workspace {
   }
 
   protected upsertWorkspaceModalEvent(data: any): void {
-    if (data) {
-      const index = this.workspaceList.findIndex(w => w._id === data._id);
-      if (index > -1) {
-        // Update existing workspace in the list
-        this.workspaceList[index] = data;
-      } else {
-        this.loadList();
-      }
+    const index = data ? this.workspaceList.findIndex(w => w._id === data._id) : -1;
+    if (index > -1) {
+      // Update existing workspace in the list
+      this.workspaceList[index] = data;
+    } else {
+      this.loadList();
     }
     this.onCloseWorkspaceModal();
   }

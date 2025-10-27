@@ -37,8 +37,12 @@ export class UpsertMachine {
     machineName: ['', [Validators.required, Validators.maxLength(100)]],
     ip: ['', [Validators.required, Validators.pattern(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/)]],
     workspace: ['', [Validators.required]],
+    deviceType: ['', [Validators.required]],
+    displayType: ['', [Validators.required]],
   });
   protected isEyeOpen: boolean = false;
+  protected readonly deviceTypeList: string[] = ['lan', 'rs485'];
+  protected readonly displayTypeList: string[] = ['nazon', 'chitic'];
 
 
 
@@ -61,7 +65,9 @@ export class UpsertMachine {
         machineCode: this.machineData.machineCode || '',
         machineName: this.machineData.machineName || '',
         ip: this.machineData.ip || '',
-        workspace: workspaceData || null
+        workspace: workspaceData || null,
+        deviceType: this.machineData?.deviceType || '',
+        displayType: this.machineData?.displayType || '',
       });
     }
   }
@@ -83,6 +89,12 @@ export class UpsertMachine {
 
   get machineCode(): AbstractControl | null {
     return this.machineForm.get('machineCode');
+  }
+  get deviceType(): AbstractControl | null {
+    return this.machineForm.get('deviceType');
+  }
+  get displayType(): AbstractControl | null {
+    return this.machineForm.get('displayType');
   }
   get machineName(): AbstractControl | null {
     return this.machineForm.get('machineName');

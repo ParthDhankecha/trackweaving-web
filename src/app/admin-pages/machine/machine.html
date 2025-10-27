@@ -11,8 +11,8 @@
     <div class="card">
         <div class="card-body">
             <!-- Show dropdown to select number of entries per page -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex gap-3 align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <div class="d-flex gap-3 align-items-center flex-wrap">
                     <app-entries-per-page-selector [pageSize]="pageSize"
                         (pageSizeChange)="onEntriesPerPageChange($event)" />
 
@@ -47,45 +47,57 @@
             </div>
 
             <!-- Machine Table -->
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Machine Code</th>
-                        <th scope="col">Machine Name</th>
-                        <th scope="col">IP Address</th>
-                        <th scope="col">Workspace Name</th>
-                        <th scope="col" class="w-1-percent text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(mItem of machineList; track mItem._id; let i = $index){
-                    <tr>
-                        <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
-                        <td>{{ mItem?.machineCode || '-' }}</td>
-                        <td class="text-capitalize">{{ mItem?.machineName }}</td>
-                        <td>{{ mItem?.ip }}</td>
-                        <td>{{ mItem?.workspaceId?.firmName }}</td>
-                        <td class="text-nowrap">
-                            <button class="btn btn-sm btn-outline-primary me-2"
-                                (click)="onOpenUpsertMachineModal(mItem)">
-                                Edit
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" (click)="openDeleteConfirmModal(mItem)">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    }@empty {
-                    <tr>
-                        <td colspan="8" class="text-center">No records found.</td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Machine Code</th>
+                            <th scope="col">Machine Name</th>
+                            <th scope="col">Device Type</th>
+                            <th scope="col">Display Type</th>
+                            <th scope="col">IP Address</th>
+                            <th scope="col">Workspace Name</th>
+                            <th scope="col" class="w-1-percent text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(mItem of machineList; track mItem._id; let i = $index){
+                        <tr>
+                            <th scope="row">{{(currentPage - 1) * pageSize + i + 1}}</th>
+                            <td>{{mItem?.machineCode || '-'}}</td>
+                            <td class="text-capitalize">
+                                {{mItem?.machineName}}
+                            </td>
+                            <td class="text-capitalize">
+                                {{mItem?.deviceType || '-'}}
+                            </td>
+                            <td class="text-capitalize">
+                                {{mItem?.displayType || '-'}}
+                            </td>
+                            <td>{{mItem?.ip}}</td>
+                            <td>{{mItem?.workspaceId?.firmName}}</td>
+                            <td class="text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary me-2"
+                                    (click)="onOpenUpsertMachineModal(mItem)">
+                                    Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" (click)="openDeleteConfirmModal(mItem)">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        }@empty {
+                        <tr>
+                            <td colspan="8" class="text-center">No records found.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Pagination Component -->
-            <app-pagination class="d-block mt-3" [pageSize]="pageSize" [totalEntries]="totalEntries"
+            <app-pagination class="d-block" [pageSize]="pageSize" [totalEntries]="totalEntries"
                 [currentPage]="currentPage" (pageChange)="onPageChange($event)" />
         </div>
     </div>

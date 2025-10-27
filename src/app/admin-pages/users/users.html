@@ -13,8 +13,8 @@
     <div class="card">
         <div class="card-body">
             <!-- Show dropdown to select number of entries per page -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex gap-3 align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <div class="d-flex gap-3 align-items-center flex-wrap">
                     <app-entries-per-page-selector [pageSize]="pageSize"
                         (pageSizeChange)="onEntriesPerPageChange($event)" />
 
@@ -38,56 +38,59 @@
                 </div>
             </div>
             <!-- Designs Table -->
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Full Name</th>
-                        <th scope="col">Username</th>
-                        <th scope="col" class="text-nowrap">Workspace Name</th>
-                        <th scope="col">Uid</th>
-                        <th scope="col">Mobile</th>
-                        <th scope="col">Email</th>
-                        <th scope="col" class="text-center text-nowrap">Is Active</th>
-                        <th scope="col" class="w-1-percent text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(user of userList; track user._id; let i = $index){
-                    <tr>
-                        <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
-                        <td class="word-break-all">{{ user.fullname }}</td>
-                        <td>{{ user?.userName }}</td>
-                        <td class="word-break-all">{{ user?.workspaceId?.firmName }}</td>
-                        <td>{{ user?.workspaceId?.uid }}</td>
-                        <td>{{ user?.mobile || '-' }}</td>
-                        <td>{{ user?.email || '-' }}</td>
-                        <td class="text-center">
-                            <div class="form-check form-switch d-flex p-0">
-                                <input class="form-check-input mx-auto fs-5" type="checkbox" [checked]="user?.isActive"
-                                    (click)="onStatusChange($event, user)">
-                            </div>
-                        </td>
-                        <td class="text-nowrap">
-                            <button class="btn btn-sm btn-outline-primary me-2" (click)="onOpenUpsertUserModal(user)">
-                                Edit
-                            </button>
-                            @if(!user?.isOwner){
-                            <button class="btn btn-sm btn-outline-danger" (click)="onOpenDeleteConfirmModal(user)">
-                                Delete
-                            </button>
-                            }
-                        </td>
-                    </tr>
-                    }@empty {
-                    <tr>
-                        <td colspan="9" class="text-center">No users found.</td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Full Name</th>
+                            <th scope="col">Username</th>
+                            <th scope="col" class="text-nowrap">Workspace Name</th>
+                            <th scope="col">Uid</th>
+                            <th scope="col">Mobile</th>
+                            <th scope="col">Email</th>
+                            <th scope="col" class="text-center text-nowrap">Is Active</th>
+                            <th scope="col" class="w-1-percent text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(user of userList; track user._id; let i = $index){
+                        <tr>
+                            <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
+                            <td class="word-break-all">{{ user.fullname }}</td>
+                            <td>{{ user?.userName }}</td>
+                            <td class="word-break-all">{{ user?.workspaceId?.firmName }}</td>
+                            <td>{{ user?.workspaceId?.uid }}</td>
+                            <td>{{ user?.mobile || '-' }}</td>
+                            <td>{{ user?.email || '-' }}</td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex p-0">
+                                    <input class="form-check-input mx-auto fs-5" type="checkbox"
+                                        [checked]="user?.isActive" (click)="onStatusChange($event, user)">
+                                </div>
+                            </td>
+                            <td class="text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary me-2"
+                                    (click)="onOpenUpsertUserModal(user)">
+                                    Edit
+                                </button>
+                                @if(!user?.isOwner){
+                                <button class="btn btn-sm btn-outline-danger" (click)="onOpenDeleteConfirmModal(user)">
+                                    Delete
+                                </button>
+                                }
+                            </td>
+                        </tr>
+                        }@empty {
+                        <tr>
+                            <td colspan="9" class="text-center">No users found.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
             <!-- Pagination Component -->
-            <app-pagination class="d-block mt-3" [pageSize]="pageSize" [totalEntries]="totalEntries"
+            <app-pagination class="d-block" [pageSize]="pageSize" [totalEntries]="totalEntries"
                 [currentPage]="currentPage" (pageChange)="onPageChange($event)" />
         </div>
     </div>
