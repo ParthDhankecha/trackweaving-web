@@ -11,6 +11,8 @@ import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy';
 import { Support } from './pages/support/support';
 
 import { authGuard } from './core/guards/auth-guard';
+import { Dashboard } from './pages/dashboard/dashboard';
+import { adminRoleGuard } from './core/guards/admin-role-guard';
 
 
 export const routes: Routes = [
@@ -20,6 +22,12 @@ export const routes: Routes = [
         component: MainLayout,
         canActivate: [authGuard],
         loadChildren: () => import('./pages/pages.routes').then(m => m.routes),
+    },
+    {// for client
+        path: ROUTES.DASHBOARD,
+        title: APP_PAGE_TITLE.DASHBOARD,
+        component: Dashboard,
+        canActivate: [authGuard, adminRoleGuard],
     },
     {
         path: ROUTES.AUTH.BASE,

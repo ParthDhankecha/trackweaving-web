@@ -13,7 +13,7 @@
     <div class="card">
         <div class="card-body">
             <!-- Show dropdown to select number of entries per page -->
-            <div class="d-flex align-items-center mb-3 gap-4">
+            <div class="d-flex align-items-center flex-wrap mb-3 gap-4">
                 <div class="flex-grow-1">
                     <ul class="nav nav-tabs nav-fill">
                         @for(appType of appTypeList; track appType;) {
@@ -43,57 +43,61 @@
                 </div>
             </div>
 
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">App Type</th>
-                        <th scope="col">Version</th>
-                        <th scope="col" class="text-center">Show Popup</th>
-                        <th scope="col" class="text-center">Hard Update</th>
-                        <th scope="col" class="w-1-percent text-center">
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(apkV of apkVersionList; track apkV._id; let i = $index){
-                    <tr>
-                        <th scope="row">
-                            {{ i + 1 }}
-                        </th>
-                        <td class="text-capitalize">{{ apkV?.appType }}</td>
-                        <td>{{ apkV?.version }}</td>
-                        <td class="text-center">
-                            <div class="form-check form-switch d-flex p-0">
-                                <input class="form-check-input mx-auto fs-5" type="checkbox" [checked]="apkV?.showPopup"
-                                    (click)="onStatusChange($event, apkV, 'showPopup')">
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <div class="form-check form-switch d-flex p-0">
-                                <input class="form-check-input mx-auto fs-5" type="checkbox"
-                                    [checked]="apkV?.hardUpdate" (click)="onStatusChange($event, apkV, 'hardUpdate')">
-                            </div>
-                        </td>
-                        <td class="text-nowrap text-end">
-                            <button class="btn btn-sm btn-outline-primary" (click)="onOpenUpsertUserModal(apkV)">
-                                Edit
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" (click)="onOpenDeleteConfirmModal(apkV)">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    }@empty {
-                    <tr>
-                        <td colspan="6" class="text-center">
-                            No records found.
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">App Type</th>
+                            <th scope="col">Version</th>
+                            <th scope="col" class="text-center">Show Popup</th>
+                            <th scope="col" class="text-center">Hard Update</th>
+                            <th scope="col" class="w-1-percent text-center">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(apkV of apkVersionList; track apkV._id; let i = $index){
+                        <tr>
+                            <th scope="row">
+                                {{ i + 1 }}
+                            </th>
+                            <td class="text-capitalize">{{ apkV?.appType }}</td>
+                            <td>{{ apkV?.version }}</td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex p-0">
+                                    <input class="form-check-input mx-auto fs-5" type="checkbox"
+                                        [checked]="apkV?.showPopup" (click)="onStatusChange($event, apkV, 'showPopup')">
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex p-0">
+                                    <input class="form-check-input mx-auto fs-5" type="checkbox"
+                                        [checked]="apkV?.hardUpdate"
+                                        (click)="onStatusChange($event, apkV, 'hardUpdate')">
+                                </div>
+                            </td>
+                            <td class="text-nowrap text-end">
+                                <button class="btn btn-sm btn-outline-primary" (click)="onOpenUpsertUserModal(apkV)">
+                                    Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger ms-2"
+                                    (click)="onOpenDeleteConfirmModal(apkV)">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        }@empty {
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                No records found.
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

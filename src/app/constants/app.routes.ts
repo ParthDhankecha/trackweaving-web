@@ -7,6 +7,17 @@ export const ROUTES = {
         getFullRoute: (route: string) => `/${ROUTES.AUTH.BASE}/${route}`
     },
     DASHBOARD: 'dashboard',
+    SETTINGS: {
+        BASE: 'settings',
+        MACHINE_GROUP: 'machine-group',
+        MACHINE_CONFIGURE: 'machine-configure',
+        MAINTENANCE_CATEGORY: 'maintenance-category',
+        MAINTENANCE_ENTRY: 'maintenance-entry',
+        SHIFT_WISE_COMMENT_UPDATE: 'shift-wise-comment-update',
+        PARTS_CHANGE_ENTRY: 'parts-change-entry',
+        USERS: 'users',
+        getFullRoute: (...args: string[]) => `/${ROUTES.SETTINGS.BASE}/${args.join('/')}`
+    },
     ADMIN: {
         BASE: 'admin',
         LOGIN: 'login',

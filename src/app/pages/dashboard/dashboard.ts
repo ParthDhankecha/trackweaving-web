@@ -1,9 +1,12 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
 
+import moment from 'moment';
+
 import { Header } from '@src/app/layouts/header/header';
+import { Footer } from '@src/app/layouts/footer/footer';
 import { ModalLayer } from '@src/app/shared/components/modal-layer/modal-layer';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -11,18 +14,8 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { RegisterModalLayer } from '@src/app/shared/directives/register-modal-layer';
 import { IResponse } from '@src/app/models/http-response.model';
-import { EMachineStatusIds, IMachineLog, IMachineStatus } from '@src/app/models/machine.model';
-
-
-
-export type LayoutOption = 'default' | '1x1' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3';
-
-export interface LayoutConfig {
-  rows: number;
-  cols: number;
-  fs?: string;
-  bootstrap?: string; // optional bootstrap class
-};
+import { EMachineStatusIds, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption } from '@src/app/models/machine.model';
+import { IAppConfigData } from '@src/app/models/utils.model';
 
 
 @Component({
@@ -32,6 +25,7 @@ export interface LayoutConfig {
     NgClass,
     NgTemplateOutlet,
     Header,
+    Footer,
     ModalLayer,
     RegisterModalLayer
   ],
@@ -41,9 +35,14 @@ export interface LayoutConfig {
 export class Dashboard {
 
   // Inject services
-  readonly _apiFs = inject(ApiFacadeService);
-  readonly _coreService = inject(CoreFacadeService);
-  readonly config = this._coreService.appConfig.configData;
+  constructor(
+    private _apiFs: ApiFacadeService,
+    protected _coreService: CoreFacadeService
+  ) {
+    this.config = this._coreService.appConfig.configData;
+  }
+
+  protected config: IAppConfigData;
 
 
   // Component properties
@@ -154,6 +153,7 @@ export class Dashboard {
           this.machineLogs = res.data?.machineLogs || [];
           this.totalMachines = this.liveMetrics[payload.status] ?? 0;
           const totalPages = Math.ceil(this.totalMachines / this.selectedLayoutCardCount);
+          this.currentDateAndTime = this._moment().format(this.currentDateAndTimeFormat);
           if (this.totalPages !== totalPages) {
             this.totalPages = totalPages;
             // Update pagination list if in fullscreen mode
@@ -251,16 +251,6 @@ export class Dashboard {
     return `(${this.selectedLayoutCardCount})`;
   }
 
-  get gridArray(): number[] {
-    const config = this.layoutMap[this.selectedLayout];
-    return Array(config.rows * config.cols).fill(0).map((_, i) => i + 1);
-  }
-
-  get colClass(): string {
-    const config = this.layoutMap[this.selectedLayout];
-    return `col-${12 / config.cols}`;
-  }
-
   get rowClass(): string {
     const config = this.layoutMap[this.selectedLayout];
     if (this.selectedLayout === 'default') {
@@ -333,6 +323,19 @@ export class Dashboard {
   protected closeMachineDetailsModal(): void {
     this._coreService.modal.close(this.machineCardViewModelId);
     this.selectedMachineLog = null;
+  }
+
+
+  readonly _moment = moment;
+  protected readonly currentDateAndTimeFormat: string = 'DD-MM-YYYY, hh:mm:ss A';
+  protected currentDateAndTime: string = this._moment().format(this.currentDateAndTimeFormat);
+
+  protected onSelectMachineStatus(status: any): void {
+    if (this.selectedMachineStatus.key === status.key) {
+      return;
+    }
+    // this.selectedMachineStatus = status;
+    this.updateMachineStatus(status);
   }
 
 

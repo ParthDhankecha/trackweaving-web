@@ -43,3 +43,12 @@ export interface IModalLayer {
     id: string
     open: boolean
 }
+
+
+
+export interface ISettingsMenu {
+    id: string,
+    icon: string,
+    label: string,
+    link: string,
+}

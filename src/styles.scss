@@ -52,6 +52,10 @@ body {
     display: contents !important;
 }
 
+.lh-80 {
+    line-height: 0.8 !important;
+}
+
 .search-list-height {
     max-height: 300px;
     @include custom-scrollbar();

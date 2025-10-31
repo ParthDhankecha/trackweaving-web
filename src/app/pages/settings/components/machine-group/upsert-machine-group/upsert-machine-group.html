@@ -1,0 +1,51 @@
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="mgForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit ' : 'Create '}}Machine Group
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Group Name -->
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="groupName" class="form-label">
+                                Group Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="groupName" formControlName="groupName" class="form-control"
+                                placeholder="Enter Group Name">
+
+                            @if(groupName?.touched && groupName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(groupName?.errors?.['required']){
+                                <span>Group Name is required.</span>
+                                }
+                                @if(groupName?.errors?.['maxlength']){
+                                <span>
+                                    Group Name cannot exceed
+                                    {{groupName?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        {{isEditMode ? 'Update' : 'Create'}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

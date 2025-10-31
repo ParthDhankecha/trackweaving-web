@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 
-import { AppConfig } from './app-config/app-config';
-import { Utils } from './utils/utils';
-import { Modal } from './modal/modal';
+import { AppConfig } from '@app/core/services/app-config/app-config';
+import { Utils } from '@app/core/services/utils/utils';
+import { Modal } from '@app/core/services/modal/modal';
 
 
 @Injectable({

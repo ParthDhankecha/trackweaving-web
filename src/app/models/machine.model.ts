@@ -53,3 +53,13 @@ export interface IMachineLog {
     totalDuration: string; // "HH:mm"
     [key: string]: any;
 };
+
+
+export type LayoutOption = 'default' | '1x1' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3';
+
+export interface LayoutConfig {
+    rows: number;
+    cols: number;
+    fs?: string;
+    bootstrap?: string; // optional bootstrap class
+};

@@ -5,7 +5,7 @@ import { APP_PAGE_TITLE } from '@src/app/constants/app-config';
 
 import { authGuard } from '../core/guards/auth-guard';
 
-import { Dashboard } from './dashboard/dashboard';
+// import { Dashboard } from './dashboard/dashboard';
 import { adminRoleGuard } from '../core/guards/admin-role-guard';
 import { RoleRedirect } from '../shared/components/role-redirect/role-redirect';
 
@@ -17,16 +17,16 @@ export const routes: Routes = [
         pathMatch: 'full',
         component: RoleRedirect// It will handle the redirection based on role
     },
+    // {
+    //     path: ROUTES.DASHBOARD,
+    //     title: APP_PAGE_TITLE.DASHBOARD,
+    //     component: Dashboard,
+    //     canActivate: [authGuard, adminRoleGuard],
+    // },
     {
-        path: ROUTES.DASHBOARD,
-        title: APP_PAGE_TITLE.DASHBOARD,
-        component: Dashboard,
+        path: ROUTES.SETTINGS.BASE,
+        title: APP_PAGE_TITLE.SETTINGS.BASE,
         canActivate: [authGuard, adminRoleGuard],
-    },
-    {
-        path: 'dev',
-        title: APP_PAGE_TITLE.DASHBOARD,
-        component: Dashboard,
-        canActivate: [authGuard, adminRoleGuard],
+        loadChildren: () => import('./settings/settings.routes').then(m => m.routes)
     }
 ];

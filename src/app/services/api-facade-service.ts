@@ -1,12 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 
-import { Sync } from './sync/sync';
-import { Auth } from './auth/auth';
-import { Dashboard } from './dashboard/dashboard';
-import { Workspace } from './workspace/workspace';
-import { Users } from './users/users';
-import { Machine } from './machine/machine';
-import { ApkVersion } from './apk-version/apk-version';
+import { Sync } from '@app/services/sync/sync';
+import { Auth } from '@app/services/auth/auth';
+import { Dashboard } from '@app/services/dashboard/dashboard';
+import { Workspace } from '@app/services/workspace/workspace';
+import { Users } from '@app/services/users/users';
+import { Machine } from '@app/services/machine/machine';
+import { ApkVersion } from '@app/services/apk-version/apk-version';
+import { MachineGroup } from './machine-group/machine-group';
 
 
 @Injectable({
@@ -26,6 +27,8 @@ export class ApiFacadeService {
   public readonly users: Users = inject(Users);
   // Inject Machine service
   public readonly machine: Machine = inject(Machine);
+  // Inject Machine Group service
+  public readonly machineGroup: MachineGroup = inject(MachineGroup);
   // Inject APK Version service
   public readonly apkVersion: ApkVersion = inject(ApkVersion);
 }

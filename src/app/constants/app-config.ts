@@ -9,6 +9,16 @@ export const APP_PAGE_TITLE = {
         REGISTER: `Register ${TITLE_POSTFIX}`,
     },
     DASHBOARD: `Dashboard ${TITLE_POSTFIX}`,
+    SETTINGS: {
+        BASE: `Settings ${TITLE_POSTFIX}`,
+        MACHINE_GROUP: `Machine Group ${TITLE_POSTFIX}`,
+        MACHINE_CONFIGURE: `Machine Configure ${TITLE_POSTFIX}`,
+        MAINTENANCE_CATEGORY: `Maintenance Category ${TITLE_POSTFIX}`,
+        MAINTENANCE_ENTRY: `Maintenance Entry ${TITLE_POSTFIX}`,
+        SHIFT_WISE_COMMENT_UPDATE: `Shift Wise Comment Update ${TITLE_POSTFIX}`,
+        PARTS_CHANGE_ENTRY: `Parts Change Entry ${TITLE_POSTFIX}`,
+        USERS: `Users ${TITLE_POSTFIX}`
+    },
     DESIGN: `Design ${TITLE_POSTFIX}`,
     ADMIN: {
         BASE: `Admin ${TITLE_POSTFIX}`,

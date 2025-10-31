@@ -1,2 +1,10 @@
-<!-- Load component based on the current route -->
-<router-outlet></router-outlet>
+<div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column position-relative">
+    <!-- header -->
+    <app-header class="position-sticky top-0"></app-header>
+    <!-- Load component based on the current route -->
+    <div class="flex-grow-1">
+        <router-outlet></router-outlet>
+    </div>
+    <!-- footer -->
+    <app-footer class="position-sticky bottom-0"></app-footer>
+</div>

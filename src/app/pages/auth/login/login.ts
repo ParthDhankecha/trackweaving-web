@@ -87,9 +87,8 @@ export class Login {
 
     this.isReqAlive = true;
     this._apiFs.auth.login({
-      // `mobile number` as a `username`
-      userName: this.userName?.value,
-      password: this.password?.value
+      userName: this.userName?.value?.trim(),
+      password: this.password?.value?.trim()
     }).subscribe({
       next: (res: IResponse) => {
         this.isReqAlive = false;
@@ -101,7 +100,6 @@ export class Login {
       },
       error: (err: any) => {
         this.isReqAlive = false;
-        console.error('Login with phone error', err);
         const msg = err?.error?.message || 'Something went wrong. Please try again later';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }

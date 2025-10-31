@@ -1,52 +1,91 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
-import moment from 'moment';
+import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
+import { ISettingsMenu } from '@src/app/models/utils.model';
+import { ROUTES } from '@src/app/constants/app.routes';
 
-import { IMachineStatus } from '@src/app/models/machine.model';
 
 @Component({
   selector: 'app-header',
   imports: [
+    RouterLink,
+    RouterLinkActive,
     NgTemplateOutlet
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss'
 })
 export class Header {
+  // Inject services
+  protected readonly _coreService = inject(CoreFacadeService);
 
   @Input('containerClass') containerClass: string = '';
-
-  @Input('liveMetrics') liveMetrics: any = {};
-  @Input('selectedMachineStatus') selectedMachineStatus!: any;
-  @Input('machineStatus') machineStatus: IMachineStatus[] = [];
-  @Output('onMachineStatusChange') onMachineStatusChange: EventEmitter<IMachineStatus> = new EventEmitter<IMachineStatus>();
+  @Input('loadFor') loadFor: string = '';
 
 
-  readonly _moment = moment;
-  protected readonly currentDateAndTimeFormat: string = 'DD-MM-YYYY, hh:mm:ss A';
-  protected currentDateAndTime: string = this._moment().format(this.currentDateAndTimeFormat);
+  ngOnInit(): void { }
 
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['liveMetrics'] && this.liveMetrics) {
-      this.currentDateAndTime = this._moment().format(this.currentDateAndTimeFormat);
-      if (!this.selectedMachineStatus) {
-        this.selectedMachineStatus = this.machineStatus[0];
-      } else {
-        const updatedStatus = this.machineStatus.find(ms => ms.key === this.selectedMachineStatus.key);
-        if (updatedStatus) {
-          this.selectedMachineStatus = updatedStatus;
-        }
-      }
+  // machine group, machine configure, maintenance category, maintenance entry, shift wise comment update
+  // parts change entry, users, privacy policy, terms & conditions
+  protected readonly settingsMenu: ISettingsMenu[] = [
+    {
+      id: 'machineGroup', icon: 'gearGroup', label: "Machine Group", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_GROUP)
+    },
+    {
+      id: 'machineConfigure', icon: 'machineConfig', label: "Machine Configure", link: ``
+    },
+    {
+      id: 'maintenanceCategory', icon: 'list', label: "Maintenance Category", link: ``
+    },
+    {
+      id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry", link: ``
+    },
+    {
+      id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update", link: ``
+    },
+    {
+      id: 'partsChangeEntry', icon: 'tools', label: "Parts Change Entry", link: ``
+    },
+    {
+      id: 'users', icon: 'users', label: "Users", link: ``
+    },
+    {
+      id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: ROUTES.PRIVACY_POLICY
+    },
+    {
+      id: 'termsConditions', icon: 't&c', label: "Terms & Conditions", link: ROUTES.TERMS_AND_CONDITIONS
+    }
+  ];
+
+
+  @ViewChild('logoutModalContent') logoutModalContentRef!: ElementRef;
+  protected onLogoutConfirmationModalContainer(event: Event): void {
+    event.stopPropagation();
+    if (this.logoutModalContentRef?.nativeElement && !this.logoutModalContentRef?.nativeElement.contains(event.target)) {
+      this.closeOrCancelLogoutModal();
     }
   }
 
-  protected onSelectMachineStatus(status: any): void {
-    if (this.selectedMachineStatus.key === status.key) {
-      return;
-    }
-    this.selectedMachineStatus = status;
-    this.onMachineStatusChange.emit(this.selectedMachineStatus);
+
+  get showDashboardComponentContent(): boolean {
+    return this.loadFor === 'dashboard';
+  }
+
+
+  protected isLogoutConfirmationModalOpen: boolean = false;
+  protected onLogout(): void {
+    this.isLogoutConfirmationModalOpen = true;
+  }
+
+  protected onconfirmLogout(): void {
+    this.isLogoutConfirmationModalOpen = false;
+    this._coreService.utils.logout();
+  }
+
+  protected closeOrCancelLogoutModal(): void {
+    this.isLogoutConfirmationModalOpen = false;
   }
 }

@@ -39,7 +39,7 @@ export class Toaster {
   protected toasters: any[] = [];
   
   get toasterTop(): string {
-    return this._coreService.utils.isAuthenticated && this._coreService.utils.isAdmin ? '80px' : '20px';
+    return this._coreService.utils.isAuthenticated && this._coreService.utils.isAdmin ? '50px' : '20px';
   }
 
   protected onMouseEnter(event: MouseEvent, toaster: any): void {
