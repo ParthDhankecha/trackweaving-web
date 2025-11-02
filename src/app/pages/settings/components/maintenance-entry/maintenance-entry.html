@@ -1,0 +1,191 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <h3 class="text-capitalize text-muted fs-5 fw-bold pt-0 border-bottom">
+        Maintenance Entry
+    </h3>
+
+    <div class="table-responsive">
+        <div class="grid-layout gap-3">
+            @for(meItem of maintenanceEntryList; track meItem.machineId;){
+            <div class="rounded border border-2 border-success border-opacity-75 user-select-none">
+                <!-- Card Header -->
+                <div class="d-flex align-items-center gap-3 text-white bg-success rounded-top-1 p-2">
+                    <span class="text-uppercase fw-bold lh-1 me-auto">
+                        {{meItem.machineCode}}
+                    </span>
+
+                    <span class="text-capitalize fw-bold lh-1">
+                        {{meItem.machineName}}
+                    </span>
+                </div>
+                <!-- Card Body -->
+                <div class="p-1 w-100 d-flex flex-column gap-1">
+                    @for(mAlert of meItem.alerts; track mAlert._id;){
+                    <div class="d-flex align-items-center border border-secondary rounded-2 py-1 px-2 c-pointer"
+                        (click)="onOpenUpsertMaintenanceEntryModal(meItem, mAlert)">
+                        <span class="me-auto">
+                            <span class="small category-name">
+                                {{mAlert?.categoryName}}
+                            </span>
+                        </span>
+                        <span class="fw-semibold" [class]="mAlert?.isDue?'text-danger':'text-primary'">
+                            {{mAlert?.nextMaintenanceDate|date:'dd-mm-yyyy'}}
+                        </span>
+                    </div>
+                    }
+                </div>
+            </div>
+            }@empty {
+            <span class="text-muted small text-center">
+                No records found.
+            </span>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Update Maintenance Entry Modal -->
+@if (isUpsertMaintenanceEntryModalOpen){
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="meForm" (ngSubmit)="onSubmitUpdateMaintenanceEntry()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        Edit Maintenance Entry
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseMaintenanceEntryModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <span class="text-secondary me-auto">
+                            Machine Name
+                        </span>
+                        <span class="fw-semibold text-primary text-capitalize">
+                            {{upsertMaintenanceEntryModalData?.machineName}}
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <span class="text-secondary me-auto">
+                            Maintenance Category
+                        </span>
+                        <span class="fw-semibold text-primary text-capitalize">
+                            {{upsertMaintenanceEntryModalData?.alerts?.categoryName}}
+                        </span>
+                    </div>
+                    <div class="row">
+                        <!-- Last Maintenance Date/Complete Date -->
+                        <div class="col-12 mb-3">
+                            <label for="lastMaintenanceDate" class="form-label">
+                                Complete Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" id="lastMaintenanceDate" formControlName="lastMaintenanceDate"
+                                class="form-control">
+
+                            @if(lastMaintenanceDate?.touched && lastMaintenanceDate?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(lastMaintenanceDate?.errors?.['required']){
+                                <span>Complete date is required.</span>
+                                }
+                                @if(lastMaintenanceDate?.errors?.['lastDateInvalid']){
+                                <span>
+                                    Complete date must be before the next maintenance date.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Next Maintenance Date -->
+                        <div class="col-12 mb-3">
+                            <label for="nextMaintenanceDate" class="form-label">
+                                Next Maintenance Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" id="nextMaintenanceDate" formControlName="nextMaintenanceDate"
+                                class="form-control">
+
+                            @if(nextMaintenanceDate?.touched && nextMaintenanceDate?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(nextMaintenanceDate?.errors?.['required']){
+                                <span>Next Maintenance date is required.</span>
+                                }
+                                @if(nextMaintenanceDate?.errors?.['nextDateInvalid']){
+                                <span>
+                                    Next maintenance date must be after the last maintenance date.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Enter a valid mobile number (with or without +91) -->
+                        <!-- Completed By(name, phone) -->
+                        <div class="col-12 mb-3">
+                            <span class="form-label d-block">
+                                Completed By <span class="text-danger">*</span>
+                            </span>
+                            <input type="text" formControlName="completedBy" class="form-control"
+                                placeholder="Enter name">
+
+                            @if(completedBy?.touched && completedBy?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(completedBy?.errors?.['required']){
+                                <span>Name is required.</span>
+                                }
+                                @if(completedBy?.errors?.['pattern']){
+                                <span>
+                                    Input cannot be empty or only spaces
+                                </span>
+                                }
+                            </div>
+                            }
+                            <input type="text" formControlName="phone" class="form-control mt-2"
+                                placeholder="Enter phone">
+
+                            @if(phone?.touched && phone?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(phone?.errors?.['required']){
+                                <span>Phone no is required.</span>
+                                }
+                                @if(phone?.errors?.['pattern']){
+                                <span>
+                                    Enter a valid mobile number (with or without +91)
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Remarks -->
+                        <div class="col-12 mb-3">
+                            <label for="remarks" class="form-label">
+                                Remarks
+                            </label>
+                            <textarea name="remarks" id="remarks" formControlName="remarks"
+                                class="form-control" placeholder="Enter remark" style="max-height: 6lh;"></textarea>
+
+                            @if(remarks?.touched && remarks?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(remarks?.errors?.['maxlength']){
+                                <span>
+                                    Remarks cannot exceed
+                                    {{remarks?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseMaintenanceEntryModal()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+}

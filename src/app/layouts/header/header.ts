@@ -35,13 +35,13 @@ export class Header {
       id: 'machineGroup', icon: 'gearGroup', label: "Machine Group", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_GROUP)
     },
     {
-      id: 'machineConfigure', icon: 'machineConfig', label: "Machine Configure", link: ``
+      id: 'machineConfigure', icon: 'machineConfig', label: "Machine Configure", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_CONFIGURE)
     },
     {
-      id: 'maintenanceCategory', icon: 'list', label: "Maintenance Category", link: ``
+      id: 'maintenanceCategory', icon: 'list', label: "Maintenance Category", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_CATEGORY)
     },
     {
-      id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry", link: ``
+      id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_ENTRY)
     },
     {
       id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update", link: ``

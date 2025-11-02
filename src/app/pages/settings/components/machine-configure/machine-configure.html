@@ -1,0 +1,181 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <div class="table-responsive">
+        <table class="table caption-top table-striped table-hover">
+            <caption class="text-capitalize fs-5 fw-bold pt-0">
+                Machine Configure
+            </caption>
+            <thead class="table-dark bg-opacity-50">
+                <tr>
+                    <th scope="col" class="w-1-percent">#</th>
+                    <th scope="col" class="text-nowrap">
+                        Machine Code
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Company Name
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Machine Group
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        IP
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Alert
+                    </th>
+                    <th scope="col" class="w-1-percent">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(mgItem of machineConfigureList; track mgItem._id; let i=$index;){
+                <tr>
+                    <th scope="row">{{i+1}}</th>
+                    <td class="text-capitalize">
+                        {{mgItem?.machineCode}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.machineName}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.machineGroupId?.groupName || '-'}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.ip}}
+                    </td>
+                    <td class="text-capitalize">
+                        <div class="custom-switch" [class.on]="mgItem.isAlertActive" (click)="onToggleAlert(mgItem)">
+                            <span class="switch-track shadow-sm">
+                                <span class="switch-thumb">
+                                    {{ mgItem.isAlertActive ? 'On' : 'Off' }}
+                                </span>
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm"
+                            (click)="onOpenUpsertMachineConfigureModal(mgItem)">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                }@empty {
+                <tr>
+                    <td colspan="7" class="text-muted small text-center">
+                        No records found.
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Upsert Machine Configuration Modal -->
+@if (isUpsertMachineConfigureModalOpen){
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="mcForm" (ngSubmit)="upsertMachineConfigure()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        Edit Machine Configuration
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseMachineConfigureModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Machine Name -->
+                        <div class="col-12 mb-3">
+                            <label for="machineName" class="form-label">
+                                Company Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="machineName" formControlName="machineName"
+                                class="form-control text-capitalize">
+                        </div>
+                        <!-- Machine Code -->
+                        <div class="col-12 mb-3">
+                            <label for="machineCode" class="form-label">
+                                Machine Code <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
+                                placeholder="Enter Machine Code">
+
+                            @if(machineCode?.touched && machineCode?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineCode?.errors?.['required']){
+                                <span>Group Name is required.</span>
+                                }
+                                @if(machineCode?.errors?.['pattern']){
+                                <span>
+                                    Machine Code must start with 'M' followed by numbers only.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Machine Group Name -->
+                        <div class="col-12 mb-3">
+                            <label for="machineGroupName" class="form-label">
+                                Machine Group Name
+                            </label>
+                            <select id="machineGroupName" class="form-select w-100 text-capitalize"
+                                formControlName="machineGroupId">
+                                <option value="" selected>Select Machine Group</option>
+                                @for(mg of machineGroupList; track mg._id;){
+                                <option [value]="mg?._id">
+                                    {{mg?.groupName}}
+                                </option>
+                                }
+                            </select>
+                        </div>
+                        <!-- Max Speed Limit -->
+                        <div class="col-12 mb-3">
+                            <label for="maxSpeedLimit" class="form-label">
+                                Machine Max Speed Limit
+                            </label>
+                            <input type="number" id="maxSpeedLimit" formControlName="maxSpeedLimit" class="form-control"
+                                placeholder="Enter Machine Max Speed Limit">
+
+                            @if(maxSpeedLimit?.touched && maxSpeedLimit?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(maxSpeedLimit?.errors?.['required']){
+                                <span>Machine Max Speed is required.</span>
+                                }
+                                @if(maxSpeedLimit?.errors?.['min']){
+                                <span>
+                                    Enter at least {{ maxSpeedLimit?.errors?.['min']?.min }} for machine speed.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Alert -->
+                        <div class="col-12 mb-3 d-flex align-items-center">
+                            <span class="form-label me-3 mb-0">
+                                Alert
+                            </span>
+                            <div class="custom-switch" [class.on]="isAlertActive?.value" (click)="onChangeAlert()">
+                                <span class="switch-track">
+                                    <span class="switch-thumb">
+                                        {{ isAlertActive?.value ? 'On' : 'Off' }}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseMachineConfigureModal()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+}

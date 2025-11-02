@@ -8,6 +8,9 @@ import { Users } from '@app/services/users/users';
 import { Machine } from '@app/services/machine/machine';
 import { ApkVersion } from '@app/services/apk-version/apk-version';
 import { MachineGroup } from './machine-group/machine-group';
+import { MachineConfigure } from './machine-configure/machine-configure';
+import { MaintenanceCategory } from './maintenance-category/maintenance-category';
+import { MaintenanceEntry } from './maintenance-entry/maintenance-entry';
 
 
 @Injectable({
@@ -27,8 +30,14 @@ export class ApiFacadeService {
   public readonly users: Users = inject(Users);
   // Inject Machine service
   public readonly machine: Machine = inject(Machine);
+  // Inject Machine Configure service
+  public readonly machineConfigure: MachineConfigure = inject(MachineConfigure);
   // Inject Machine Group service
   public readonly machineGroup: MachineGroup = inject(MachineGroup);
   // Inject APK Version service
   public readonly apkVersion: ApkVersion = inject(ApkVersion);
+  // Inject Maintenance Category service
+  public readonly maintenanceCategory: MaintenanceCategory = inject(MaintenanceCategory);
+  // Inject Maintenance Entry service
+  public readonly maintenanceEntry: MaintenanceEntry = inject(MaintenanceEntry);
 }

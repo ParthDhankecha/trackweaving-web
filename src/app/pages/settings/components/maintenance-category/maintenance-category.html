@@ -1,0 +1,69 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <div class="table-responsive">
+        <table class="table caption-top table-striped table-hover">
+            <caption class="text-capitalize fs-5 fw-bold pt-0">
+                Maintenance Category
+            </caption>
+            <thead class="table-dark bg-opacity-50">
+                <tr>
+                    <th scope="col" class="w-1-percent">#</th>
+                    <th scope="col">
+                        Category
+                    </th>
+                    <th scope="col">
+                        Type
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Schedule Days
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Alert Days
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Alert Message
+                    </th>
+                    <th scope="col">
+                        Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(mgItem of maintenanceCategoryList; track mgItem._id; let i=$index;){
+                <tr>
+                    <th scope="row">{{i+1}}</th>
+                    <td class="text-capitalize">
+                        {{mgItem?.name}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.categoryType}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.scheduleDays}}
+                    </td>
+                    <td class="text-capitalize">
+                        {{mgItem?.alertDays}}
+                    </td>
+                    <td class="text-capitalize text-danger">
+                        {{mgItem?.alertMessage}}
+                    </td>
+                    <td class="text-capitalize">
+                        <div class="custom-switch" [class.on]="mgItem.isActive" (click)="onToggleAlert(mgItem)">
+                            <span class="switch-track shadow-sm">
+                                <span class="switch-thumb">
+                                    {{ mgItem.isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                }@empty {
+                <tr>
+                    <td colspan="7" class="text-muted small text-center">
+                        No records found.
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

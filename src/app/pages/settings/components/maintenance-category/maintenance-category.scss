@@ -1,0 +1,42 @@
+.custom-switch {
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+
+    .switch-track {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        width: 4.5em;
+        background-color: #eccdd1;
+        border-radius: 2em;
+        transition: background-color 0.3s ease;
+        padding: 0.2em;
+
+        .switch-thumb {
+            padding: 0 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2em;
+            height: 2em;
+            color: #FFF;
+            background-color: #DC3545;
+            border-radius: 1em;
+            transition: all 0.2s ease;
+            font-size: 0.6em;
+            font-weight: 600;
+        }
+    }
+
+    &.on {
+        .switch-track {
+            background-color: #bee9bf;
+
+            .switch-thumb {
+                background-color: #4caf50;
+                transform: translateX(3.2em);
+            }
+        }
+    }
+}
