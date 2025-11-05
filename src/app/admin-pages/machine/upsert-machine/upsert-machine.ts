@@ -23,7 +23,7 @@ export class UpsertMachine {
   protected readonly _fb = inject(FormBuilder);
 
 
-  protected readonly _machineNames: string[] = ['taitan', 'signature'];
+  protected readonly _machineNames: string[] = ['taitan', 'signature', 'rifa'];
   protected isEditMode: boolean = false;
   @Input('workspaceList') workspaceList: any = [];
   protected filteredWorkspaceList: any = [];

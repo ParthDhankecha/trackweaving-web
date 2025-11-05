@@ -61,7 +61,6 @@ export class UpsertMachineGroup {
       groupName: this.groupName?.value
     };
 
-    console.log('Submitting workspace form with data:', body);
     this.isReqAlive = true;
     if (!this.isEditMode) {
       this._apiFs.machineGroup.create(body).subscribe({

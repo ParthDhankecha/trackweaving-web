@@ -24,10 +24,10 @@ export class Login {
     private _coreService: CoreFacadeService,
   ) {
     if (this._coreService.utils.isAuthenticated) {
-      if (this._coreService.utils.isAdmin) {
-        this._router.navigateByUrl(ROUTES.HOME);
-      } else {
+      if (this._coreService.utils.isSuperAdmin) {
         this._router.navigateByUrl(ROUTES.ADMIN.BASE);
+      } else {
+        this._router.navigateByUrl(ROUTES.HOME);
       }
       return;
     }

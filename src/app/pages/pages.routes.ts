@@ -26,7 +26,7 @@ export const routes: Routes = [
     {
         path: ROUTES.SETTINGS.BASE,
         title: APP_PAGE_TITLE.SETTINGS.BASE,
-        canActivate: [authGuard, adminRoleGuard],
+        canActivate: [authGuard],
         loadChildren: () => import('./settings/settings.routes').then(m => m.routes)
     }
 ];

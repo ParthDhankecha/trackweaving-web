@@ -73,6 +73,7 @@ export class Utils {
     localStorage.clear();
     const baseKey = this.isSuperAdmin ? 'ADMIN' : 'AUTH';
     this.decodeTokenData = null;
+    this.clearAllToaster();
     this._router.navigateByUrl(`${ROUTES[baseKey].getFullRoute(ROUTES[baseKey].LOGIN)}`);
   }
 
