@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
-import { IResponse } from '@src/app/models/http-response.model';
-import { EToasterType } from '@src/app/models/utils.model';
+
+import { UpsertUser } from './upsert-user/upsert-user';
 import { Pagination } from '@src/app/shared/components/pagination/pagination';
 import { EntriesPerPageSelector } from '@src/app/shared/components/entries-per-page-selector/entries-per-page-selector';
-import { UpsertUser } from './upsert-user/upsert-user';
-import { FormsModule } from '@angular/forms';
+
+import { IResponse } from '@src/app/models/http-response.model';
+import { EToasterType } from '@src/app/models/utils.model';
 
 
 @Component({
@@ -66,7 +68,7 @@ export class Users {
       Object.assign(payload, { search: search });
     }
 
-    this._apiFs.users.listWithPagination(payload).subscribe({
+    this._apiFs.users.adminListWithPagination(payload).subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
           this.userList = res.data.list;
@@ -136,7 +138,7 @@ export class Users {
     this.closeStatusChangeConfirmationModal();
 
     this.isReqAlive = true;
-    this._apiFs.users.update(
+    this._apiFs.users.adminUpdate(
       userId,
       { isActive: this.userList[index].isActive } as any
     ).subscribe({
@@ -169,14 +171,7 @@ export class Users {
 
   protected upsertUserModalEvent(data: any): void {
     if (data) {
-      if (!data?._id) {
-        this.loadList();
-      } else {
-        const index = this.userList.findIndex(u => u._id === data._id);
-        if (index !== -1) {
-          this.userList[index] = data;
-        }
-      }
+      this.loadList();
     }
     this.onCloseUserModal();
   }
@@ -205,7 +200,7 @@ export class Users {
     if (index === -1) return;
 
     this.isReqAlive = true;
-    this._apiFs.users.delete(userId).subscribe({
+    this._apiFs.users.adminDelete(userId).subscribe({
       next: (res: IResponse) => {
         this.isReqAlive = false;
         if (res.code === 'OK') {

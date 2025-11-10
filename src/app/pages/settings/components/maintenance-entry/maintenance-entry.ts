@@ -71,6 +71,7 @@ export class MaintenanceEntry {
   }
 
   private lastMaintenanceDateValidator(control: AbstractControl): ValidationErrors | null {
+    if (this.nextMaintenanceDate && !this.nextMaintenanceDate?.touched) this.nextMaintenanceDate.markAsTouched();
     this.nextMaintenanceDate?.updateValueAndValidity();
     return null;
   }

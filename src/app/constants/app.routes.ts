@@ -7,6 +7,7 @@ export const ROUTES = {
         getFullRoute: (route: string) => `/${ROUTES.AUTH.BASE}/${route}`
     },
     DASHBOARD: 'dashboard',
+    REPORT: 'report',
     SETTINGS: {
         BASE: 'settings',
         MACHINE_GROUP: 'machine-group',

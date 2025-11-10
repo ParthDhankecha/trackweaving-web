@@ -12,14 +12,38 @@ import { IResponse } from '@src/app/models/http-response.model';
 export class Users {
 
   private readonly _http: HttpClient = inject(HttpClient);
-  private readonly _baseUrl: string = 'admin/user';
+  private readonly _adminBaseUrl: string = 'admin/user';
+  private readonly _baseUrl: string = 'users';
 
   private readonly _coreService = inject(CoreFacadeService);
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
-  listWithPagination(payload: { page?: number, limit?: number }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/pagination`, payload);
+  // Admin APIs
+  adminListWithPagination(payload: { page?: number, limit?: number }): Observable<IResponse> {
+    return this._http.post(`${this._adminBaseUrl}/pagination`, payload);
+  }
+
+  adminCreate(payload: any): Observable<IResponse> {
+    const body = {
+      data: this._coreService.utils.encodeData(payload, this.encodeKey),
+      date: this.encodeKey
+    };
+    return this._http.post(`${this._adminBaseUrl}/create`, body);
+  }
+
+  adminUpdate(id: string, payload: any): Observable<IResponse> {
+    return this._http.put(`${this._adminBaseUrl}/update/${id}`, payload);
+  }
+
+  adminDelete(id: string): Observable<IResponse> {
+    return this._http.delete(`${this._adminBaseUrl}/delete/${id}`);
+  }
+
+
+  // User APIs
+  list(): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}`);
   }
 
   create(payload: any): Observable<IResponse> {
@@ -27,14 +51,14 @@ export class Users {
       data: this._coreService.utils.encodeData(payload, this.encodeKey),
       date: this.encodeKey
     };
-    return this._http.post(`${this._baseUrl}/create`, body);
+    return this._http.post(`${this._baseUrl}`, body);
   }
 
   update(id: string, payload: any): Observable<IResponse> {
-    return this._http.put(`${this._baseUrl}/update/${id}`, payload);
-  }
-
-  delete(id: string): Observable<IResponse> {
-    return this._http.delete(`${this._baseUrl}/delete/${id}`);
+    const body = {
+      data: this._coreService.utils.encodeData(payload, this.encodeKey),
+      date: this.encodeKey
+    };
+    return this._http.put(`${this._baseUrl}/${id}`, body);
   }
 }

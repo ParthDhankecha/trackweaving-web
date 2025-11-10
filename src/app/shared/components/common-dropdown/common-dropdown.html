@@ -1,0 +1,88 @@
+<div class="dropdown">
+    <button class="btn btn-light w-100 dropdown-toggle text-capitalize selected-option" type="button" [class]="btnClass"
+        [attr.data-bs-toggle]="disabled?'':'dropdown'" [disabled]="disabled" [style]="btnStyle">
+        {{ selectedOption ? displayText : (placeholder | translate) }}
+    </button>
+
+    @if(!disabled){
+    @if(disableSearch){
+    <ul class="dropdown-menu w-100">
+        <ng-container *ngTemplateOutlet="optionListTemplate"></ng-container>
+    </ul>
+    }@else{
+    <ul class="dropdown-menu pt-0 w-100" [class]="listWrapClass">
+        <div class="search-list-height position-relative">
+            <div class="bg-secondary-subtle position-sticky top-0 border-bottom mb-2">
+                <app-search-input [searchTerms]="cacheSearchTerms"
+                    (onSearch)="onSearchTerms($event)"></app-search-input>
+            </div>
+            <ng-container *ngTemplateOutlet="optionListTemplate"></ng-container>
+        </div>
+    </ul>
+    }
+    }
+</div>
+
+
+<ng-template #optionListTemplate>
+    @if(!displayKey1){
+    @for(option of filteredList; track trackByUniqueKey(i, option); let i = $index;){
+    <ng-container *ngTemplateOutlet="simpleOptionBlock; context: { $implicit: option }"></ng-container>
+    }@empty {
+    <ng-container [ngTemplateOutlet]="emptyBlock"></ng-container>
+    }
+    }@else {
+    @for(option of filteredList; track trackByUniqueKey(i, option); let i = $index;){
+    <ng-container *ngTemplateOutlet="itemBlock; context: { $implicit: option }"></ng-container>
+    }@empty {
+    <ng-container [ngTemplateOutlet]="emptyBlock"></ng-container>
+    }
+    }
+</ng-template>
+
+
+
+<!-- simple Option Block Template -->
+<ng-template #simpleOptionBlock let-option>
+    <li class="dropdown-item" (click)="onOptionChange(option)" [class.bg-secondary-subtle]="isSelected(option)">
+        <span class="text-capitalize lh-sm option-item">
+            {{option}}
+        </span>
+    </li>
+</ng-template>
+
+<!-- Item Block Template -->
+<ng-template #itemBlock let-option>
+    <li class="dropdown-item" (click)="onOptionChange(option)" [class.bg-secondary-subtle]="isSelected(option)">
+        <span class="d-flex flex-column">
+            <span class="text-capitalize lh-sm option-item">
+                {{option[displayKey1]}}
+            </span>
+            @if(displayKey2){
+            <small class="text-capitalize text-muted lh-1 option-item">
+                {{option[displayKey2]}}
+            </small>
+            }
+        </span>
+    </li>
+</ng-template>
+
+<!-- Empty Block Template -->
+<ng-template #emptyBlock>
+    <li>
+        @if(enableCreate && cacheSearchTerms){
+        <div class="d-flex align-items-center gap-2 py-1 px-3">
+            <span class="d-block text-center text-muted flex-grow-1">
+                create "<span class="fw-semibold text-primary">{{cacheSearchTerms}}</span>"
+            </span>
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="onCreateNew()">
+                Create
+            </button>
+        </div>
+        }@else {
+        <span class="d-block py-1 px-3 text-capitalize text-center text-muted">
+            no records found
+        </span>
+        }
+    </li>
+</ng-template>

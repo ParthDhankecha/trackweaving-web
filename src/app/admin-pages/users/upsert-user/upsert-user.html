@@ -13,30 +13,14 @@
                     <div class="row">
                         <!-- Workspace -->
                         <div class="col-12 col-md-6 mb-3">
-                            <label for="userName" class="form-label">
+                            <span class="d-inline-block form-label">
                                 Workspace <span class="text-danger">*</span>
-                            </label>
-                            <div class="dropdown position-relative">
-                                <button class="btn btn-light w-100 dropdown-toggle text-capitalize" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    {{workspace?.value?.firmName || 'Select Workspace'}}
-                                </button>
-                                <ul class="dropdown-menu pt-0 w-100">
-                                    <div class="search-list-height">
-                                        <div class="bg-secondary-subtle position-sticky top-0 border-bottom">
-                                            <app-search-input (onSearch)="onSearchTerms($event)"></app-search-input>
-                                        </div>
-                                        @for(wItem of filteredWorkspaceList; track wItem._id){
-                                        <li (click)="onWorkspaceChange(wItem)">
-                                            <span class="dropdown-item text-capitalize"
-                                                [class.active]="wItem?._id === workspace?.value?._id">
-                                                {{wItem.firmName}}
-                                            </span>
-                                        </li>
-                                        }
-                                    </div>
-                                </ul>
-                            </div>
+                            </span>
+                            <app-common-dropdown [optionsList]="workspaceList" [selectedOption]="workspace?.value"
+                                (onSelect)="onWorkspaceChange($event)" [filterKeys]="['firmName']"
+                                [disabled]="!!workspace?.disabled" displayKey1="firmName" uniqueKey="_id"
+                                placeholder="Select Workspace">
+                            </app-common-dropdown>
 
                             @if(workspace?.touched && workspace?.errors){
                             <div class="invalid-feedback d-block">
@@ -95,7 +79,7 @@
                         <!-- password -->
                         <div class="col-12 col-md-6 mb-3">
                             <label for="password" class="form-label">
-                                Password <span class="text-danger">*</span>
+                                Password <span class="text-danger" [class.d-none]="isEditMode">*</span>
                             </label>
                             <div class="input-group flex-nowrap">
                                 <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
@@ -186,6 +170,7 @@
                         </div>
                     </div>
                     <!-- Plan -->
+                    @if(isEditMode && userForm.contains('plan')){
                     <div formGroupName="plan" class="row">
                         <div class="col-12 col-md-6 mb-3">
                             <label for="startDate" class="form-label">
@@ -242,6 +227,7 @@
                             }
                         </div>
                     </div>
+                    }
                 </div>
 
                 <div class="modal-footer">

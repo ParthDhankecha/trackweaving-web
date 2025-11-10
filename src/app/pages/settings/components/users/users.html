@@ -1,0 +1,109 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <!-- Designs Table -->
+    <div class="table-responsive">
+        <table class="table table-hover caption-top">
+            <caption>
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <strong class="fs-5">
+                            Users
+                        </strong>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        @if(_coreService.utils.isAdmin) {
+                        <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
+                            (click)="onOpenUpsertUserModal()">
+                            <svg height="20" width="20" viewBox="0 0 48 48" class="flex-shrink-0">
+                                <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                    stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                                <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                    stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                            </svg>
+                            <span class="text-nowrap">New User</span>
+                        </button>
+                        }
+                    </div>
+                </div>
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Mobile</th>
+                    <th scope="col">Email</th>
+                    <th scope="col" class="text-center text-nowrap">Is Active</th>
+                    <th scope="col" class="w-1-percent text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(user of userList; track user._id; let i = $index){
+                <tr>
+                    <th scope="row">{{ i + 1 }}</th>
+                    <td class="word-break-all">{{user.fullname||'-'}}</td>
+                    <td>{{user?.userName}}</td>
+                    <td>{{user?.mobile||'-'}}</td>
+                    <td>{{user?.email||'-'}}</td>
+                    <td class="text-center">
+                        @if(user?.isCurrentUser){
+                        <span class="badge bg-primary rounded-2">
+                            Current User
+                        </span>
+                        }@else {
+                        <div class="form-check form-switch d-flex p-0">
+                            <input class="form-check-input mx-auto fs-5" type="checkbox" [checked]="user?.isActive"
+                                (click)="onStatusChange($event, user)">
+                        </div>
+                        }
+                    </td>
+                    <td class="text-nowrap">
+                        <button class="btn btn-sm btn-outline-primary me-2" (click)="onOpenUpsertUserModal(user)">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                }@empty {
+                <tr>
+                    <td colspan="9" class="text-center">No users found.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- Create/Upsert User Modal -->
+@if(isUpsertUserModalOpen){
+<app-upsert-user [userData]="upsertUserModalData" (closeOrCancel)="onCloseUserModal()"
+    (upsert)="upsertUserModalEvent($event)"></app-upsert-user>
+}
+
+<!-- Status Change Confirmation Modal -->
+@if (isStatusChangeConfirmationModalOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusChangeModalLabel">Confirm Status Change</h5>
+                <button type="button" class="btn-close" (click)="closeStatusChangeConfirmationModal()"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to
+                <strong>{{userStatusChangeData?.isActive ? 'deactivate' : 'activate'}}</strong>
+                the user(<strong>{{userStatusChangeData?.userName}}</strong>)?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeStatusChangeConfirmationModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmStatusChange()">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

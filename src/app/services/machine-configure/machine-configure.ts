@@ -22,6 +22,10 @@ export class MachineConfigure {
     return this._http.get(`${this._baseUrl}`);
   }
 
+  optionList(): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}/option-list`);
+  }
+
   update(mcId: string, payload: any): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/${mcId}`, payload);
   }

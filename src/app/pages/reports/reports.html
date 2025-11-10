@@ -1,0 +1,322 @@
+<div class="container-fluid p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2">
+        Reports
+    </strong>
+    <!-- Report Filters -->
+    <div class="border-bottom mb-3">
+        <div [formGroup]="filterForm" class="row mb-2">
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                <label for="reportType" class="form-label small fw-semibold mb-1">Report Type:</label>
+                <select id="reportType" class="form-select text-capitalize" formControlName="reportType">
+                    @for (type of reportTypeOptions; track $index;){
+                    <option [value]="type.id">{{ type.label }}</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                <label for="startDate" class="form-label small fw-semibold mb-1">From Date:</label>
+                <input type="date" id="startDate" class="form-control" formControlName="startDate">
+                @if (startDate?.touched && startDate?.errors) {
+                <div class="invalid-feedback d-block">
+                    @if (startDate?.errors?.['required']) {
+                    <span>From date is required.</span>
+                    }
+                </div>
+                }
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                <label for="endDate" class="form-label small fw-semibold mb-1">End Date:</label>
+                <input type="date" id="endDate" class="form-control" formControlName="endDate">
+                @if (endDate?.touched && endDate?.errors) {
+                <div class="invalid-feedback d-block">
+                    @if (endDate?.errors?.['required']) {
+                    <span>End date is required.</span>
+                    }
+                    @if (endDate?.errors?.['invalidRange']) {
+                    <span>End date must be after or same as From date.</span>
+                    }
+                </div>
+                }
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
+                <select id="shift" class="form-select text-capitalize" formControlName="shift">
+                    @for (shift of shiftOptions; track $index;){
+                    <option [value]="shift.id">{{shift.label}}</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <!-- Machine Options -->
+        <div class="mb-2 user-select-none">
+            <div [formGroup]="filterForm" class="d-flex align-items-center flex-wrap gap-3 mb-2">
+                <span class="fw-semibold">Machine: </span>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="checkbox" id="groupByMachine" name="groupByMachine" formControlName="groupByMachine"
+                        class="form-check-input fs-5 m-0">
+                    <label for="groupByMachine" class="form-check-label small fw-semibold">Group by Machine</label>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="checkbox" id="selectAll" name="selectAll" formControlName="selectAll"
+                        class="form-check-input fs-5 m-0">
+                    <label for="selectAll" class="form-check-label small fw-semibold">Select All</label>
+                </div>
+            </div>
+            <!-- Machine List by Group or Individual -->
+            @if(groupByMachine?.value){
+            @for (group of machineList; track group._id) {
+            <div class="mb-3 text-capitalize">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <input type="checkbox" id="{{group._id}}" name="groupByMachine" class="form-check-input fs-5 m-0"
+                        [value]="group.selected" [(ngModel)]="group.selected"
+                        (ngModelChange)="onMachineGroupSelectionChange($event, group)">
+                    <label for="{{group._id}}" class="form-check-label small fw-semibold">
+                        {{ group.groupName }}
+                    </label>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3 ps-4">
+                    @for (machine of group.machines; track machine._id) {
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <input type="checkbox" id="machine-{{machine._id}}" name="machineIds"
+                            class="form-check-input m-0" [value]="machine.selected" [(ngModel)]="machine.selected"
+                            (ngModelChange)="onMachineSelectionChange(group)">
+                        <label for="machine-{{machine._id}}" class="form-check-label small">
+                            {{ machine.machineCode }}
+                        </label>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+            }@else {
+            <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
+                @for (machine of machineList; track machine._id) {
+                <div class="d-inline-flex align-items-center gap-2">
+                    <input type="checkbox" id="machine-{{machine._id}}" name="machineIds" class="form-check-input m-0"
+                        [value]="machine.selected" [(ngModel)]="machine.selected"
+                        (ngModelChange)="onMachineSelectionChange()">
+                    <label for="machine-{{machine._id}}" class="form-check-label small">
+                        {{ machine.machineCode }}
+                    </label>
+                </div>
+                }
+            </div>
+            }
+
+            @if(machineIds?.touched && machineIds?.errors) {
+            <div class="invalid-feedback d-block">
+                @if (machineIds?.errors?.['required']) {
+                <span>Please select at least one machine.</span>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    <!-- Show Report Button -->
+    <div class="text-center mb-3 user-select-none">
+        <button type="button" class="btn btn-outline-primary" (click)="onShowReport()" [disabled]="isReqAlive"
+            [class.disabled]="isReqAlive">
+            Show Report
+        </button>
+    </div>
+
+    @if(reportData){
+    <div class="p-3" id="print-section">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+            <div class="">
+                <h2 class="d-inline-block font-semibold fs-5 m-0">
+                    {{reportData?.reportTitle}}
+                </h2>
+                <span class="small">
+                    (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
+                    <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
+                </span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
+                    Export to PDF
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsExcel()">
+                    Export to Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered" #reportTable>
+                <thead class="table-dark text-center align-middle">
+                    <tr>
+                        <th rowspan="2">Date</th>
+                        <th rowspan="2">Shift</th>
+                        <th rowspan="2">Machine</th>
+                        <th rowspan="2" class="text-nowrap">
+                            Prod. [Mtrs]
+                        </th>
+                        <th rowspan="2">Picks</th>
+                        <th rowspan="2" class="text-nowrap">
+                            Eff. %
+                        </th>
+                        <th rowspan="2" class="text-nowrap">
+                            Run Time
+                        </th>
+                        <th rowspan="2" class="text-nowrap">
+                            Beam Left
+                        </th>
+                        <th colspan="2" class="text-nowrap">
+                            Warp
+                        </th>
+                        <th colspan="2" class="text-nowrap">
+                            Weft
+                        </th>
+                        <th colspan="2" class="text-nowrap">
+                            Feeder
+                        </th>
+                        <th colspan="2" class="text-nowrap">
+                            Manual
+                        </th>
+                        <th colspan="2" class="text-nowrap">
+                            Other
+                        </th>
+                        <th colspan="2" rowspan="2" class="text-nowrap">
+                            Total Stops
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle text-center">
+                    @for (item of reportData?.list; track $index; let even = $even;) {
+                    @for (data of item?.list; track data._id;let shiftIndex = $index;) {
+                    <tr class="small" [class.custom-tr-bg]="even">
+                        @if(shiftIndex === 0) {
+                        <td [attr.rowspan]="item?.list?.length ?? 1">
+                            {{ item.reportDate | date:'dd-MMM-yyyy' }}
+                        </td>
+                        <td [attr.rowspan]="item?.list?.length ?? 1">
+                            {{ item.shiftLabel }}
+                        </td>
+                        }
+                        <td>
+                            {{data.machineCode}}
+                        </td>
+                        <td>
+                            {{data.pieceLengthM|number:'1.0-2'}}
+                        </td>
+                        <td>
+                            {{data.picksCurrentShift}}
+                        </td>
+                        <td>
+                            {{data.efficiencyPercent|number:'1.1-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.runTime}}
+                        </td>
+                        <td>
+                            {{data.beamLeft}}
+                        </td>
+                        <td>
+                            {{data.stopsData.warp.count|number:'1.0-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.stopsData.warp.duration}}
+                        </td>
+                        <td>
+                            {{data.stopsData.weft.count|number:'1.0-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.stopsData.weft.duration}}
+                        </td>
+                        <td>
+                            {{data.stopsData.feeder.count|number:'1.0-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.stopsData.feeder.duration}}
+                        </td>
+                        <td>
+                            {{data.stopsData.manual.count|number:'1.0-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.stopsData.manual.duration}}
+                        </td>
+                        <td>
+                            {{data.stopsData.other.count|number:'1.0-2'}}
+                        </td>
+                        <td class="text-nowrap">
+                            {{data.stopsData.other.duration}}
+                        </td>
+                        <td class="fw-semibold">
+                            {{data.stopsData.total.count|number:'1.0-2'}}
+                        </td>
+                        <td class="fw-semibold text-nowrap">
+                            {{data.stopsData.total.duration}}
+                        </td>
+                    </tr>
+                    }
+                    <tr class="small fw-semibold" [class.custom-tr-bg]="even">
+                        <td></td>
+                        <td colspan="2">
+                            {{item.reportDate|date:'dd-MMM-yyyy'}} - {{item.shiftLabel}}
+                        </td>
+                        <td>
+                            {{item?.prodMeter|number:'1.0-2'}}
+                        </td>
+                        <td>
+                            {{item?.totalPicks}}
+                        </td>
+                        <td>
+                            {{item?.efficiency|number:'1.1-2'}}
+                        </td>
+                        <td colspan="2" class="text-start text-capitalize">
+                            Avg: {{item?.avgPicks}}
+                        </td>
+                        <td colspan="12"></td>
+                    </tr>
+                    }
+                    <tr>
+                        <td colspan="20">&nbsp;</td>
+                    </tr>
+                    <tr class="custom-tr-bg fw-semibold">
+                        <td colspan="3" class="text-uppercase">
+                            Total
+                        </td>
+                        <td>
+                            {{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}
+                        </td>
+                        <td>
+                            {{reportData?.totalPicks}}
+                        </td>
+                        <td>
+                            {{reportData?.totalEfficiency|number:'1.0-2'}}
+                        </td>
+                        <td colspan="2" class="text-start text-capitalize">
+                            Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+</div>

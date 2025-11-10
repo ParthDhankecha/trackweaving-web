@@ -52,9 +52,13 @@ export class Utils {
   }
 
   get isAuthenticated(): boolean {
-    const exp = this.decodeToken?.exp;
+    const details = this.decodeToken;
+    const exp = details?.exp;
     if (exp) {
       return new Date().getTime() < exp * 1000;
+    }
+    if (details?.iat && (exp === null || exp === undefined)) {
+      return true;
     }
     return false;
   }

@@ -4,14 +4,14 @@ import { ROUTES } from './constants/app.routes';
 import { APP_PAGE_TITLE } from './constants/app-config';
 
 import { MainLayout } from './layouts/main-layout/main-layout';
+import { Dashboard } from './pages/dashboard/dashboard';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
-import { PageNotFound } from './shared/components/page-not-found/page-not-found';
 import { TermsAndCondition } from './pages/terms-and-condition/terms-and-condition';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy';
 import { Support } from './pages/support/support';
+import { PageNotFound } from './shared/components/page-not-found/page-not-found';
 
 import { authGuard } from './core/guards/auth-guard';
-import { Dashboard } from './pages/dashboard/dashboard';
 
 
 export const routes: Routes = [

@@ -11,6 +11,9 @@ import { MachineGroup } from './machine-group/machine-group';
 import { MachineConfigure } from './machine-configure/machine-configure';
 import { MaintenanceCategory } from './maintenance-category/maintenance-category';
 import { MaintenanceEntry } from './maintenance-entry/maintenance-entry';
+import { PartsChangeEntry } from './parts-change-entry/parts-change-entry';
+import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
+import { Reports } from './reports/reports';
 
 
 @Injectable({
@@ -24,6 +27,8 @@ export class ApiFacadeService {
   public readonly auth: Auth = inject(Auth);
   // Inject Dashboard service
   public readonly dashboard: Dashboard = inject(Dashboard);
+  // Inject Reports service
+  public readonly reports: Reports = inject(Reports);
   // Inject Workspace service
   public readonly workspace: Workspace = inject(Workspace);
   // Inject Users service
@@ -40,4 +45,8 @@ export class ApiFacadeService {
   public readonly maintenanceCategory: MaintenanceCategory = inject(MaintenanceCategory);
   // Inject Maintenance Entry service
   public readonly maintenanceEntry: MaintenanceEntry = inject(MaintenanceEntry);
+  // Inject Shift Wise Comments service
+  public readonly shiftWiseComments: ShiftWiseComments = inject(ShiftWiseComments);
+  // Inject Parts Change Entry service
+  public readonly partsChangeEntry: PartsChangeEntry = inject(PartsChangeEntry);
 }

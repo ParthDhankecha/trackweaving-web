@@ -1,0 +1,168 @@
+<div class="modal modal-lg fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit User' : 'Create User'}}
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- fullname -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="fullname" class="form-label">
+                                Full Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="fullname" formControlName="fullname" class="form-control"
+                                placeholder="Enter fullname">
+
+                            @if(fullname?.touched && fullname?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(fullname?.errors?.['required']){
+                                <span>Fullname is required.</span>
+                                }
+                                @if(fullname?.errors?.['maxlength']){
+                                <span>
+                                    fullname cannot exceed
+                                    {{fullname?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- User Name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="userName" class="form-label">
+                                User Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="userName" formControlName="userName" class="form-control"
+                                placeholder="Enter user name/mobile">
+
+                            @if(userName?.touched && userName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(userName?.errors?.['required']){
+                                <span>User name is required.</span>
+                                }
+                                @if(userName?.errors?.['maxlength']){
+                                <span>
+                                    User name cannot exceed
+                                    {{userName?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- password -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="password" class="form-label">
+                                Password <span class="text-danger" [class.d-none]="isEditMode">*</span>
+                            </label>
+                            <div class="input-group flex-nowrap">
+                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
+                                    formControlName="password" maxlength="20" placeholder="Enter your password"
+                                    aria-describedby="password">
+                                <span class="input-group-text user-select-none position-relative cursor-pointer"
+                                    (click)="isEyeOpen = !isEyeOpen">
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
+                                        fill="#737373">
+                                        <path
+                                            d='M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3' />
+                                        <path
+                                            d='M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5' />
+                                    </svg>
+                                    <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
+                                </span>
+                            </div>
+
+                            @if(password?.touched && password?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(password?.errors?.['required']){
+                                <span>Password is required.</span>
+                                }
+                                @if(password?.errors?.['minlength']){
+                                <span>
+                                    Password must be at least
+                                    {{password?.errors?.['minlength']?.requiredLength}}
+                                    characters long.
+                                </span>
+                                }
+                                @if (password?.errors?.['maxlength']){
+                                <span>
+                                    Password cannot exceed
+                                    {{password?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- mobile -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="mobile" class="form-label">
+                                Mobile Number
+                            </label>
+                            <input type="text" id="mobile" formControlName="mobile" class="form-control"
+                                placeholder="Enter mobile number" (keypress)="onlyDigits($event)">
+
+                            @if(mobile?.touched && mobile?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(mobile?.errors?.['required']){
+                                <span>Mobile number is required.</span>
+                                }
+                                @if(mobile?.errors?.['pattern']){
+                                <span>Enter a valid 10-digit mobile number.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- email -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                Email
+                            </label>
+                            <input type="email" id="email" formControlName="email" class="form-control"
+                                placeholder="Enter email">
+
+                            @if(email?.touched && email?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(email?.errors?.['required']){
+                                <span>Email is required.</span>
+                                }
+                                @if(email?.errors?.['email']){
+                                <span>Enter a valid email address.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Is Active -->
+                        @if(userForm.contains('isActive')){
+                        <div class="col-12 col-md-6 mb-3 d-flex">
+                            <div class="form-check form-switch my-auto">
+                                <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive"
+                                    [checked]="isActive?.value">
+                                <label class="form-check-label" for="isActive">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        {{isEditMode ? 'Update' : 'Create'}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

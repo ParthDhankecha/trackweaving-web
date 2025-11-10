@@ -1,0 +1,147 @@
+<div class="modal d-block">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="pceForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{isEditMode ? 'Edit' : 'Create'}} Part Change Log
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Part Name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="partName" class="form-label">
+                                Part Name <span class="text-danger">*</span>
+                            </label>
+                            <app-common-dropdown [selectedOption]="partName?.value" [optionsList]="_partNameList"
+                                [enableCreate]="true" placeholder="Select Part name" (onSelect)="onSelectPart($event)"
+                                (onCreate)="onCreateNewPart($event)" listWrapClass="dpd-translate-y" uniqueKey="">
+                            </app-common-dropdown>
+
+                            @if(partName?.touched && partName?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(partName?.errors?.['required']){
+                                <span>Part name is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Machine Name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="machineId" class="form-label">
+                                Machine Name <span class="text-danger">*</span>
+                            </label>
+                            <select name="machineId" id="machineId" class="form-select text-capitalize"
+                                formControlName="machineId">
+                                <option value="">Select machine name</option>
+                                @for(mItem of machineList; track mItem._id;){
+                                <option [value]="mItem._id">
+                                    {{mItem?.machineName}} ({{mItem?.machineCode}})
+                                </option>
+                                }
+                            </select>
+
+                            @if(machineId?.touched && machineId?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineId?.errors?.['required']){
+                                <span>Machine name is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Change Date -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="changeDate" class="form-label">
+                                Change Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" id="changeDate" formControlName="changeDate" class="form-control"
+                                placeholder="Enter Part Name">
+
+                            @if(changeDate?.touched && changeDate?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(changeDate?.errors?.['required']){
+                                <span>Change date is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Changed By name -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <span class="form-label d-block">
+                                Changed By(Name)<span class="text-danger">*</span>
+                            </span>
+                            <input type="text" formControlName="changedBy" class="form-control"
+                                placeholder="Enter name">
+
+                            @if(changedBy?.touched && changedBy?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(changedBy?.errors?.['required']){
+                                <span>Name is required.</span>
+                                }
+                                @if(changedBy?.errors?.['pattern']){
+                                <span>
+                                    Input cannot be empty or only spaces
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Changed By contact -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <span class="form-label d-block">
+                                Changed By(Phone)
+                            </span>
+                            <input type="text" formControlName="changedByContact" class="form-control mt-2"
+                                placeholder="Enter phone">
+
+                            @if(changedByContact?.touched && changedByContact?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(changedByContact?.errors?.['required']){
+                                <span>Phone no is required.</span>
+                                }
+                                @if(changedByContact?.errors?.['pattern']){
+                                <span>
+                                    Enter a valid mobile number (with or without +91)
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                        <!-- Notes -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="notes" class="form-label">
+                                Notes
+                            </label>
+                            <textarea name="notes" id="notes" formControlName="notes" class="form-control"
+                                placeholder="Enter notes" style="max-height: 6lh;"></textarea>
+
+                            @if(notes?.touched && notes?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(notes?.errors?.['maxlength']){
+                                <span>
+                                    Notes cannot exceed
+                                    {{notes?.errors?.['maxlength']?.requiredLength}}
+                                    characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary">
+                        {{isEditMode ? 'Update' : 'Create'}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

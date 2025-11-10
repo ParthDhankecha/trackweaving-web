@@ -1,0 +1,97 @@
+<div class="container-fluid p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2">
+        Shift Wise Comments Report
+    </strong>
+    <!-- Report Filters -->
+    <div [formGroup]="filterForm" class="row mb-3 border-bottom">
+        <div class="col-md-4 mb-3">
+            <span class="d-inline-block form-label fw-semibold">Machine:</span>
+            <app-common-dropdown [selectedOption]="machineId?.value" [optionsList]="machineList"
+                [filterKeys]="['machineName', 'machineCode']" displayKey1="machineCode" placeholder="Select All"
+                (onSelect)="onSelectMachine($event)" listWrapClass="dpd-translate-y" uniqueKey="_id">
+            </app-common-dropdown>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="date" class="form-label fw-semibold">Report Date:</label>
+            <input type="date" id="date" class="form-control" formControlName="date">
+            @if (date?.touched && date?.errors) {
+            <div class="invalid-feedback d-block">
+                @if (date?.errors?.['required']) {
+                <span>Report date is required.</span>
+                }
+            </div>
+            }
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="shift" class="form-label fw-semibold">Shift:</label>
+            <select id="shift" class="form-select text-capitalize" formControlName="shift">
+                @for (shift of shiftOptions; track $index;){
+                <option [value]="shift">{{ shift || 'All' }} Shift</option>
+                }
+            </select>
+        </div>
+    </div>
+    <!-- Show Report Button -->
+    <div class="text-center mb-3 user-select-none">
+        <button type="button" class="btn btn-outline-primary" [disabled]="filterForm.invalid"
+            [class.disabled]="filterForm.invalid" (click)="onFilterSubmit()">
+            Show Report
+        </button>
+    </div>
+    <!-- Report Table -->
+    @if (isReportLoaded) {
+    <div class="text-end mb-1">
+        <button type="button" class="btn btn-primary btn-sm" (click)="onSaveComments()" [disabled]="isSaving"
+            [class.disabled]="isSaving">
+            @if (isSaving) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            Save Comments
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped caption-top align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th class="text-center" style="width: 3%;">#</th>
+                    <th class="text-center" style="width: 15%;">Machine</th>
+                    <th class="text-center text-nowrap" style="width: 15%;">Shift Date</th>
+                    <th class="text-center" style="width: 50%;">Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (commentItem of shiftWiseCommentList; track commentItem.date; let i = $index;){
+                <tr>
+                    <td class="text-center">{{i+1}}</td>
+                    <td class="text-center text-capitalize">
+                        {{commentItem?.machineId?.machineCode}}
+                        <span class="small text-muted">({{commentItem?.machineId?.machineName}})</span>
+                    </td>
+                    <td class="text-center text-capitalize">
+                        {{commentItem?.date|date:'dd/MM/yyyy'}}
+                    </td>
+                    <td>
+                        <div class="row g-2">
+                            @for(shift of commentItem.shifts; track shift.shift; let j = $index;){
+                            <div class="col-12" [class.col-md-6]="commentItem.shifts?.length > 1">
+                                <span class="d-inline-block small text-capitalize text-muted">
+                                    {{shift.shift}} Shift:
+                                </span>
+                                <textarea class="form-control" [attr.name]="`${shift.shift}-comment-${i}-${j}`"
+                                    [(ngModel)]="shift.comment" placeholder="Enter comment here..."
+                                    style="max-height: 4lh;"></textarea>
+                            </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+                }@empty {
+                <tr>
+                    <td colspan="5" class="text-center">No records found.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+</div>

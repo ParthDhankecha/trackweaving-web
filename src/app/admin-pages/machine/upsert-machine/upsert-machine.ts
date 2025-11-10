@@ -110,7 +110,7 @@ export class UpsertMachine {
 
   private cacheSearchTerms: string = '';
   protected onSearchTerms(event: string): void {
-    this.cacheSearchTerms = event;
+    this.cacheSearchTerms = event?.trim()?.toLowerCase();
     this.filteredWorkspaceList = this.workspaceList.filter((item: any) => item.firmName.toLowerCase().includes(event));
   }
 

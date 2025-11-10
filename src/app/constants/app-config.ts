@@ -9,6 +9,7 @@ export const APP_PAGE_TITLE = {
         REGISTER: `Register ${TITLE_POSTFIX}`,
     },
     DASHBOARD: `Dashboard ${TITLE_POSTFIX}`,
+    REPORT: `Report ${TITLE_POSTFIX}`,
     SETTINGS: {
         BASE: `Settings ${TITLE_POSTFIX}`,
         MACHINE_GROUP: `Machine Group ${TITLE_POSTFIX}`,

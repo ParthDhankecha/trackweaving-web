@@ -17,6 +17,7 @@ export class SearchInput {
   ) { }
 
 
+  @Input('placeholder') placeholder: string = 'Search...';
   @Input('searchTerms') searchTerms: string = '';
   @Input('debounceTime') debounceTime: number = 300;
   /**
@@ -87,7 +88,7 @@ export class SearchInput {
     if (this.searchInputDebounceId) clearTimeout(this.searchInputDebounceId);
 
     this.searchInputDebounceId = setTimeout(() => {
-      this.onSearch.emit(this.searchTerms?.trim()?.toLowerCase());
+      this.onSearch.emit(this.searchTerms);
     }, (event ? this.debounceTime : 0));
   }
 }

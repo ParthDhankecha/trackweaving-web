@@ -6,5 +6,5 @@
     </svg>
 
     <input #searchInput class="search-input" type="text" name="searchTerms" [(ngModel)]="searchTerms"
-        (ngModelChange)="onSearchTerms($event)" placeholder="Search...">
+        (ngModelChange)="onSearchTerms($event)" [placeholder]="placeholder">
 </div>

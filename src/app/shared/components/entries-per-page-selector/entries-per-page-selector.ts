@@ -14,6 +14,7 @@ export class EntriesPerPageSelector {
 
   @Input('options') options: number[] = [10, 25, 50, 75, 100]; // Default options
   @Input('pageSize') pageSize: number = 10;  // Default page size
+  @Input('selectClass') selectClass: string = ''; // Additional CSS classes for the select element
   @Output() pageSizeChange = new EventEmitter<number>();  // To emit changes to parent component
 
 

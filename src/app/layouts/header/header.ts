@@ -25,6 +25,9 @@ export class Header {
   @Input('loadFor') loadFor: string = '';
 
 
+  protected readonly _appRoutes = ROUTES;
+
+
   ngOnInit(): void { }
 
 
@@ -44,13 +47,13 @@ export class Header {
       id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_ENTRY)
     },
     {
-      id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update", link: ``
+      id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.SHIFT_WISE_COMMENT_UPDATE)
     },
     {
-      id: 'partsChangeEntry', icon: 'tools', label: "Parts Change Entry", link: ``
+      id: 'partsChangeEntry', icon: 'tools', label: "Parts Change Entry", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.PARTS_CHANGE_ENTRY)
     },
     {
-      id: 'users', icon: 'users', label: "Users", link: ``
+      id: 'users', icon: 'users', label: "Users", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.USERS)
     },
     {
       id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: ROUTES.PRIVACY_POLICY

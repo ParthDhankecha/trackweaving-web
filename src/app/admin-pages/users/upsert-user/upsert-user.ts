@@ -3,18 +3,20 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 
 import moment from 'moment';
 
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
+
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
+import { ApiFacadeService } from '@src/app/services/api-facade-service';
+
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
-import { ApiFacadeService } from '@src/app/services/api-facade-service';
-import { SearchInput } from '@src/app/shared/components/search-input/search-input';
 
 
 @Component({
   selector: 'app-upsert-user',
   imports: [
     ReactiveFormsModule,
-    SearchInput
+    CommonDropdown
   ],
   templateUrl: './upsert-user.html',
   styleUrl: './upsert-user.scss'
@@ -28,7 +30,6 @@ export class UpsertUser {
 
 
   @Input('workspaceList') workspaceList: any = [];
-  protected filteredWorkspaceList: any = [];
   @Input('userData') userData: any = null;
   @Output('closeOrCancel') closeOrCancel: EventEmitter<any> = new EventEmitter<any>();
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
@@ -42,39 +43,40 @@ export class UpsertUser {
     password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
-    isActive: [true, [Validators.required]],
-    plan: this._fb.group({
-      startDate: ['', [this.planDateValidatorFactory('endDate', 'start')]],
-      endDate: ['', [this.planDateValidatorFactory('startDate', 'end')]],
-      subUserLimit: [0, [Validators.pattern('^[0-9]+$')]],
-    }),
+    isActive: [true, [Validators.required]]
   });
   protected isEyeOpen: boolean = false;
 
 
 
   protected ngOnChanges(changes: SimpleChanges) {
-    if (changes['workspaceList']?.currentValue) {
-      this.filteredWorkspaceList = this.workspaceList;
-      if (this.cacheSearchTerms) {
-        this.onSearchTerms(this.cacheSearchTerms);
-      }
-    }
-
     if (changes['userData']?.currentValue) {
       // Initializing form for edit mode
       this.isEditMode = true;
-      const plan = this.userData?.plan || {};
       this.userForm.patchValue({
-        ...this.userData,
+        fullname: this.userData?.fullname ?? '',
+        userName: this.userData?.userName ?? '',
+        password: this.userData?.password ?? '',
+        mobile: this.userData?.mobile ?? '',
+        email: this.userData?.email ?? '',
+        isActive: this.userData?.isActive ?? true,
         workspace: this.workspaceList.find((ws: any) => ws._id === this.userData.workspaceId?._id) || null,
-        plan: {
-          startDate: plan?.startDate ? moment(plan.startDate).format('YYYY-MM-DD') : '',
-          endDate: plan?.endDate ? moment(plan.endDate).format('YYYY-MM-DD') : '',
-          subUserLimit: plan?.subUserLimit || 0,
-        }
       });
-      this.password?.clearValidators();
+      if (this.userData?.isOwner) {
+        const userPlan = this.userData?.plan || {};
+        const plan = {
+          startDate: userPlan?.startDate ? moment(userPlan.startDate).format('YYYY-MM-DD') : '',
+          endDate: userPlan?.endDate ? moment(userPlan.endDate).format('YYYY-MM-DD') : '',
+          subUserLimit: userPlan?.subUserLimit || 0,
+        };
+        this.userForm.addControl('plan', this._fb.group({
+          startDate: [plan.startDate, [this.planDateValidatorFactory('endDate', 'start')]],
+          endDate: [plan.endDate, [this.planDateValidatorFactory('startDate', 'end')]],
+          subUserLimit: [plan.subUserLimit, [Validators.pattern('^[0-9]+$')]],
+        }));
+      }
+      this.workspace?.disable();
+      this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
     }
   }
 
@@ -140,13 +142,13 @@ export class UpsertUser {
     return this.userForm.get('isActive');
   }
   get planStartDate(): AbstractControl | null {
-    return this.userForm.get('plan.startDate');
+    return this.userForm?.get('plan.startDate');
   }
   get planEndDate(): AbstractControl | null {
-    return this.userForm.get('plan.endDate');
+    return this.userForm?.get('plan.endDate');
   }
   get planSubUserLimit(): AbstractControl | null {
-    return this.userForm.get('plan.subUserLimit');
+    return this.userForm?.get('plan.subUserLimit');
   }
 
 
@@ -162,17 +164,11 @@ export class UpsertUser {
     }
   }
 
-  private cacheSearchTerms: string = '';
-  protected onSearchTerms(event: string): void {
-    this.cacheSearchTerms = event;
-    this.filteredWorkspaceList = this.workspaceList.filter((item: any) => item.firmName.toLowerCase().includes(event));
-  }
 
   protected onWorkspaceChange(workspace: any): void {
     if (!workspace || workspace?._id === this.workspace?.value?._id) return;
 
     this.userForm.patchValue({ workspace: workspace });
-    if (this.cacheSearchTerms) this.onSearchTerms('');
   }
 
 
@@ -189,8 +185,10 @@ export class UpsertUser {
     const { workspace, ...restFields } = this.userForm.value;
     const body: any = {
       ...restFields,
-      workspaceId: workspace._id
     };
+    if (workspace) {
+      body.workspaceId = workspace._id;
+    }
     if (body.plan?.subUserLimit) {
       body.plan.subUserLimit = Number(body.plan.subUserLimit);
     }
@@ -200,7 +198,7 @@ export class UpsertUser {
       if (!body.password) {
         delete body.password;
       }
-      this._apiFs.users.update(this.userData._id, body).subscribe({
+      this._apiFs.users.adminUpdate(this.userData._id, body).subscribe({
         next: (res: IResponse) => {
           this.isReqAlive = false;
           if (res.code === 'OK') {
@@ -215,7 +213,7 @@ export class UpsertUser {
         }
       });
     } else {
-      this._apiFs.users.create(body).subscribe({
+      this._apiFs.users.adminCreate(body).subscribe({
         next: (res: IResponse) => {
           this.isReqAlive = false;
           if (res.code === 'CREATED') {
