@@ -56,10 +56,10 @@ export class Header {
       id: 'users', icon: 'users', label: "Users", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.USERS)
     },
     {
-      id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: ROUTES.PRIVACY_POLICY
+      id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: `/${ROUTES.PRIVACY_POLICY}`
     },
     {
-      id: 'termsConditions', icon: 't&c', label: "Terms & Conditions", link: ROUTES.TERMS_AND_CONDITIONS
+      id: 'termsConditions', icon: 't&c', label: "Terms & Conditions", link: `/${ROUTES.TERMS_AND_CONDITIONS}`
     }
   ];
 
