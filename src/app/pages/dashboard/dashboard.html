@@ -202,7 +202,7 @@
                     <div class="progress rounded-2 mt-2 mb-1" style="height: 1.4em; font-size: 0.8em;"
                         role="progressbar">
                         <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
-                            [style.width.%]="machineLog?.efficiency || 0">
+                            [style.width.%]="(machineLog?.efficiency===0?100:machineLog?.efficiency) || 0">
                             {{machineLog?.efficiency || 0}}%
                         </div>
                     </div>

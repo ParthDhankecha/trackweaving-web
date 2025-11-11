@@ -302,6 +302,9 @@ export class Dashboard {
 
 
   protected efficiencyClassName(efficiency: number = 0): string {
+    if (efficiency === 0) {
+      return 'bg-secondary bg-opacity-50';
+    }
     if (efficiency >= this.config.efficiencyGoodPer) {
       return 'bg-success';
     } else if (efficiency > this.config.efficiencyAveragePer) {
