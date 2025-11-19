@@ -12,7 +12,7 @@ export interface ILanguage {
 export interface IUserRoles {
     SUPER_ADMIN: number;
     ADMIN: number;
-    SUB_USER: number;
+    MASTER: number;
 }
 
 export interface IAppConfigData {

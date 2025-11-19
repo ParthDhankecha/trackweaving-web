@@ -17,7 +17,7 @@ export class RoleRedirect {
     private _coreService: CoreFacadeService, // Inject CommonUtils service
   ) {
     if (!_coreService.utils.isSuperAdmin) {
-      if (_coreService.utils.isAdmin || _coreService.utils.isSubUser) {
+      if (_coreService.utils.isAdmin || _coreService.utils.isMaster) {
         // navigate to admin dashboard
         router.navigateByUrl(`/${ROUTES.DASHBOARD}`);
         return;
