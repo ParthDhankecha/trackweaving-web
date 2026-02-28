@@ -91,6 +91,7 @@ export class UpsertInvoice implements OnInit {
     this.invoiceForm = this._fb.group({
       workspaceId: ['', [Validators.required]],
       invoiceDate: [null as string | null, [Validators.required]],
+      amcAmount: [null as number | null, [Validators.required, Validators.min(0)]],
       workspace: this._fb.group({
         firmName: ['', [Validators.required]],
         gst: ['', []],
@@ -200,7 +201,10 @@ export class UpsertInvoice implements OnInit {
 
   protected onWorkspaceSelect(option: any): void {
     this.selectedWorkspace = option;
-    this.invoiceForm.patchValue({ workspaceId: option?._id ?? '' }, { emitEvent: true });
+    this.invoiceForm.patchValue({
+      workspaceId: option?._id ?? '',
+      amcAmount: option?.amcAmount ?? null
+    }, { emitEvent: true });
     if (!option) return;
 
     const workspace = this.invoiceForm.get('workspace') as FormGroup;
@@ -220,6 +224,7 @@ export class UpsertInvoice implements OnInit {
         this.invoiceForm.patchValue({
           workspaceId: inv.workspaceId ?? '',
           invoiceDate: inv.invoiceDate?.split?.('T')[0] ?? null,
+          amcAmount: inv.amcAmount != null ? Number(inv.amcAmount) : (inv.workspace?.amcAmount != null ? Number(inv.workspace.amcAmount) : null),
           workspace: {
             firmName: ws.firmName ?? '',
             gst: ws.gst ?? ws.GSTNo ?? '',
@@ -362,6 +367,7 @@ export class UpsertInvoice implements OnInit {
     const payload = {
       workspaceId: raw.workspaceId,
       invoiceDate: raw.invoiceDate || null,
+      amcAmount: raw.amcAmount != null ? Number(raw.amcAmount) : null,
       workspace: {
         firmName: raw.workspace.firmName ?? '',
         gst: raw.workspace.gst ?? '',
@@ -421,6 +427,9 @@ export class UpsertInvoice implements OnInit {
   }
   get invoiceDate(): AbstractControl | null {
     return this.invoiceForm.get('invoiceDate');
+  }
+  get amcAmount(): AbstractControl | null {
+    return this.invoiceForm.get('amcAmount');
   }
   get discount(): AbstractControl | null {
     return this.invoiceForm.get('discount');

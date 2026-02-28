@@ -46,6 +46,17 @@
                         </div>
                         }
                     </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">AMC amount <span class="text-danger">*</span></label>
+                        <input type="number" formControlName="amcAmount" class="form-control" placeholder="AMC amount"
+                            min="0" step="1" [class.is-invalid]="amcAmount?.touched && amcAmount?.errors">
+                        @if (amcAmount?.touched && amcAmount?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (amcAmount?.errors?.['required']) { AMC amount is required. }
+                            @if (amcAmount?.errors?.['min']) { AMC amount cannot be negative. }
+                        </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
