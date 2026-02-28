@@ -22,7 +22,7 @@ export class TermsAndCondition {
       dpoName: 'Ronak',
       companyName: 'Dwarkesh Infotech',
       companyEmail: 'trackweaving@gmail.com',
-      companyAddress: '301, Golden Square, Near D Mart, Mota Varachha, Surat',
+      companyAddress: '706, Surat Digital Valley, VIP Circle, Uttran, Surat, Gujarat 394105',
       companyCity: 'Surat',
       companyState: 'Gujarat',
       effectiveDate: moment().format('MMMM D, YYYY'),

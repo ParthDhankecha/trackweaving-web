@@ -38,6 +38,11 @@ export class AdminLayout {
       icon: 'machine'
     },
     {
+      label: ROUTES.ADMIN.INVOICE,
+      link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.INVOICE),
+      icon: 'invoice'
+    },
+    {
       label: 'APK Version',
       link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.APK_VERSION),
       icon: 'apk'

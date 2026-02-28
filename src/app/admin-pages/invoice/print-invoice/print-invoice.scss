@@ -1,0 +1,457 @@
+// A4: 210mm x 297mm
+$a4-width: 210mm;
+$a4-height: 297mm;
+
+$border-color: #043A54;
+$left-content-padding: 12px;
+
+// Wrapper so we have a single #invoice-section for global print styles
+.invoice-print-page {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: #e8e8e8;
+}
+
+.print-actions {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto 0.5rem;
+  max-width: $a4-width;
+}
+
+.invoice-loading,
+.invoice-error {
+  padding: 2rem;
+  text-align: center;
+}
+
+.invoice-a4 {
+  width: $a4-width;
+  min-height: $a4-height;
+  margin: 0 auto;
+  padding: 12mm 14mm;
+  background: #fff;
+  color: #111;
+  font-size: 11px;
+  line-height: 1.35;
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+
+  .invoice-a4-content {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border: 2px solid $border-color;
+    padding-bottom: $left-content-padding;
+  }
+}
+
+.invoice-header {
+  text-align: center;
+  position: relative;
+  border-bottom: 2px solid #111;
+  padding-top: $left-content-padding;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+
+  .invoice-header-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .invoice-logo {
+    display: block;
+    // height: 32px;
+    // width: auto;
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    height: 60px;
+    width: auto;
+  }
+
+  .invoice-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+
+    .invoice-title-sub {
+      font-size: 16px;
+      font-weight: 500;
+      color: #111;
+    }
+  }
+
+  .invoice-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-size: 11px;
+    font-weight: 500;
+
+    .invoice-meta-row {
+      flex: 1;
+      line-height: 2;
+    }
+  }
+}
+
+.invoice-parties {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.party {
+  padding: 0;
+  margin: 0;
+
+  .party-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    color: #333;
+  }
+
+  .party-name {
+    font-weight: 600;
+    margin: 0 0 2px 0;
+  }
+
+  .party-address,
+  .party-contact,
+  .party-gst {
+    margin: 0 0 2px 0;
+    color: #444;
+
+    .label {
+      font-weight: 500;
+      color: #111;
+    }
+  }
+
+  .party-address {
+    margin: 0;
+  }
+
+  &.buyer {
+    padding-left: $left-content-padding;
+  }
+
+  &.seller {
+    .party-label {
+      font-size: 14px;
+
+      .invoice-no-text {
+        font-size: 20px;
+      }
+    }
+
+    .party-date {
+      font-size: 14px;
+    }
+  }
+}
+
+.invoice-table-wrap {
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-weight: 500;
+  border-color: $border-color;
+
+  th,
+  td {
+    padding: 5px 6px;
+    vertical-align: top;
+  }
+
+  th {
+    border: 1px solid $border-color;
+    background: #f0f0f0;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  thead th {
+    background-color: $border-color;
+    color: #fff;
+  }
+
+  tbody td {
+    border: none;
+    border-left: 1px solid $border-color;
+  }
+
+  tbody td:last-child {
+    border-right: 1px solid $border-color;
+  }
+
+  /* Parent has border; remove table's left/right edges */
+  th:first-child,
+  tbody td:first-child {
+    border-left: none;
+  }
+
+  th:last-child,
+  tbody td:last-child {
+    border-right: none;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 1px solid $border-color;
+  }
+
+  .col-sr {
+    width: 28px;
+    text-align: center;
+  }
+
+  .col-desc {
+    min-width: 120px;
+  }
+
+  .col-num {
+    width: 58px;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .text-end {
+    text-align: right;
+  }
+}
+
+.invoice-totals {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 24px;
+}
+
+.account-details {
+  flex: 1;
+}
+
+.account-details-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 0 0 $left-content-padding;
+}
+
+.account-details-box {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+
+  .account-details-title {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .account-detail-row {
+    margin: 0 0 2px 0;
+    line-height: 1.4;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.invoice-qr {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+}
+
+.totals-grid {
+  flex: 1;
+  max-width: 280px;
+}
+
+.total-row {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 8px;
+  border-bottom: 1px solid #ddd;
+
+  span:last-child {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.total-final {
+  font-weight: 700;
+  font-size: 12px;
+  border-bottom: 2px solid $border-color;
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.invoice-words {
+  margin: 0 0 6px;
+  border-bottom: 1px solid #ddd;
+  font-size: 10px;
+
+  p {
+    margin: 0;
+    padding: 0 0 6px $left-content-padding;
+  }
+}
+
+.invoice-terms {
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #444;
+  padding: 0 0 0 $left-content-padding;
+
+  .terms-title {
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+
+  .terms-list {
+    margin: 0;
+    padding-left: 18px;
+    list-style: disc;
+  }
+
+  .terms-item {
+    margin-bottom: 1.5px;
+  }
+}
+
+.invoice-footer {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #aaa;
+
+  .footer-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .footer-right.sign-blocks {
+    flex: 2;
+    display: flex;
+    gap: 16px;
+    min-width: 140px;
+  }
+}
+
+.buyer-payment-info {
+  font-size: 10px;
+  padding: 0 0 0 $left-content-padding;
+
+  .buyer-payment-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .buyer-field-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    min-height: 1.4em;
+  }
+
+  .buyer-field-label {
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  .buyer-field-dots {
+    flex: 1;
+    min-width: 20px;
+    border-bottom: 1px dotted #333;
+    margin-bottom: 2px;
+  }
+}
+
+.sign-block {
+  flex: 1;
+
+  .sign-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin: 85px 0 0 0;
+    border-top: 1px solid #aaa;
+    padding: 6px 0 0;
+    text-align: center;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .invoice-print-page {
+    padding: 0 !important;
+    background: #fff !important;
+    min-height: auto !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .invoice-a4 {
+    width: 100% !important;
+    max-width: $a4-width !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 10mm 12mm !important;
+    box-shadow: none !important;
+  }
+
+  .invoice-table th,
+  .invoice-table td {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+@media screen and (max-width: 220mm) {
+  .invoice-a4 {
+    width: 100%;
+    max-width: $a4-width;
+  }
+}

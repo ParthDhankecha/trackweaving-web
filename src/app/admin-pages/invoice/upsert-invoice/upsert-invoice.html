@@ -1,0 +1,321 @@
+<!-- inner header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+    <!-- left side -->
+    <div class="d-flex flex-grow-1 gap-2">
+        <h2 class="mb-0 text-capitalize fs-4 text-secondary">
+            {{ invoiceId ? 'Edit' : 'Create' }} Invoice
+        </h2>
+    </div>
+    <!-- right side -->
+    <div></div>
+</div>
+
+<div class="container-xl py-3">
+    <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()">
+        <!-- Workspace -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">
+                Workspace
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">
+                            Workspace <span class="text-danger">*</span>
+                        </label>
+                        <app-common-dropdown [optionsList]="workspaceOptions" [selectedOption]="selectedWorkspace"
+                            displayKey1="workspaceName" displayKey2="GSTNo" uniqueKey="_id"
+                            placeholder="Select workspace" [filterKeys]="['workspaceName', 'GSTNo']"
+                            (onSelect)="onWorkspaceSelect($event)">
+                        </app-common-dropdown>
+                        @if (workspaceId?.touched && workspaceId?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (workspaceId?.errors?.['required']) { Please select a workspace. }
+                        </div>
+                        }
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">
+                            Invoice date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" formControlName="invoiceDate" class="form-control"
+                            [class.is-invalid]="invoiceDate?.touched && invoiceDate?.errors">
+                        @if (invoiceDate?.touched && invoiceDate?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (invoiceDate?.errors?.['required']) { Invoice date is required. }
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Party / Workspace details -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">Party details</div>
+            <div class="card-body" formGroupName="workspace">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">Firm name <span class="text-danger">*</span></label>
+                        <input type="text" formControlName="firmName" class="form-control" placeholder="Firm name"
+                            [class.is-invalid]="firmName?.touched && firmName?.errors">
+                        @if (firmName?.touched && firmName?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (firmName?.errors?.['required']) { Firm name is required. }
+                        </div>
+                        }
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">GST</label>
+                        <input type="text" formControlName="gst" class="form-control" placeholder="GST number">
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">Mobile</label>
+                        <input type="text" formControlName="mobile" class="form-control" placeholder="Mobile">
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea formControlName="address" class="form-control" rows="2"
+                            placeholder="Address"></textarea>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">Subscription start <span class="text-danger">*</span></label>
+                        <input type="date" formControlName="subscriptionStartDate" class="form-control"
+                            [class.is-invalid]="subscriptionStartDate?.touched && subscriptionStartDate?.errors">
+                        @if (subscriptionStartDate?.touched && subscriptionStartDate?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (subscriptionStartDate?.errors?.['required']) { Subscription start date is required. }
+                        </div>
+                        }
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">Subscription end <span class="text-danger">*</span></label>
+                        <input type="date" formControlName="subscriptionEndDate" class="form-control"
+                            [class.is-invalid]="subscriptionEndDate?.touched && subscriptionEndDate?.errors">
+                        @if (subscriptionEndDate?.touched && subscriptionEndDate?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (subscriptionEndDate?.errors?.['required']) { Subscription end date is required. }
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line items -->
+        <div class="card mb-3" [class.border-danger]="invoiceForm.errors?.['atLeastOneLineItemRequired']">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Line items <span class="text-danger">*</span></span>
+            </div>
+            @if (invoiceForm.errors?.['atLeastOneLineItemRequired']) {
+            <div class="alert alert-danger mb-0 rounded-0 border-0 border-bottom">
+                At least one line item with amount greater than zero is required to create an invoice.
+            </div>
+            }
+            <div class="card-body p-0 overflow-auto">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 200px">Description</th>
+                            <th style="width: 100px">Qty</th>
+                            <th style="width: 120px">Unit price</th>
+                            <th style="width: 120px">Amount</th>
+                            <th style="width: 60px"></th>
+                        </tr>
+                    </thead>
+                    <tbody formArrayName="lineItems">
+                        @for (item of lineItemsArray.controls; track item; let i = $index) {
+                        <tr [formGroupName]="i"
+                            [class.table-danger]="getLineItemRowErrors(i)?.['lineItemIncomplete'] && (lineItemsArray.at(i).touched || invoiceForm.touched)">
+                            <td>
+                                <input type="text" formControlName="itemDescription"
+                                    class="form-control form-control-sm" placeholder="Description"
+                                    [class.is-invalid]="getLineItemRowErrors(i)?.['lineItemIncomplete'] && (lineItemsArray.at(i).touched || invoiceForm.touched)">
+                                @if (getLineItemRowErrors(i)?.['lineItemIncomplete'] && (lineItemsArray.at(i).touched ||
+                                invoiceForm.touched)) {
+                                <div class="invalid-feedback d-block">Fill description, qty and unit price for this row.
+                                </div>
+                                }
+                            </td>
+                            <td>
+                                <input type="number" formControlName="qty" class="form-control form-control-sm" min="0"
+                                    step="1"
+                                    [class.is-invalid]="(getLineItemControl(i, 'qty')?.touched && getLineItemControl(i, 'qty')?.errors) || (getLineItemRowErrors(i)?.['lineItemIncomplete'] && (lineItemsArray.at(i).touched || invoiceForm.touched))">
+                                @if (getLineItemControl(i, 'qty')?.touched && getLineItemControl(i, 'qty')?.errors) {
+                                <div class="invalid-feedback d-block">Qty cannot be negative.</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-secondary">x</span>
+                                    <input type="number" formControlName="unitPrice"
+                                        class="form-control form-control-sm" min="0" step="1"
+                                        [class.is-invalid]="(getLineItemControl(i, 'unitPrice')?.touched && getLineItemControl(i, 'unitPrice')?.errors) || (getLineItemRowErrors(i)?.['lineItemIncomplete'] && (lineItemsArray.at(i).touched || invoiceForm.touched))">
+                                </div>
+                                @if (getLineItemControl(i, 'unitPrice')?.touched && getLineItemControl(i,
+                                'unitPrice')?.errors) {
+                                <div class="invalid-feedback d-block">Unit price cannot be negative.</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-secondary">=</span>
+                                    <input type="number" formControlName="amount" class="form-control form-control-sm"
+                                        min="0" step="1" tabindex="-1" readonly>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeLineItem(i)"
+                                    [disabled]="lineItemsArray.length <= 1" tabindex="-1">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M18 6V16.2C18 17.8802 18 18.7202 17.673 19.362C17.3854 19.9265 16.9265 20.3854 16.362 20.673C15.7202 21 14.8802 21 13.2 21H10.8C9.11984 21 8.27976 21 7.63803 20.673C7.07354 20.3854 6.6146 19.9265 6.32698 19.362C6 18.7202 6 17.8802 6 16.2V6M14 10V17M10 10V17" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-sm btn-outline-primary d-block mx-auto" (click)="addLineItem()">
+                    + Add row
+                </button>
+            </div>
+        </div>
+
+        <!-- GST & tax options -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">GST &amp; tax</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Invoice includes GST? <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input type="radio" formControlName="includesGst" [value]="false"
+                                    class="form-check-input" id="includesGstNo">
+                                <label class="form-check-label" for="includesGstNo">No</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" formControlName="includesGst" [value]="true"
+                                    class="form-check-input" id="includesGstYes">
+                                <label class="form-check-label" for="includesGstYes">Yes</label>
+                            </div>
+                        </div>
+                        @if (includesGst?.touched && includesGst?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (includesGst?.errors?.['required']) { Please select whether the invoice includes GST. }
+                        </div>
+                        }
+                    </div>
+                    @if (invoiceForm.get('includesGst')?.value) {
+                    <div class="col-12 mb-3">
+                        <label class="form-label">
+                            Tax type
+                            <span class="text-muted small">
+                                (CGST 9%, SGST 9%, IGST 18% - fixed)
+                            </span>
+                        </label>
+                        <div class="d-flex gap-3">
+                            @for (opt of taxTypeOptions; track opt.value) {
+                            <div class="form-check">
+                                <input type="radio" formControlName="taxType" [value]="opt.value"
+                                    class="form-check-input" [id]="'taxType' + opt.value">
+                                <label class="form-check-label" [for]="'taxType' + opt.value">{{ opt.label }}</label>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Discount & totals -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">Discount &amp; totals</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Clear amount (₹)</label>
+                        <input type="number" formControlName="inAndAmount" class="form-control" min="0" step="1"
+                            placeholder="Optional – amount after discount"
+                            [class.is-invalid]="inAndAmount?.touched && inAndAmount?.errors">
+                        <div class="form-text">Optional. When set, discount is calculated as Total − Clear amount. Leave
+                            empty to enter discount manually.</div>
+                        @if (inAndAmount?.touched && inAndAmount?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (inAndAmount?.errors?.['min']) { Clear amount cannot be negative. }
+                            @if (inAndAmount?.errors?.['inAndAmountExceedsTotal']) {
+                            Clear amount cannot exceed total amount
+                            (₹{{ inAndAmount?.errors?.['inAndAmountExceedsTotal']?.totalAmount | number : '1.2-2' }}).
+                            }
+                        </div>
+                        }
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Discount (₹)</label>
+                        <input type="number" formControlName="discount" class="form-control" min="0" step="1"
+                            [class.is-invalid]="discount?.touched && discount?.errors"
+                            [readonly]="invoiceForm.get('inAndAmount')?.value != null && invoiceForm.get('inAndAmount')?.value !== ''">
+                        @if (discount?.touched && discount?.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (discount?.errors?.['min']) { Discount cannot be negative. }
+                        </div>
+                        }
+                    </div>
+                </div>
+                <div class="row">
+                    @if (invoiceForm.get('includesGst')?.value) {
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>CGST (₹):</strong>
+                        {{ invoiceForm.get('cgstAmount')?.value | number : '1.2-2' }}
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>SGST (₹):</strong>
+                        {{ invoiceForm.get('sgstAmount')?.value | number : '1.2-2' }}
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>IGST (₹):</strong>
+                        {{ invoiceForm.get('igstAmount')?.value | number : '1.2-2' }}
+                    </div>
+                    }
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>Total amount (₹):</strong>
+                        {{ invoiceForm.get('totalAmount')?.value | number : '1.2-2' }}
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>Discount (₹):</strong>
+                        {{ (invoiceForm.get('discount')?.value ?? 0) | number : '1.2-2'}}
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>After discount (₹):</strong>
+                        {{ invoiceForm.get('discountedTotal')?.value | number : '1.2-2'}}
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <strong>Round off (₹):</strong>
+                        {{ (invoiceForm.get('roundOff')?.value ?? 0) | number : '1.2-2' }}
+                    </div>
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <strong>Final amount (₹):</strong>
+                        {{ invoiceForm.get('finalAmount')?.value | number : '1.2-2' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-3">
+            @if (invoiceId) {
+            <button type="button" class="btn btn-outline-secondary" (click)="navigateToPrint()">Print</button>
+            }
+            <button type="button" class="btn btn-outline-secondary" (click)="goBack()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isReqAlive">
+                {{ isReqAlive ? 'Saving…' : (invoiceId ? 'Update Invoice' : 'Create Invoice') }}
+            </button>
+        </div>
+    </form>
+</div>

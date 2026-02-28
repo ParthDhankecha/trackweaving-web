@@ -15,29 +15,31 @@
 // // Import Bootstrap SCSS after defining variables
 // @use './../../../node_modules/bootstrap' as *;
 
-/* 1. Bootstrap functions must load first */
-@import "bootstrap/scss/functions";
+// /* 1. Bootstrap functions must load first */
+// @import "bootstrap/scss/functions";
 
-/* 2. Override variables BEFORE loading the rest */
-// $primary: #0B0BCF;
-$primary: #043A54; //#007ACC;
-// $secondary: #00b894;
-// $success: #00d084;
-// $info: #00c2ff;
-// $warning: #fbc531;
-// $danger: #e84118;
-// $light: #f8f9fa;
-// $dark: #2d3436;
+// /* 2. Override variables BEFORE loading the rest */
+// // $primary: #0B0BCF;
+// $primary: #043A54; //#007ACC;
+// // $secondary: #00b894;
+// // $success: #00d084;
+// // $info: #00c2ff;
+// // $warning: #fbc531;
+// // $danger: #e84118;
+// // $light: #f8f9fa;
+// // $dark: #2d3436;
 
-/* 3. Load mixins first */
-@import "bootstrap/scss/mixins";
+// /* 3. Load mixins first */
+// @import "bootstrap/scss/mixins";
 
-/* 4. Load variables and maps */
-@import "bootstrap/scss/variables";
-// @import "bootstrap/scss/maps";
+// /* 4. Load variables and maps */
+// @import "bootstrap/scss/variables";
+// // @import "bootstrap/scss/maps";
 
-/* 5. Finally, bring in all of Bootstrap */
-@import "bootstrap/scss/bootstrap";
+// /* 5. Finally, bring in all of Bootstrap */
+// @import "bootstrap/scss/bootstrap";
+
+@use "bootstrap/scss/bootstrap" with ($primary: #043A54);
 
 
 // /* 3. Now load Bootstrap internals in the right order */

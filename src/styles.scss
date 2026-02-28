@@ -60,3 +60,28 @@ body {
     max-height: 300px;
     @include custom-scrollbar();
 }
+
+
+@media print {
+
+    // On invoice print page: hide layout so only invoice content prints
+    body.invoice-print-view {
+
+        .sidebar,
+        .side-nav,
+        nav.sidebar {
+            display: none !important;
+        }
+
+        .container-fluid,
+        .row.flex-nowrap {
+            display: block !important;
+        }
+
+        main.col {
+            display: block !important;
+            max-width: none !important;
+            width: 100% !important;
+        }
+    }
+}

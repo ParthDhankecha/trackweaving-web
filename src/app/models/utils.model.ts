@@ -22,6 +22,7 @@ export interface IAppConfigData {
     efficiencyAveragePer: number;
     efficiencyGoodPer: number;
     refreshInterval: number;
+    currencySymbol?: string;
 }
 // Enum for Toaster types
 export enum EToasterType {

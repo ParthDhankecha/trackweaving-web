@@ -9,6 +9,7 @@ import { Workspace } from './workspace/workspace';
 import { Users } from './users/users';
 import { Machine } from './machine/machine';
 import { ApkVersion } from './apk-version/apk-version';
+import { CommonOutlet } from '../layouts/common-outlet/common-outlet';
 
 import { authGuard } from '../core/guards/auth-guard';
 import { superAdminGuard } from '../core/guards/super-admin-guard';
@@ -40,6 +41,12 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.MACHINE,
                 title: APP_PAGE_TITLE.ADMIN.MACHINE,
                 component: Machine
+            },
+            {
+                path: ROUTES.ADMIN.INVOICE,
+                title: APP_PAGE_TITLE.ADMIN.INVOICE,
+                component: CommonOutlet,
+                loadChildren: () => import('./invoice/invoice.routes').then(m => m.routes)
             },
             {
                 path: ROUTES.ADMIN.APK_VERSION,

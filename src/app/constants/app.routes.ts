@@ -25,6 +25,10 @@ export const ROUTES = {
         WORKSPACE: 'workspace',
         USER: 'user',
         MACHINE: 'machine',
+        INVOICE: 'invoice',
+        INVOICE_HOME: '',
+        INVOICE_UPSERT: 'upsert',
+        INVOICE_PRINT: 'print',
         APK_VERSION: 'apk-version',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },

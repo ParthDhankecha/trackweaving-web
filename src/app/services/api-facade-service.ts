@@ -11,6 +11,7 @@ import { MachineGroup } from './machine-group/machine-group';
 import { MachineConfigure } from './machine-configure/machine-configure';
 import { MaintenanceCategory } from './maintenance-category/maintenance-category';
 import { MaintenanceEntry } from './maintenance-entry/maintenance-entry';
+import { Invoice } from './invoice/invoice';
 import { PartsChangeEntry } from './parts-change-entry/parts-change-entry';
 import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
 import { Reports } from './reports/reports';
@@ -39,6 +40,8 @@ export class ApiFacadeService {
   public readonly machineConfigure: MachineConfigure = inject(MachineConfigure);
   // Inject Machine Group service
   public readonly machineGroup: MachineGroup = inject(MachineGroup);
+  // Inject Invoice service
+  public readonly invoice: Invoice = inject(Invoice);
   // Inject APK Version service
   public readonly apkVersion: ApkVersion = inject(ApkVersion);
   // Inject Maintenance Category service

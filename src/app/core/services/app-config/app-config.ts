@@ -71,7 +71,8 @@ export class AppConfig {
     roles: undefined,
     efficiencyAveragePer: 85,
     efficiencyGoodPer: 90,
-    refreshInterval: 10
+    refreshInterval: 10,
+    currencySymbol: '₹'
   };
 
   // getter and setter for config data
