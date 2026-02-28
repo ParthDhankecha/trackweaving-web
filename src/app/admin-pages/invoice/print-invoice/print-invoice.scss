@@ -227,6 +227,23 @@ $left-content-padding: 12px;
 
   .col-desc {
     min-width: 120px;
+
+    .item-description {
+      padding: 0;
+      margin: 0;
+      white-space: pre-line;
+
+      .subscription-period {
+        display: block;
+        padding: 10px 0 0;
+        white-space: pre-line;
+
+        .subscription-period-label {
+          display: block;
+          padding: 0 0 4px;
+        }
+      }
+    }
   }
 
   .col-num {

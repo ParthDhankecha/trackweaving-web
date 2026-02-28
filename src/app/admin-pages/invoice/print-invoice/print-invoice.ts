@@ -43,7 +43,7 @@ export class PrintInvoice implements OnInit, OnDestroy {
   /** Empty rows to add below line items so the table fills the page (min total rows). */
   protected get emptyTableRows(): number[] {
     const count = (this.invoice?.lineItems?.length ?? 0);
-    const minRows = this.invoice?.includesGst ? 9 : 12;
+    const minRows = this.invoice?.includesGst ? 7 : 10;
     const emptyCount = Math.max(0, minRows - count);
     return Array.from({ length: emptyCount }, (_, i) => i);
   }

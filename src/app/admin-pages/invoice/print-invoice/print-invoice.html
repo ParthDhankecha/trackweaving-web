@@ -128,13 +128,31 @@
             </tr>
           </thead>
           <tbody>
-            @for (item of invoice?.lineItems ?? []; track $index; let i = $index) {
+            @for (item of invoice?.lineItems ?? []; track $index; let i = $index; let isLast = $last) {
             <tr>
               <td class="col-sr">
                 {{ i + 1 }}
               </td>
               <td class="col-desc">
-                {{ item.itemDescription ?? '—' }}
+                <p class="item-description">
+                  {{ item.itemDescription ?? '—' }}
+                  @if (isLast) {
+                  <span class="subscription-period">
+                    <span class="subscription-period-label">
+                      Subscription Period:
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;Start Date:
+                    <span class="fw-bold">
+                      {{ invoice?.workspace?.subscriptionStartDate | date:'dd/MM/yyyy' }}
+                    </span>
+                    {{'\n'}}
+                    &nbsp;&nbsp;&nbsp;&nbsp;End Date:
+                    <span class="fw-bold">
+                      {{invoice?.workspace?.subscriptionEndDate | date:'dd/MM/yyyy' }}
+                    </span>
+                  </span>
+                  }
+                </p>
               </td>
               <td class="col-num text-center">
                 {{ configData?.sacCode ?? '—' }}
