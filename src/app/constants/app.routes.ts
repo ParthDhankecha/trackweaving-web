@@ -1,6 +1,7 @@
 export const ROUTES = {
-    BASE: '',
-    HOME: '',
+    LANDING: '',
+    BASE: 'app',
+    HOME: 'app',
     AUTH: {
         BASE: 'auth',
         LOGIN: 'login',
@@ -17,7 +18,7 @@ export const ROUTES = {
         SHIFT_WISE_COMMENT_UPDATE: 'shift-wise-comment-update',
         PARTS_CHANGE_ENTRY: 'parts-change-entry',
         USERS: 'users',
-        getFullRoute: (...args: string[]) => `/${ROUTES.SETTINGS.BASE}/${args.join('/')}`
+        getFullRoute: (...args: string[]) => `/${ROUTES.BASE}/${ROUTES.SETTINGS.BASE}/${args.join('/')}`
     },
     ADMIN: {
         BASE: 'admin',

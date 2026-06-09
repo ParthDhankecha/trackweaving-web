@@ -1,5 +1,21 @@
 const TITLE_POSTFIX = '- TrackWeaving';
 
+/** Homepage / landing SEO — keep `src/index.html` meta tags aligned when editing. */
+export const LANDING_SEO = {
+    title: 'TrackWeaving | Real-Time Loom Monitoring Software for Textile Mills',
+    description:
+        'TrackWeaving is a real-time weaving machine monitoring software for textile manufacturers. Track loom production, speed, stoppages, beam status, efficiency, and shift-wise performance on mobile and web.',
+    keywords: [
+        'weaving machine monitoring software',
+        'loom monitoring software',
+        'textile mill monitoring system',
+        'real-time loom data',
+        'textile production tracking',
+        'weaving machine analytics',
+    ].join(', '),
+    canonicalUrl: 'https://www.trackweaving.com/',
+};
+
 export const APP_PAGE_TITLE = {
     BRAND_NAME: `TrackWeaving`,
     HOME: `Home ${TITLE_POSTFIX}`,
