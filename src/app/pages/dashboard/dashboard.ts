@@ -14,7 +14,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { RegisterModalLayer } from '@src/app/shared/directives/register-modal-layer';
 import { IResponse } from '@src/app/models/http-response.model';
-import { EMachineStatusIds, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption } from '@src/app/models/machine.model';
+import { EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption, MachineType } from '@src/app/models/machine.model';
 import { IAppConfigData } from '@src/app/models/utils.model';
 
 
@@ -312,6 +312,10 @@ export class Dashboard {
     } else {
       return 'bg-danger bg-opacity-75';
     }
+  }
+
+  protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {
+    return buildStopColumns(machineType);
   }
 
   protected machineCardViewModelId: string = 'viewMachineDetails';

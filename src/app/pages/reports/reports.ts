@@ -9,6 +9,7 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { EToasterType } from '@src/app/models/utils.model';
+import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
 
 
 @Component({
@@ -63,6 +64,33 @@ export class Reports {
   private subscriptionHandler$ = new Subject<void>();
 
   protected reportData: any;
+  protected reportStopColumns: { key: string; label: string }[] = [];
+
+  get stopSectionColspan(): number {
+    return this.reportStopColumns.length * 2 + 2;
+  }
+
+  get reportTableColspan(): number {
+    return 8 + this.stopSectionColspan;
+  }
+
+  protected getStopValue(data: any, key: string, field: 'count' | 'duration'): string | number {
+    if (!hasStopKey((data?.machineType || 'rapier') as MachineType, key)) {
+      return field === 'count' ? 0 : '-';
+    }
+    const value = data?.stopsData?.[key]?.[field];
+    return value ?? (field === 'count' ? 0 : '-');
+  }
+
+  private updateReportStopColumns(reportList: any[]): void {
+    const machineTypes = new Set<MachineType>();
+    reportList.forEach(item => {
+      (item.list || []).forEach((data: any) => {
+        machineTypes.add((data.machineType || 'rapier') as MachineType);
+      });
+    });
+    this.reportStopColumns = getStopColumnsForTypes([...machineTypes]);
+  }
 
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
 
@@ -294,12 +322,15 @@ export class Reports {
               }
             });
             this.reportData.list = list;
+            this.updateReportStopColumns(list);
+            this.reportData.stopColumns = this.reportStopColumns;
           }
         }
       },
       error: (err: any) => {
         this.isReqAlive = false;
         this.reportData = null;
+        this.reportStopColumns = [];
         const msg = err?.error.message || 'An error occurred while generating the report';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }

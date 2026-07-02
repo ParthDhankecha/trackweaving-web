@@ -162,36 +162,20 @@
                         <th rowspan="2" class="text-nowrap">
                             Beam Left
                         </th>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
                         <th colspan="2" class="text-nowrap">
-                            Warp
+                            {{stopColumn.label}}
                         </th>
-                        <th colspan="2" class="text-nowrap">
-                            Weft
-                        </th>
-                        <th colspan="2" class="text-nowrap">
-                            Feeder
-                        </th>
-                        <th colspan="2" class="text-nowrap">
-                            Manual
-                        </th>
-                        <th colspan="2" class="text-nowrap">
-                            Other
-                        </th>
+                        }
                         <th colspan="2" rowspan="2" class="text-nowrap">
                             Total Stops
                         </th>
                     </tr>
                     <tr>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
                         <th>Count</th>
                         <th>Duration</th>
-                        <th>Count</th>
-                        <th>Duration</th>
-                        <th>Count</th>
-                        <th>Duration</th>
-                        <th>Count</th>
-                        <th>Duration</th>
-                        <th>Count</th>
-                        <th>Duration</th>
+                        }
                     </tr>
                 </thead>
                 <tbody class="align-middle text-center">
@@ -224,36 +208,14 @@
                         <td>
                             {{data.beamLeft}}
                         </td>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
                         <td>
-                            {{data.stopsData.warp.count|number:'1.0-2'}}
+                            {{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}
                         </td>
                         <td class="text-nowrap">
-                            {{data.stopsData.warp.duration}}
+                            {{getStopValue(data, stopColumn.key, 'duration')}}
                         </td>
-                        <td>
-                            {{data.stopsData.weft.count|number:'1.0-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.stopsData.weft.duration}}
-                        </td>
-                        <td>
-                            {{data.stopsData.feeder.count|number:'1.0-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.stopsData.feeder.duration}}
-                        </td>
-                        <td>
-                            {{data.stopsData.manual.count|number:'1.0-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.stopsData.manual.duration}}
-                        </td>
-                        <td>
-                            {{data.stopsData.other.count|number:'1.0-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.stopsData.other.duration}}
-                        </td>
+                        }
                         <td class="fw-semibold">
                             {{data.stopsData.total.count|number:'1.0-2'}}
                         </td>
@@ -279,11 +241,11 @@
                         <td colspan="2" class="text-start text-capitalize">
                             Avg: {{item?.avgPicks}}
                         </td>
-                        <td colspan="12"></td>
+                        <td [attr.colspan]="stopSectionColspan"></td>
                     </tr>
                     }
                     <tr>
-                        <td colspan="20">&nbsp;</td>
+                        <td [attr.colspan]="reportTableColspan">&nbsp;</td>
                     </tr>
                     <tr class="custom-tr-bg fw-semibold">
                         <td colspan="3" class="text-uppercase">
@@ -301,18 +263,7 @@
                         <td colspan="2" class="text-start text-capitalize">
                             Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
                         </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td [attr.colspan]="stopSectionColspan"></td>
                     </tr>
                 </tbody>
             </table>

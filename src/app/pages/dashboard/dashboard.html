@@ -219,31 +219,13 @@
                                     Stops
                                 </small>
                             </th>
+                            @for(stopColumn of getStopColumns(machineLog.machineType); track stopColumn.key) {
                             <th class="fw-normal">
                                 <small>
-                                    Warp
+                                    {{stopColumn.label}}
                                 </small>
                             </th>
-                            <th class="fw-normal">
-                                <small>
-                                    Weft
-                                </small>
-                            </th>
-                            <th class="fw-normal">
-                                <small>
-                                    Feeder
-                                </small>
-                            </th>
-                            <th class="fw-normal">
-                                <small>
-                                    Manual
-                                </small>
-                            </th>
-                            <th class="fw-normal">
-                                <small>
-                                    Other
-                                </small>
-                            </th>
+                            }
                             <th class="fw-normal">
                                 <small>
                                     Total
@@ -256,27 +238,23 @@
                             <td class="bg-secondary-subtle text-dark">
                                 <small>Count</small>
                             </td>
-                            <td>{{machineLog.stopsData.warp?.count || 0}}</td>
-                            <td>{{machineLog.stopsData.weft?.count || 0}}</td>
-                            <td>{{machineLog.stopsData.feeder?.count || 0}}</td>
-                            <td>{{machineLog.stopsData.manual?.count || 0}}</td>
-                            <td>{{machineLog.stopsData.other?.count || 0}}</td>
+                            @for(stopColumn of getStopColumns(machineLog.machineType); track stopColumn.key) {
+                            <td>{{machineLog.stopsData[stopColumn.key]?.count || 0}}</td>
+                            }
                             <td class="bg-secondary-subtle">
                                 {{machineLog.stopsData.total?.count}}
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="7" class="border-bottom border-secondary-subtle p-0"></td>
+                            <td [attr.colspan]="getStopColumns(machineLog.machineType).length + 2" class="border-bottom border-secondary-subtle p-0"></td>
                         </tr>
                         <tr>
                             <td class="bg-secondary-subtle fw-semibold">
                                 <small>Time</small>
                             </td>
-                            <td>{{machineLog.stopsData.warp?.duration}}</td>
-                            <td>{{machineLog.stopsData.weft?.duration}}</td>
-                            <td>{{machineLog.stopsData.feeder?.duration}}</td>
-                            <td>{{machineLog.stopsData.manual?.duration}}</td>
-                            <td>{{machineLog.stopsData.other?.duration}}</td>
+                            @for(stopColumn of getStopColumns(machineLog.machineType); track stopColumn.key) {
+                            <td>{{machineLog.stopsData[stopColumn.key]?.duration}}</td>
+                            }
                             <td class="bg-secondary-subtle">
                                 {{machineLog.stopsData.total?.duration}}
                             </td>

@@ -7,6 +7,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts['vfs'];
 import { saveAs } from 'file-saver';
+import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
 
 
 @Injectable({
@@ -31,6 +32,8 @@ export class ExportData {
    */
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
+    const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
+    const tableColspan = 8 + stopColumns.length * 2 + 2;
     const docDefinition: any = {
       pageOrientation: 'landscape',
       pageSize: 'A4',
@@ -44,13 +47,8 @@ export class ExportData {
         {
           table: {
             headerRows: 2,
-            widths: [
-              ...Array(20).fill('auto'), // 20 columns
-              // 50, 40, 50, 50, 40, 40, 50, 40, // first 8 cols
-              // 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, // next 9 cols
-              // 40, 40 // total stops cols
-            ],
-            body: this.buildTableBody(reportData)
+            widths: Array(tableColspan).fill('auto'),
+            body: this.buildTableBody(reportData, stopColumns, tableColspan)
           },
           // layout: 'lightHorizontalLines',
           width: 'auto',
@@ -84,11 +82,28 @@ export class ExportData {
   }
 
   // helper methods for PDF export
-  protected buildTableBody(reportData: any) {
-    const body: any[] = [];
+  protected resolveStopColumns(reportList: any[]) {
+    const machineTypes = new Set<MachineType>();
+    reportList.forEach(item => {
+      (item.list || []).forEach((data: any) => {
+        machineTypes.add((data.machineType || 'rapier') as MachineType);
+      });
+    });
+    return getStopColumnsForTypes([...machineTypes]);
+  }
 
-    // ---- Header Row 1 ----
-    body.push([
+  protected getStopValue(data: any, key: string, field: 'count' | 'duration') {
+    if (!hasStopKey((data?.machineType || 'rapier') as MachineType, key)) {
+      return '-';
+    }
+    return data?.stopsData?.[key]?.[field] ?? '-';
+  }
+
+  protected buildTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
+    const body: any[] = [];
+    const stopSectionColspan = stopColumns.length * 2 + 2;
+
+    const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
       { text: 'Shift', rowSpan: 2, style: 'tableHeader' },
       { text: 'Machine', rowSpan: 2, style: 'tableHeader' },
@@ -97,30 +112,20 @@ export class ExportData {
       { text: 'Eff. %', rowSpan: 2, style: 'tableHeader' },
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
+    ];
+    stopColumns.forEach(column => {
+      headerRow1.push({ text: column.label, colSpan: 2, style: 'tableHeader' }, {});
+    });
+    headerRow1.push({ text: 'Total Stops', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {});
+    body.push(headerRow1);
 
-      { text: 'Warp', colSpan: 2, style: 'tableHeader' }, {},
-      { text: 'Weft', colSpan: 2, style: 'tableHeader' }, {},
-      { text: 'Feeder', colSpan: 2, style: 'tableHeader' }, {},
-      { text: 'Manual', colSpan: 2, style: 'tableHeader' }, {},
-      { text: 'Other', colSpan: 2, style: 'tableHeader' }, {},
-      { text: 'Total Stops', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {}
-    ]);
-
-    // ---- Header Row 2 ----
-    body.push([
-      {}, {}, {}, {}, {}, {}, {}, {},
-      { text: 'Count', style: 'tableSubHeader' },
-      { text: 'Duration', style: 'tableSubHeader' },
-      { text: 'Count', style: 'tableSubHeader' },
-      { text: 'Duration', style: 'tableSubHeader' },
-      { text: 'Count', style: 'tableSubHeader' },
-      { text: 'Duration', style: 'tableSubHeader' },
-      { text: 'Count', style: 'tableSubHeader' },
-      { text: 'Duration', style: 'tableSubHeader' },
-      { text: 'Count', style: 'tableSubHeader' },
-      { text: 'Duration', style: 'tableSubHeader' },
-      {}, {}
-    ]);
+    const headerRow2: any[] = Array(8).fill({});
+    stopColumns.forEach(() => {
+      headerRow2.push({ text: 'Count', style: 'tableSubHeader' });
+      headerRow2.push({ text: 'Duration', style: 'tableSubHeader' });
+    });
+    headerRow2.push({}, {});
+    body.push(headerRow2);
 
     // ---- Data Rows ----
     let groupIndex = 0;
@@ -135,7 +140,7 @@ export class ExportData {
             { text: item.shiftLabel, rowSpan: item.list.length, style: cellStyle },
           ];
         }
-        body.push([
+        const row: any[] = [
           ...cells,
           { text: data.machineCode, style: cellStyle },
           { text: data.pieceLengthM, style: cellStyle },
@@ -143,53 +148,44 @@ export class ExportData {
           { text: data.efficiencyPercent, style: cellStyle },
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
-
-          { text: data.stopsData?.warp?.count ?? '-', style: cellStyle },
-          { text: data.stopsData?.warp?.duration ?? '-', style: cellStyle },
-          { text: data.stopsData?.weft?.count ?? '-', style: cellStyle },
-          { text: data.stopsData?.weft?.duration ?? '-', style: cellStyle },
-          { text: data.stopsData?.feeder?.count ?? '-', style: cellStyle },
-          { text: data.stopsData?.feeder?.duration ?? '-', style: cellStyle },
-          { text: data.stopsData?.manual?.count ?? '-', style: cellStyle },
-          { text: data.stopsData?.manual?.duration ?? '-', style: cellStyle },
-          { text: data.stopsData?.other?.count ?? '-', style: cellStyle },
-          { text: data.stopsData?.other?.duration ?? '-', style: cellStyle },
+        ];
+        stopColumns.forEach(column => {
+          row.push({ text: this.getStopValue(data, column.key, 'count'), style: cellStyle });
+          row.push({ text: this.getStopValue(data, column.key, 'duration'), style: cellStyle });
+        });
+        row.push(
           { text: data.stopsData?.total?.count ?? '-', style: cellStyle, bold: true },
           { text: data.stopsData?.total?.duration ?? '-', style: cellStyle, bold: true }
-        ]);
+        );
+        body.push(row);
         shiftIndex++;
       }
 
-      // ---- Shift summary row ----
       const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
       body.push([
-        // { text: '', style: subTtlCellStyle },
-        // { text: `${this.formatDate(item.reportDate)} - ${item.shiftLabel}`, colSpan: 2, style: subTtlCellStyle }, {},
         { text: this.formatDate(item.reportDate), colSpan: 2, style: subTtlCellStyle }, {},
         { text: item.shiftLabel, style: subTtlCellStyle },
         { text: this.num(item.prodMeter), style: subTtlCellStyle },
         { text: item.totalPicks, style: subTtlCellStyle },
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
         { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
-        { text: '', colSpan: 12, style: subTtlCellStyle }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
       groupIndex++;
     }
 
-    // ---- Empty row ----
     body.push([
-      { text: ' ', colSpan: 20 },
-      {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+      { text: ' ', colSpan: tableColspan },
+      ...Array(tableColspan - 1).fill({})
     ]);
 
-    // ---- Grand total row ----
     body.push([
       { text: 'Total', colSpan: 3, alignment: 'center', style: 'grandTotalCell' }, {}, {},
       { text: reportData.avgProdMeter, style: 'grandTotalCell' },
       { text: reportData.totalPicks, style: 'grandTotalCell' },
       { text: reportData.totalEfficiency, style: 'grandTotalCell' },
       { text: `Total Avg: ${reportData.avgPicks}`, colSpan: 2, alignment: 'left', style: 'grandTotalCell' }, {},
-      { text: '', colSpan: 12, style: 'grandTotalCell' }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+      { text: '', colSpan: stopSectionColspan, style: 'grandTotalCell' }, ...Array(stopSectionColspan - 1).fill({})
     ]);
 
     return body;

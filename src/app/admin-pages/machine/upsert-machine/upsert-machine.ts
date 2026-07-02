@@ -23,7 +23,7 @@ export class UpsertMachine {
   protected readonly _fb = inject(FormBuilder);
 
 
-  protected readonly _machineNames: string[] = ['taitan', 'signature', 'rifa'];
+  protected readonly _machineNames: string[] = ['taitan', 'signature', 'rifa', 'pickwell', 'redflag'];
   protected isEditMode: boolean = false;
   @Input('workspaceList') workspaceList: any = [];
   protected filteredWorkspaceList: any = [];
@@ -42,7 +42,7 @@ export class UpsertMachine {
   });
   protected isEyeOpen: boolean = false;
   protected readonly deviceTypeList: string[] = ['lan', 'rs485'];
-  protected readonly displayTypeList: string[] = ['nazon', 'chitic'];
+  protected readonly displayTypeList: string[] = ['nazon', 'chitic', 'pickwell', 'biana'];
 
 
 
