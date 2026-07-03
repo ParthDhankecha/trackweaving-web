@@ -59,6 +59,7 @@
                             <th scope="col">Machine Name</th>
                             <th scope="col">Device Type</th>
                             <th scope="col">Display Type</th>
+                            <th scope="col">Machine Type</th>
                             <th scope="col">IP Address</th>
                             <th scope="col">Workspace Name</th>
                             <th scope="col" class="w-1-percent text-center">Actions</th>
@@ -78,6 +79,9 @@
                             <td class="text-capitalize">
                                 {{mItem?.displayType || '-'}}
                             </td>
+                            <td class="text-capitalize">
+                                {{mItem?.machineType || '-'}}
+                            </td>
                             <td>{{mItem?.ip}}</td>
                             <td>{{mItem?.workspaceId?.firmName}}</td>
                             <td class="text-nowrap">
@@ -92,7 +96,7 @@
                         </tr>
                         }@empty {
                         <tr>
-                            <td colspan="8" class="text-center">No records found.</td>
+                            <td colspan="9" class="text-center">No records found.</td>
                         </tr>
                         }
                     </tbody>

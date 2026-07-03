@@ -152,6 +152,12 @@ export class UpsertMachine {
           this.isReqAlive = false;
           if (res.code === 'CREATED') {
             this._coreService.utils.showToaster(EToasterType.Success, 'Machine created successfully.');
+            const workspace = this.workspace?.value;
+            this.machineForm.patchValue({ ip: '' });
+            this.machineIp?.markAsUntouched();
+            if (workspace?._id) {
+              this.getMachineCode(workspace._id);
+            }
             this.upsert.emit(true);
           }
         },

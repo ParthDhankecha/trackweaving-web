@@ -128,15 +128,16 @@ export class Machine {
 
   protected upsertMAchineModalEvent(data: any): void {
     if (data) {
-      const index = this.machineList.findIndex(w => w._id === data._id);
-      if (index > -1) {
-        // Update existing workspace in the list
-        this.machineList[index] = data;
+      if (data._id) {
+        const index = this.machineList.findIndex(w => w._id === data._id);
+        if (index > -1) {
+          this.machineList[index] = data;
+        }
+        this.onCloseMachineModal();
       } else {
         this.loadList();
       }
     }
-    this.onCloseMachineModal();
   }
 
 
