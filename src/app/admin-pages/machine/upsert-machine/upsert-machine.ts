@@ -39,10 +39,12 @@ export class UpsertMachine {
     workspace: ['', [Validators.required]],
     deviceType: ['', [Validators.required]],
     displayType: ['', [Validators.required]],
+    machineType: ['', [Validators.required]],
   });
   protected isEyeOpen: boolean = false;
   protected readonly deviceTypeList: string[] = ['lan', 'rs485'];
   protected readonly displayTypeList: string[] = ['nazon', 'chitic', 'pickwell', 'biana'];
+  protected readonly machineTypeList: string[] = ['rapier', 'airjet', 'waterjet', 'circular'];
 
 
 
@@ -68,6 +70,7 @@ export class UpsertMachine {
         workspace: workspaceData || null,
         deviceType: this.machineData?.deviceType || '',
         displayType: this.machineData?.displayType || '',
+        machineType: this.machineData?.machineType || '',
       });
     }
   }
@@ -95,6 +98,9 @@ export class UpsertMachine {
   }
   get displayType(): AbstractControl | null {
     return this.machineForm.get('displayType');
+  }
+  get machineType(): AbstractControl | null {
+    return this.machineForm.get('machineType');
   }
   get machineName(): AbstractControl | null {
     return this.machineForm.get('machineName');

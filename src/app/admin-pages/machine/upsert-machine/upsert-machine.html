@@ -113,6 +113,28 @@
                             </div>
                             }
                         </div>
+                        <!-- Machine Type -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="machineType" class="form-label">
+                                Machine Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="machineType" formControlName="machineType" class="form-select text-capitalize">
+                                <option value="" disabled selected>Select Machine Type</option>
+                                @for(mtOption of machineTypeList; track mtOption;){
+                                <option [value]="mtOption">
+                                    {{mtOption}}
+                                </option>
+                                }
+                            </select>
+
+                            @if(machineType?.touched && machineType?.errors){
+                            <div class="invalid-feedback d-block">
+                                @if(machineType?.errors?.['required']){
+                                <span>Machine Type is required.</span>
+                                }
+                            </div>
+                            }
+                        </div>
                         <!-- Machine Name -->
                         <div class="col-12 col-md-6 mb-3">
                             <label for="machineName" class="form-label">
