@@ -46,6 +46,11 @@ export class AdminLayout {
       label: 'APK Version',
       link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.APK_VERSION),
       icon: 'apk'
+    },
+    {
+      label: 'Leads / CRM',
+      link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.LEAD),
+      icon: 'leads'
     }
   ];
   isSidebarCollapsed: boolean = false;

@@ -9,6 +9,7 @@ import { Workspace } from './workspace/workspace';
 import { Users } from './users/users';
 import { Machine } from './machine/machine';
 import { ApkVersion } from './apk-version/apk-version';
+import { Leads } from './leads/leads';
 import { CommonOutlet } from '../layouts/common-outlet/common-outlet';
 
 import { authGuard } from '../core/guards/auth-guard';
@@ -52,6 +53,11 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.APK_VERSION,
                 title: APP_PAGE_TITLE.ADMIN.APK_VERSION,
                 component: ApkVersion
+            },
+            {
+                path: ROUTES.ADMIN.LEAD,
+                title: APP_PAGE_TITLE.ADMIN.LEAD,
+                component: Leads
             }
         ],
     },

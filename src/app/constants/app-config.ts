@@ -47,6 +47,7 @@ export const APP_PAGE_TITLE = {
         INVOICE_UPSERT: `Invoice Upsert ${TITLE_POSTFIX}`,
         INVOICE_PRINT: `Print Invoice ${TITLE_POSTFIX}`,
         APK_VERSION: `APK Version Management ${TITLE_POSTFIX}`,
+        LEAD: `Lead / CRM Management ${TITLE_POSTFIX}`,
     },
     TERMS_AND_CONDITIONS: `Terms and Conditions ${TITLE_POSTFIX}`,
     PRIVACY_POLICY: `Privacy Policy ${TITLE_POSTFIX}`,

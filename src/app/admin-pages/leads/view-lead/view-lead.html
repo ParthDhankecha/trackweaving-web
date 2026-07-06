@@ -1,0 +1,213 @@
+<!-- Backdrop -->
+<div class="modal-backdrop fade show"></div>
+
+<!-- Modal -->
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content shadow-lg">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Lead Details</h5>
+        <button type="button" class="btn-close" (click)="onClose()"></button>
+      </div>
+
+      <div class="modal-body">
+        @if(lead) {
+
+        <!-- Meta -->
+        <div class="d-flex gap-4 flex-wrap mb-4 text-muted small">
+          <span>Created: {{ lead.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+          <span>Last Updated: {{ lead.updatedAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="d-flex gap-2 flex-wrap mb-4">
+          <span class="badge fs-6" [class]="'bg-' + getStatusColor(lead.leadStatus)">{{ lead.leadStatus }}</span>
+          @if(lead.isVisited) { <span class="badge bg-info text-dark fs-6">Visited</span> }
+          @if(lead.isConverted) { <span class="badge bg-success fs-6">Converted</span> }
+          @if(lead.nextFollowUpDate) {
+          <span class="badge bg-warning text-dark fs-6">Follow Up: {{ lead.nextFollowUpDate | date:'dd MMM yyyy' }}</span>
+          }
+        </div>
+
+        <!-- Basic Details -->
+        <p class="section-title">Basic Details</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-label">Customer Name</div>
+            <div class="detail-value">{{ lead.customerName || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Firm Name</div>
+            <div class="detail-value">{{ lead.firmName || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Mobile Number</div>
+            <div class="detail-value">{{ lead.mobileNumber || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Alternate Mobile</div>
+            <div class="detail-value">{{ lead.alternateMobileNumber || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">{{ lead.email || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Lead Source</div>
+            <div class="detail-value">{{ lead.leadSource || '-' }}</div>
+          </div>
+          <div class="col-md-8">
+            <div class="detail-label">Unit Address</div>
+            <div class="detail-value">{{ lead.unitAddress || '-' }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">
+              @if(lead.unitLocationUrl) {
+              <a [href]="lead.unitLocationUrl" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+                </svg>
+                Open Map
+              </a>
+              } @else { - }
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">City</div>
+            <div class="detail-value">{{ lead.city || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">State</div>
+            <div class="detail-value">{{ lead.state || '-' }}</div>
+          </div>
+          @if(lead.remarks) {
+          <div class="col-md-12">
+            <div class="detail-label">Remarks</div>
+            <div class="detail-value">{{ lead.remarks }}</div>
+          </div>
+          }
+        </div>
+
+        <!-- Machine Details -->
+        <p class="section-title">Machine Details</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-label">Machine Type</div>
+            <div class="detail-value">{{ lead.machineType || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Number of Machines</div>
+            <div class="detail-value">{{ lead.numberOfMachines ?? '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Machine Company</div>
+            <div class="detail-value">{{ lead.machineCompany || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Machine Display / HMI Company</div>
+            <div class="detail-value">{{ lead.machineDisplayCompany || '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Follow Up -->
+        <p class="section-title">Follow Up</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-label">Next Follow Up Date</div>
+            <div class="detail-value">{{ lead.nextFollowUpDate ? (lead.nextFollowUpDate | date:'dd MMM yyyy') : '-' }}</div>
+          </div>
+          <div class="col-md-12">
+            <div class="detail-label">Follow Up Notes</div>
+            <div class="detail-value">{{ lead.followUpNotes || '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Visit Details -->
+        <p class="section-title">Visit Details</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-label">Is Visited</div>
+            <div class="detail-value">{{ lead.isVisited ? 'Yes' : 'No' }}</div>
+          </div>
+          @if(lead.isVisited) {
+          <div class="col-md-6">
+            <div class="detail-label">Visit Date</div>
+            <div class="detail-value">{{ lead.visitDate | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Visited By</div>
+            <div class="detail-value">{{ lead.visitedBy || '-' }}</div>
+          </div>
+          <div class="col-md-12">
+            <div class="detail-label">Visit Remarks</div>
+            <div class="detail-value">{{ lead.visitRemarks || '-' }}</div>
+          </div>
+          }
+        </div>
+
+        <!-- Conversion Details -->
+        @if(lead.leadStatus === 'Converted') {
+        <p class="section-title">Conversion Details</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-label">Converted Date</div>
+            <div class="detail-value">{{ lead.convertedDate ? (lead.convertedDate | date:'dd MMM yyyy') : '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Payment Status</div>
+            <div class="detail-value">{{ lead.paymentStatus || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Machines Purchased</div>
+            <div class="detail-value">{{ lead.numberOfMachinesPurchased ?? '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Purchased Machine Company</div>
+            <div class="detail-value">{{ lead.purchasedMachineCompany || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Purchased Machine Type</div>
+            <div class="detail-value">{{ lead.purchasedMachineType || '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Price Per Machine</div>
+            <div class="detail-value">₹{{ lead.pricePerMachine | number:'1.0-0' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">Total Setup Price</div>
+            <div class="detail-value">₹{{ lead.totalSetupPrice | number:'1.0-0' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">AMC Price</div>
+            <div class="detail-value">₹{{ lead.amcPrice | number:'1.0-0' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">AMC Start Date</div>
+            <div class="detail-value">{{ lead.amcStartDate ? (lead.amcStartDate | date:'dd MMM yyyy') : '-' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-label">AMC End Date</div>
+            <div class="detail-value">{{ lead.amcEndDate ? (lead.amcEndDate | date:'dd MMM yyyy') : '-' }}</div>
+          </div>
+          @if(lead.conversionRemarks) {
+          <div class="col-md-12">
+            <div class="detail-label">Conversion Remarks</div>
+            <div class="detail-value">{{ lead.conversionRemarks }}</div>
+          </div>
+          }
+        </div>
+        }
+
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onClose()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="onEdit()">Edit Lead</button>
+      </div>
+
+    </div>
+  </div>
+</div>

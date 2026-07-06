@@ -1,0 +1,336 @@
+<!-- Inner Header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+  <div class="d-flex flex-grow-1 gap-2 align-items-center">
+    <h5 class="m-0 fw-bold">Leads / CRM</h5>
+  </div>
+  <div>
+    <button class="btn btn-primary d-flex align-items-center gap-2" (click)="openAddModal()">
+      <svg height="18" width="18" viewBox="0 0 48 48">
+        <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4" stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+        <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4" stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+      </svg>
+      <span class="text-nowrap">Add Lead</span>
+    </button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="p-4">
+
+  <!-- Stats Cards -->
+  @if(stats) {
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-total h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number">{{ stats.total }}</div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-new h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number">{{ stats.newLeads }}</div>
+          <div class="stat-label">New Leads</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-visited h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number">{{ stats.visited }}</div>
+          <div class="stat-label">Visited</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-followup h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number">{{ stats.followUpsDueToday }}</div>
+          <div class="stat-label">Follow Ups Today</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-overdue h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number text-danger">{{ stats.overdueFollowUps }}</div>
+          <div class="stat-label">Overdue Follow Ups</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-converted h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number text-success">{{ stats.converted }}</div>
+          <div class="stat-label">Converted</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-lost h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number text-danger">{{ stats.lost }}</div>
+          <div class="stat-label">Lost</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl-auto flex-xl-fill">
+      <div class="card stat-card stat-value h-100">
+        <div class="card-body py-2 px-3">
+          <div class="stat-number text-success">{{ stats.totalMachinesConverted }}</div>
+          <div class="stat-label">Machines Converted</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Filters -->
+  <div class="filter-section">
+    <div class="row g-2 align-items-end">
+      <!-- Search -->
+      <div class="col-12 col-md-4">
+        <label class="form-label small mb-1">Search</label>
+        <input type="text" class="form-control form-control-sm" placeholder="Name, firm, mobile..."
+          [(ngModel)]="searchTerms" (keydown.enter)="onSearch()" />
+      </div>
+      <!-- Lead Status -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Status</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterLeadStatus" (ngModelChange)="onFilterChange()">
+          <option value="">All Statuses</option>
+          @for(s of leadStatuses; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+      <!-- Machine Type -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Machine Type</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterMachineType" (ngModelChange)="onFilterChange()">
+          <option value="">All Types</option>
+          @for(t of machineTypes; track t) { <option [value]="t">{{ t }}</option> }
+        </select>
+      </div>
+      <!-- Is Visited -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Visited</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterIsVisited" (ngModelChange)="onFilterChange()">
+          <option value="">All</option>
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+      <!-- Converted -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Converted</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterIsConverted" (ngModelChange)="onFilterChange()">
+          <option value="">All</option>
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+      <!-- Visited By -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Visited By</label>
+        <input type="text" class="form-control form-control-sm" placeholder="Person name"
+          [(ngModel)]="filterVisitedBy" (keydown.enter)="onFilterChange()" />
+      </div>
+      <!-- Date From -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Created From</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="filterCreatedAtFrom" (ngModelChange)="onFilterChange()" />
+      </div>
+      <!-- Date To -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Created To</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="filterCreatedAtTo" (ngModelChange)="onFilterChange()" />
+      </div>
+      <!-- Follow up due today -->
+      <div class="col-6 col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="dueToday" [(ngModel)]="filterFollowUpDueToday" (ngModelChange)="onFilterChange()" />
+          <label class="form-check-label small" for="dueToday">Due Today</label>
+        </div>
+      </div>
+      <!-- Overdue -->
+      <div class="col-6 col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="overdue" [(ngModel)]="filterOverdueFollowUp" (ngModelChange)="onFilterChange()" />
+          <label class="form-check-label small" for="overdue">Overdue</label>
+        </div>
+      </div>
+      <!-- Search + Reset Buttons -->
+      <div class="col-12 col-md-auto d-flex gap-2 align-items-end">
+        <button class="btn btn-sm btn-primary" (click)="onSearch()">Search</button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="onResetFilters()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card">
+    <div class="card-body">
+
+      <!-- Top controls -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <app-entries-per-page-selector [pageSize]="pageSize" (pageSizeChange)="onEntriesPerPageChange($event)" />
+        <span class="text-muted small">{{ totalEntries }} record(s)</span>
+      </div>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Customer Name</th>
+              <th>Firm Name</th>
+              <th>Mobile</th>
+              <th>Machine Type</th>
+              <th class="text-center cursor-pointer text-nowrap" (click)="onSort('numberOfMachines')">
+                Machines
+                @if(sortField === 'numberOfMachines') {
+                <span>{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+                }
+              </th>
+              <th>City</th>
+              <th>Status</th>
+              <th class="text-center">Visited</th>
+              <th>Visited By</th>
+              <th class="text-nowrap cursor-pointer" (click)="onSort('nextFollowUpDate')">
+                Next Follow Up
+                @if(sortField === 'nextFollowUpDate') {
+                <span>{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+                }
+              </th>
+              <th class="text-center">Converted</th>
+              <th class="text-nowrap cursor-pointer" (click)="onSort('createdAt')">
+                Created
+                @if(sortField === 'createdAt') {
+                <span>{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+                }
+              </th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if(isLoading) {
+            <tr>
+              <td colspan="14" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+              </td>
+            </tr>
+            } @else {
+            @for(lead of leadList; track lead._id; let i = $index) {
+            <tr [class.overdue-row]="isOverdue(lead)">
+              <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
+              <td class="text-nowrap">{{ lead.customerName }}</td>
+              <td class="word-break-all">{{ lead.firmName }}</td>
+              <td class="text-nowrap">{{ lead.mobileNumber }}</td>
+              <td class="text-nowrap">{{ lead.machineType }}</td>
+              <td class="text-center">{{ lead.numberOfMachines }}</td>
+              <td>{{ lead.city || '-' }}</td>
+              <td class="text-nowrap">
+                <span class="badge {{ getStatusBadgeClass(lead.leadStatus) }}">{{ lead.leadStatus }}</span>
+              </td>
+              <td class="text-center">
+                @if(lead.isVisited) {
+                <span class="badge bg-success">Yes</span>
+                } @else {
+                <span class="badge bg-secondary">No</span>
+                }
+              </td>
+              <td class="text-nowrap">{{ lead.visitedBy || '-' }}</td>
+              <td class="text-nowrap">
+                @if(lead.nextFollowUpDate) {
+                <span [class.text-danger]="isOverdue(lead)" [class.fw-bold]="isOverdue(lead)">
+                  {{ lead.nextFollowUpDate | date:'dd MMM yyyy' }}
+                  @if(isOverdue(lead)) { <span class="badge bg-danger ms-1">Overdue</span> }
+                </span>
+                } @else {
+                <span class="text-muted">-</span>
+                }
+              </td>
+              <td class="text-center">
+                @if(lead.isConverted) {
+                <span class="badge bg-success">Yes</span>
+                } @else {
+                <span class="badge bg-secondary">No</span>
+                }
+              </td>
+              <td class="text-nowrap">{{ lead.createdAt | date:'dd MMM yyyy' }}</td>
+              <td class="text-nowrap">
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="openViewModal(lead)" title="View">
+                  View
+                </button>
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditModal(lead)" title="Edit">
+                  Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(lead)" title="Delete">
+                  Delete
+                </button>
+              </td>
+            </tr>
+            }
+            @empty {
+            <tr>
+              <td colspan="14" class="text-center py-5 text-muted">
+                <div class="mb-2">No leads found.</div>
+                <button class="btn btn-sm btn-outline-primary" (click)="openAddModal()">Add your first lead</button>
+              </td>
+            </tr>
+            }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <app-pagination class="d-block" [pageSize]="pageSize" [totalEntries]="totalEntries"
+        [currentPage]="currentPage" (pageChange)="onPageChange($event)" />
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Upsert Modal -->
+@if(isUpsertModalOpen) {
+<app-upsert-lead
+  [leadData]="upsertModalData"
+  (close)="closeUpsertModal()"
+  (upsert)="onUpsertSuccess($event)">
+</app-upsert-lead>
+}
+
+<!-- View Modal -->
+@if(isViewModalOpen) {
+<app-view-lead [lead]="viewModalLead" (close)="closeViewModal()" (edit)="onEditFromView($event)"></app-view-lead>
+}
+
+<!-- Delete Confirm Modal -->
+@if(deleteConfirmConfig.isOpen) {
+<div class="modal fade show d-block">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete lead for
+        <strong>{{ deleteConfirmConfig.data?.customerName }}</strong>
+        ({{ deleteConfirmConfig.data?.firmName }})? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()" [disabled]="isDeleteInProgress">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleteInProgress">
+          @if(isDeleteInProgress) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

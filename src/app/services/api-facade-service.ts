@@ -15,6 +15,7 @@ import { Invoice } from './invoice/invoice';
 import { PartsChangeEntry } from './parts-change-entry/parts-change-entry';
 import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
 import { Reports } from './reports/reports';
+import { Lead } from './lead/lead';
 
 
 @Injectable({
@@ -52,4 +53,6 @@ export class ApiFacadeService {
   public readonly shiftWiseComments: ShiftWiseComments = inject(ShiftWiseComments);
   // Inject Parts Change Entry service
   public readonly partsChangeEntry: PartsChangeEntry = inject(PartsChangeEntry);
+  // Inject Lead / CRM service
+  public readonly lead: Lead = inject(Lead);
 }

@@ -31,6 +31,7 @@ export const ROUTES = {
         INVOICE_UPSERT: 'upsert',
         INVOICE_PRINT: 'print',
         APK_VERSION: 'apk-version',
+        LEAD: 'lead',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
     TERMS_AND_CONDITIONS: 'terms-and-condition',

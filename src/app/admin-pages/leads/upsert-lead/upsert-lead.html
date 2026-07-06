@@ -1,0 +1,226 @@
+<!-- Backdrop -->
+<div class="modal-backdrop fade show"></div>
+
+<!-- Modal -->
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl-custom" role="document">
+    <div class="modal-content shadow-lg">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">{{ isEditMode ? 'Edit Lead' : 'Add New Lead' }}</h5>
+        <button type="button" class="btn-close" (click)="onClose()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form #leadForm="ngForm" novalidate>
+
+          <!-- Duplicate Warning -->
+          @if (isDuplicateWarning) {
+          <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+            </svg>
+            <span>A lead with this mobile number already exists. You may still save this lead.</span>
+          </div>
+          }
+
+          <!-- 1. Basic Details -->
+          <p class="section-title">Basic Details</p>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="form.customerName" name="customerName" placeholder="Customer name" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Firm Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="form.firmName" name="firmName" placeholder="Firm / company name" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="form.mobileNumber" name="mobileNumber" placeholder="Mobile number" (blur)="onMobileBlur()" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Alternate Mobile Number</label>
+              <input type="text" class="form-control" [(ngModel)]="form.alternateMobileNumber" name="alternateMobileNumber" placeholder="Alternate mobile (optional)" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" [(ngModel)]="form.email" name="email" placeholder="Email (optional)" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Lead Source</label>
+              <select class="form-select" [(ngModel)]="form.leadSource" name="leadSource">
+                <option value="">-- Select Source --</option>
+                @for(s of leadSources; track s) {
+                <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Unit Address</label>
+              <input type="text" class="form-control" [(ngModel)]="form.unitAddress" name="unitAddress" placeholder="Unit address" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Location URL</label>
+              <input type="url" class="form-control" [(ngModel)]="form.unitLocationUrl" name="unitLocationUrl" placeholder="Google Maps / location link" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" [(ngModel)]="form.city" name="city" placeholder="City" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">State</label>
+              <input type="text" class="form-control" [(ngModel)]="form.state" name="state" placeholder="State" />
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Remarks / Notes</label>
+              <textarea class="form-control" [(ngModel)]="form.remarks" name="remarks" rows="2" placeholder="General remarks or notes"></textarea>
+            </div>
+          </div>
+
+          <!-- 2. Machine Details -->
+          <p class="section-title">Machine Details</p>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Machine Type <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="form.machineType" name="machineType">
+                <option value="">-- Select Type --</option>
+                @for(t of machineTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Number of Machines <span class="text-danger">*</span></label>
+              <input type="number" min="1" class="form-control" [(ngModel)]="form.numberOfMachines" name="numberOfMachines" placeholder="No. of machines" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Machine Company</label>
+              <input type="text" class="form-control" [(ngModel)]="form.machineCompany" name="machineCompany" placeholder="Machine company name" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Machine Display / HMI Company</label>
+              <input type="text" class="form-control" [(ngModel)]="form.machineDisplayCompany" name="machineDisplayCompany" placeholder="HMI / display company" />
+            </div>
+          </div>
+
+          <!-- 3. Lead Status & Follow Up -->
+          <p class="section-title">Lead Status &amp; Follow Up</p>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Lead Status <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="form.leadStatus" name="leadStatus">
+                @for(s of leadStatuses; track s) {
+                <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Next Follow Up Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form.nextFollowUpDate" name="nextFollowUpDate" />
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Follow Up Notes</label>
+              <textarea class="form-control" [(ngModel)]="form.followUpNotes" name="followUpNotes" rows="2" placeholder="Follow up notes"></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Visit Details -->
+          <p class="section-title">Visit Details</p>
+          <div class="row g-3 mb-4">
+            <div class="col-md-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="isVisited" [(ngModel)]="form.isVisited" name="isVisited" />
+                <label class="form-check-label" for="isVisited">Is Visited</label>
+              </div>
+            </div>
+            @if(form.isVisited) {
+            <div class="col-md-6">
+              <label class="form-label">Visit Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" [(ngModel)]="form.visitDate" name="visitDate" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Visited By <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="form.visitedBy" name="visitedBy" placeholder="Name of person who visited" />
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Visit Remarks</label>
+              <textarea class="form-control" [(ngModel)]="form.visitRemarks" name="visitRemarks" rows="2" placeholder="Remarks from the visit"></textarea>
+            </div>
+            }
+          </div>
+
+          <!-- 5. Conversion Details (only when Converted) -->
+          @if(showConversionDetails) {
+          <p class="section-title">Conversion Details</p>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Converted Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" [(ngModel)]="form.convertedDate" name="convertedDate" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Payment Status</label>
+              <select class="form-select" [(ngModel)]="form.paymentStatus" name="paymentStatus">
+                @for(ps of paymentStatuses; track ps) {
+                <option [value]="ps">{{ ps }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Number of Machines Purchased <span class="text-danger">*</span></label>
+              <input type="number" min="1" class="form-control" [(ngModel)]="form.numberOfMachinesPurchased" name="numberOfMachinesPurchased" placeholder="No. of machines" (ngModelChange)="onConversionAmountChange()" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Purchased Machine Company</label>
+              <input type="text" class="form-control" [(ngModel)]="form.purchasedMachineCompany" name="purchasedMachineCompany" placeholder="Machine company" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Purchased Machine Type</label>
+              <input type="text" class="form-control" [(ngModel)]="form.purchasedMachineType" name="purchasedMachineType" placeholder="Machine type/model" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Price Per Machine (₹) <span class="text-danger">*</span></label>
+              <input type="number" min="0" class="form-control" [(ngModel)]="form.pricePerMachine" name="pricePerMachine" placeholder="0" (ngModelChange)="onConversionAmountChange()" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Total Setup Price (₹)</label>
+              <input type="number" min="0" class="form-control" [(ngModel)]="form.totalSetupPrice" name="totalSetupPrice" placeholder="Auto-calculated" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">AMC Price (₹) <span class="text-danger">*</span></label>
+              <input type="number" min="0" class="form-control" [(ngModel)]="form.amcPrice" name="amcPrice" placeholder="0" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">AMC Start Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form.amcStartDate" name="amcStartDate" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">AMC End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form.amcEndDate" name="amcEndDate" />
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Final Conversion Remarks</label>
+              <textarea class="form-control" [(ngModel)]="form.conversionRemarks" name="conversionRemarks" rows="2" placeholder="Final conversion remarks"></textarea>
+            </div>
+          </div>
+          }
+
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="isSubmitting">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="isSubmitting">
+          @if(isSubmitting) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          {{ isEditMode ? 'Save Changes' : 'Add Lead' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
