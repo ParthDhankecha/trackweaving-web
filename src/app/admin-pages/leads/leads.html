@@ -130,6 +130,12 @@
           <option value="false">No</option>
         </select>
       </div>
+      <!-- Landmark -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1">Landmark</label>
+        <input type="text" class="form-control form-control-sm" placeholder="Landmark / area"
+          [(ngModel)]="filterLandmark" (keydown.enter)="onFilterChange()" />
+      </div>
       <!-- Visited By -->
       <div class="col-6 col-md-2">
         <label class="form-label small mb-1">Visited By</label>

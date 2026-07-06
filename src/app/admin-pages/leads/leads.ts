@@ -53,6 +53,7 @@ export class Leads {
   protected filterMachineType = '';
   protected filterIsVisited = '';
   protected filterIsConverted = '';
+  protected filterLandmark = '';
   protected filterVisitedBy = '';
   protected filterCreatedAtFrom = '';
   protected filterCreatedAtTo = '';
@@ -99,6 +100,7 @@ export class Leads {
     else if (this.filterIsVisited === 'false') filter.isVisited = false;
     if (this.filterIsConverted === 'true') filter.isConverted = true;
     else if (this.filterIsConverted === 'false') filter.isConverted = false;
+    if (this.filterLandmark?.trim()) filter.landmark = this.filterLandmark.trim();
     if (this.filterVisitedBy?.trim()) filter.visitedBy = this.filterVisitedBy.trim();
     if (this.filterCreatedAtFrom) filter.createdAtFrom = this.filterCreatedAtFrom;
     if (this.filterCreatedAtTo) filter.createdAtTo = this.filterCreatedAtTo;
@@ -146,6 +148,7 @@ export class Leads {
     this.filterMachineType = '';
     this.filterIsVisited = '';
     this.filterIsConverted = '';
+    this.filterLandmark = '';
     this.filterVisitedBy = '';
     this.filterCreatedAtFrom = '';
     this.filterCreatedAtTo = '';
