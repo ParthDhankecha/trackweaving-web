@@ -1,0 +1,161 @@
+<!-- Page Header -->
+<div class="page-header">
+    <span class="page-title">Analytics</span>
+</div>
+
+<div class="page-body">
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Factory</label>
+            <select [(ngModel)]="filterWorkspace" (ngModelChange)="onFilter()">
+                <option value="">All Factories</option>
+                @for(ws of workspaceOptions; track ws._id) {
+                <option [value]="ws._id">{{ ws.firmName }}</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Machine Type</label>
+            <select [(ngModel)]="filterType" (ngModelChange)="onFilter()">
+                <option value="">All Types</option>
+                @for(t of machineTypes; track t) {
+                <option [value]="t" style="text-transform:capitalize">{{ t }}</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if(isLoading) {
+    <div class="state-center">Loading analytics...</div>
+    } @else if(!analytics) {
+    <div class="state-center">No data available.</div>
+    } @else {
+
+    <div class="analytics-grid">
+
+        <!-- Efficiency by Factory -->
+        <div class="analytic-card">
+            <div class="analytic-card-header">
+                <div class="card-title">Efficiency by Factory</div>
+            </div>
+            <div class="analytic-card-body">
+                @for(ws of analytics.efficiencyByWorkspace; track ws.workspaceId) {
+                <div class="eff-bar-row">
+                    <div class="eff-bar-top">
+                        <span class="eff-name">{{ ws.firmName }}</span>
+                        <span class="eff-pct"
+                            [style.color]="ws.avgEfficiency >= 80 ? '#10b981' : ws.avgEfficiency >= 50 ? '#f59e0b' : '#ef4444'">
+                            {{ ws.avgEfficiency }}%
+                        </span>
+                    </div>
+                    <div class="eff-track">
+                        <div class="eff-fill"
+                            [class.fill-high]="ws.avgEfficiency >= 80"
+                            [class.fill-mid]="ws.avgEfficiency >= 50 && ws.avgEfficiency < 80"
+                            [class.fill-low]="ws.avgEfficiency < 50"
+                            [style.width.%]="ws.avgEfficiency">
+                        </div>
+                    </div>
+                </div>
+                } @empty {
+                <div class="no-data">No data available.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Production by Factory -->
+        <div class="analytic-card">
+            <div class="analytic-card-header">
+                <div class="card-title">Production by Factory (Picks)</div>
+            </div>
+            <div class="analytic-card-body" style="padding:0">
+                <table class="prod-table">
+                    <thead>
+                        <tr>
+                            <th>Factory</th>
+                            <th class="text-right">Total Picks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(ws of analytics.productionByWorkspace; track ws.workspaceId) {
+                        <tr>
+                            <td>{{ ws.firmName }}</td>
+                            <td class="text-right"><span class="picks-val">{{ ws.totalPicks | number }}</span></td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="2" style="text-align:center;color:#9ca3af;padding:24px 12px;font-size:13px">No data.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stop Analysis -->
+        <div class="analytic-card">
+            <div class="analytic-card-header">
+                <div class="card-title">Stop Analysis (Most Frequent)</div>
+            </div>
+            <div class="analytic-card-body">
+                @for(stop of analytics.topStops; track stop.stopType) {
+                <div class="stop-bar-row">
+                    <div class="stop-bar-top">
+                        <span class="stop-name">{{ stop.stopType }}</span>
+                        <span class="stop-meta"><strong>{{ stop.count }}</strong> stops &middot; {{ formatDuration(stop.totalDurationSeconds) }}</span>
+                    </div>
+                    <div class="stop-track">
+                        <div class="stop-fill" [style.width.%]="stopBarWidth(stop.count)"></div>
+                    </div>
+                </div>
+                } @empty {
+                <div class="no-data">No stop data recorded.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Machine Type Efficiency -->
+        <div class="analytic-card">
+            <div class="analytic-card-header">
+                <div class="card-title">Efficiency by Machine Type</div>
+            </div>
+            <div class="analytic-card-body" style="padding:0">
+                <table class="type-eff-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th class="text-center">Machines</th>
+                            <th class="text-right">Avg Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(t of analytics.machineTypeEfficiency; track t.machineType) {
+                        <tr>
+                            <td><span class="type-tag">{{ t.machineType }}</span></td>
+                            <td class="text-center">{{ t.totalMachines }}</td>
+                            <td class="text-right">
+                                <span class="eff-val"
+                                    [class.eff-high]="t.avgEfficiency >= 80"
+                                    [class.eff-mid]="t.avgEfficiency >= 50 && t.avgEfficiency < 80"
+                                    [class.eff-low]="t.avgEfficiency < 50">
+                                    {{ t.avgEfficiency }}%
+                                </span>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="3" style="text-align:center;color:#9ca3af;padding:24px 12px;font-size:13px">No data.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    }
+
+</div>

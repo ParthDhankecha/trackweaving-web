@@ -6,6 +6,8 @@ export default class StorageKeys {
     static readonly ACCESS_TOKEN_EXPIRES_AT = `${_prefix}token_expire_at`;
     static readonly USER_INFO = `${_prefix}user`;
     static readonly WORKSPACE_ID = `${_prefix}workspaceId`;
+    static readonly MANUFACTURER_TOKEN = `${_prefix}manufacturer_token`;
+    static readonly MANUFACTURER_INFO = `${_prefix}manufacturer`;
 
     /** sessionStorage */
     static readonly SST = {

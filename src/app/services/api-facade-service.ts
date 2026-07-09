@@ -16,6 +16,8 @@ import { PartsChangeEntry } from './parts-change-entry/parts-change-entry';
 import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
 import { Reports } from './reports/reports';
 import { Lead } from './lead/lead';
+import { Manufacturer } from './manufacturer/manufacturer';
+import { ManufacturerPortal } from './manufacturer-portal/manufacturer-portal';
 
 
 @Injectable({
@@ -55,4 +57,8 @@ export class ApiFacadeService {
   public readonly partsChangeEntry: PartsChangeEntry = inject(PartsChangeEntry);
   // Inject Lead / CRM service
   public readonly lead: Lead = inject(Lead);
+  // Inject Manufacturer (admin) service
+  public readonly manufacturer: Manufacturer = inject(Manufacturer);
+  // Inject Manufacturer Portal service
+  public readonly manufacturerPortal: ManufacturerPortal = inject(ManufacturerPortal);
 }

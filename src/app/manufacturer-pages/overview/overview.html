@@ -1,0 +1,172 @@
+<!-- Page Header -->
+<div class="page-header">
+    <span class="page-title">Overview</span>
+    @if(overview) {
+    <span class="page-badge">Live</span>
+    }
+</div>
+
+<div class="page-body">
+
+    @if(isLoading) {
+    <div class="state-center">Loading dashboard...</div>
+    } @else if(!overview) {
+    <div class="state-center">No data available.</div>
+    } @else {
+
+    <!-- KPI row -->
+    <div class="kpi-grid">
+
+        <div class="kpi-card kpi-indigo">
+            <div class="kpi-content">
+                <div class="kpi-label">Workspaces</div>
+                <div class="kpi-value" style="color:#6366f1">{{ overview.totalWorkspaces }}</div>
+            </div>
+            <div class="kpi-icon">
+                <svg fill="currentColor" width="22" height="22" viewBox="0 0 24 24">
+                    <path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-content">
+                <div class="kpi-label">Total Machines</div>
+                <div class="kpi-value" style="color:#3b82f6">{{ overview.totalMachines }}</div>
+            </div>
+            <div class="kpi-icon">
+                <svg fill="currentColor" width="22" height="22" viewBox="0 0 24 24">
+                    <path d="M22 21H2v-2h1V3h18v16h1v2zm-9-2h4v-5h-4v5zm-6 0h4v-5H7v5zm0-7h10V5H7v7z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-green">
+            <div class="kpi-content">
+                <div class="kpi-label">Running Now</div>
+                <div class="kpi-value" style="color:#10b981">{{ overview.runningMachines }}</div>
+            </div>
+            <div class="kpi-icon">
+                <svg fill="currentColor" width="22" height="22" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-amber">
+            <div class="kpi-content">
+                <div class="kpi-label">Avg Efficiency</div>
+                <div class="kpi-value" style="color:#f59e0b">{{ overview.avgEfficiency }}%</div>
+            </div>
+            <div class="kpi-icon">
+                <svg fill="currentColor" width="22" height="22" viewBox="0 0 24 24">
+                    <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Secondary cards -->
+    <div class="cards-row">
+
+        <!-- Machine Types -->
+        <div class="info-card">
+            <div class="card-title">Machine Types</div>
+            <div class="type-list">
+                @for(entry of machineTypeEntries; track entry.key) {
+                <div class="type-row">
+                    <span class="type-name">{{ entry.key }}</span>
+                    <span class="type-count">{{ entry.count }}</span>
+                </div>
+                } @empty {
+                <div style="color:#9ca3af;font-size:13px">No machines assigned.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Picks -->
+        <div class="info-card">
+            <div class="card-title">Current Shift Production</div>
+            <div class="picks-number">{{ overview.totalPicksToday | number }}</div>
+            <div class="picks-sub">Picks today</div>
+        </div>
+
+        <!-- Machine Status -->
+        <div class="info-card">
+            <div class="card-title">Machine Status</div>
+            <div class="status-row">
+                <div class="status-item running">
+                    <div class="status-num">{{ overview.runningMachines }}</div>
+                    <div class="status-label">Running</div>
+                </div>
+                <div class="status-item stopped">
+                    <div class="status-num">{{ overview.stoppedMachines }}</div>
+                    <div class="status-label">Stopped</div>
+                </div>
+            </div>
+            @if(overview.totalMachines > 0) {
+            <div class="status-bar">
+                <div class="status-bar-fill"
+                    [style.width.%]="(overview.runningMachines / overview.totalMachines) * 100">
+                </div>
+            </div>
+            }
+        </div>
+
+    </div>
+
+    <!-- Workspace table -->
+    <div class="table-card">
+        <div class="table-card-header">Workspace Breakdown</div>
+        <div style="overflow-x:auto">
+            <table class="ws-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Factory</th>
+                        <th class="text-center">Machines</th>
+                        <th class="text-center">Running</th>
+                        <th class="text-center">Stopped</th>
+                        <th class="text-center">Avg Efficiency</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(ws of overview.workspaces; track ws._id; let i = $index) {
+                    <tr>
+                        <td>{{ i + 1 }}</td>
+                        <td class="fw-factory">{{ ws.firmName }}</td>
+                        <td class="text-center">{{ ws.totalMachines }}</td>
+                        <td class="text-center num-success">{{ ws.runningMachines }}</td>
+                        <td class="text-center num-danger">{{ ws.stoppedMachines }}</td>
+                        <td class="text-center">
+                            <span class="eff-badge"
+                                [class.eff-high]="ws.avgEfficiency >= 80"
+                                [class.eff-mid]="ws.avgEfficiency >= 50 && ws.avgEfficiency < 80"
+                                [class.eff-low]="ws.avgEfficiency < 50">
+                                {{ ws.avgEfficiency }}%
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="status-pill"
+                                [class.active]="ws.isActive"
+                                [class.inactive]="!ws.isActive">
+                                {{ ws.isActive ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="7" style="text-align:center;color:#9ca3af;padding:32px">
+                            No workspaces assigned.
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    }
+</div>

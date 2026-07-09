@@ -32,7 +32,16 @@ export const ROUTES = {
         INVOICE_PRINT: 'print',
         APK_VERSION: 'apk-version',
         LEAD: 'lead',
+        MANUFACTURER: 'manufacturer',
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
+    },
+    MANUFACTURER: {
+        BASE: 'manufacturer',
+        LOGIN: 'login',
+        OVERVIEW: 'overview',
+        MACHINES: 'machines',
+        ANALYTICS: 'analytics',
+        getFullRoute: (route: string) => `/${ROUTES.MANUFACTURER.BASE}/${route}`
     },
     TERMS_AND_CONDITIONS: 'terms-and-condition',
     PRIVACY_POLICY: 'privacy-policy',

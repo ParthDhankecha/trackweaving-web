@@ -49,6 +49,11 @@ export const routes: Routes = [
         loadChildren: () => import('./admin-pages/admin-pages.routes.js').then(m => m.routes),
     },
     {
+        path: ROUTES.MANUFACTURER.BASE,
+        title: APP_PAGE_TITLE.MANUFACTURER.BASE,
+        loadChildren: () => import('./manufacturer-pages/manufacturer-pages.routes').then(m => m.routes),
+    },
+    {
         path: ROUTES.TERMS_AND_CONDITIONS,
         title: APP_PAGE_TITLE.TERMS_AND_CONDITIONS,
         component: TermsAndCondition,

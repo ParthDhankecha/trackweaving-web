@@ -10,11 +10,16 @@ import { CoreFacadeService } from '../services/core-facade-service';
 export const authTokenInjectorInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const _coreService = inject(CoreFacadeService);
 
-  // Clone the request to add the new header
-  const authToken = localStorage.getItem(StorageKeys.ACCESS_TOKEN);
-  if (authToken && typeof authToken === 'string') {
+  // For manufacturer portal API routes, use the manufacturer token
+  const isManufacturerRoute = req.url.includes('/manufacturer/');
+  const manufacturerToken = localStorage.getItem(StorageKeys.MANUFACTURER_TOKEN);
+  const accessToken = localStorage.getItem(StorageKeys.ACCESS_TOKEN);
+
+  const token = (isManufacturerRoute && manufacturerToken) ? manufacturerToken : accessToken;
+
+  if (token && typeof token === 'string') {
     req = req.clone({
-      headers: req.headers.append('Authorization', authToken)
+      headers: req.headers.append('Authorization', token)
     });
   }
 
@@ -22,9 +27,12 @@ export const authTokenInjectorInterceptor: HttpInterceptorFn = (req: HttpRequest
   return next(req).pipe(tap({
     error: (err) => {
       if (err instanceof HttpErrorResponse) {
-        // If 401 Unauthorized response and user is authenticated or trying to access auth routes, clear storage and redirect to auth page
-        if (err.status === 401 && (_coreService.utils.isAuthenticated || req.url.includes(`/${ROUTES.AUTH.BASE}/`))) {
-          _coreService.utils.logout();
+        if (err.status === 401) {
+          if (isManufacturerRoute && _coreService.utils.isManufacturerAuthenticated) {
+            _coreService.utils.logoutManufacturer();
+          } else if (!isManufacturerRoute && (_coreService.utils.isAuthenticated || req.url.includes(`/${ROUTES.AUTH.BASE}/`))) {
+            _coreService.utils.logout();
+          }
         }
       }
     }

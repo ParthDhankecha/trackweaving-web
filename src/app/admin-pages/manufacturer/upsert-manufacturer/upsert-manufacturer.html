@@ -1,0 +1,93 @@
+<div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.4)">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ isEditMode ? 'Edit Manufacturer' : 'New Manufacturer' }}</h5>
+                <button type="button" class="btn-close" (click)="onClose()"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                    <div class="row g-3">
+                        <!-- Company Name -->
+                        <div class="col-md-6">
+                            <label class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" formControlName="companyName"
+                                placeholder="e.g. Picanol NV" [class.is-invalid]="companyName?.invalid && companyName?.touched" />
+                            @if(companyName?.hasError('required') && companyName?.touched) {
+                            <div class="invalid-feedback">Company name is required.</div>
+                            }
+                        </div>
+
+                        <!-- Contact Person -->
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Person</label>
+                            <input type="text" class="form-control" formControlName="contactPerson"
+                                placeholder="Full name" />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" formControlName="email"
+                                placeholder="login@company.com"
+                                [class.is-invalid]="email?.invalid && email?.touched" />
+                            @if(email?.hasError('required') && email?.touched) {
+                            <div class="invalid-feedback">Email is required.</div>
+                            } @else if(email?.hasError('email') && email?.touched) {
+                            <div class="invalid-feedback">Enter a valid email.</div>
+                            }
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" formControlName="phone"
+                                placeholder="+91 99999 99999"
+                                [class.is-invalid]="phone?.invalid && phone?.touched" />
+                            @if(phone?.hasError('pattern') && phone?.touched) {
+                            <div class="invalid-feedback">Enter a valid phone number.</div>
+                            }
+                        </div>
+
+                        <!-- Password (create only) -->
+                        @if(!isEditMode) {
+                        <div class="col-md-6">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control"
+                                    formControlName="password" placeholder="Min 6 characters"
+                                    [class.is-invalid]="password?.invalid && password?.touched" />
+                                <button class="btn btn-outline-secondary" type="button"
+                                    (click)="isEyeOpen = !isEyeOpen">
+                                    {{ isEyeOpen ? 'Hide' : 'Show' }}
+                                </button>
+                            </div>
+                            @if(password?.hasError('required') && password?.touched) {
+                            <div class="text-danger small mt-1">Password is required.</div>
+                            } @else if(password?.hasError('minlength') && password?.touched) {
+                            <div class="text-danger small mt-1">Minimum 6 characters.</div>
+                            }
+                        </div>
+                        }
+
+                        <!-- Status -->
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" formControlName="isActive">
+                                <option [value]="true">Active</option>
+                                <option [value]="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="isReqAlive">
+                            {{ isReqAlive ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

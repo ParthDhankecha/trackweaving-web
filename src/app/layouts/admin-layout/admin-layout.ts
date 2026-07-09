@@ -51,6 +51,11 @@ export class AdminLayout {
       label: 'Leads / CRM',
       link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.LEAD),
       icon: 'leads'
+    },
+    {
+      label: 'Manufacturer',
+      link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.MANUFACTURER),
+      icon: 'manufacturer'
     }
   ];
   isSidebarCollapsed: boolean = false;

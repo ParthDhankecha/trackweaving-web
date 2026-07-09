@@ -10,6 +10,7 @@ import { Users } from './users/users';
 import { Machine } from './machine/machine';
 import { ApkVersion } from './apk-version/apk-version';
 import { Leads } from './leads/leads';
+import { ManufacturerPage } from './manufacturer/manufacturer';
 import { CommonOutlet } from '../layouts/common-outlet/common-outlet';
 
 import { authGuard } from '../core/guards/auth-guard';
@@ -58,6 +59,11 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.LEAD,
                 title: APP_PAGE_TITLE.ADMIN.LEAD,
                 component: Leads
+            },
+            {
+                path: ROUTES.ADMIN.MANUFACTURER,
+                title: APP_PAGE_TITLE.ADMIN.MANUFACTURER,
+                component: ManufacturerPage
             }
         ],
     },

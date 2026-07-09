@@ -149,6 +149,17 @@
                                 }
                             </div>
                         </ng-container>
+                        <!-- Manufacturer -->
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="manufacturerId" class="form-label">Manufacturer</label>
+                            <select id="manufacturerId" class="form-select" formControlName="manufacturerId">
+                                <option [value]="null">— None —</option>
+                                @for(mfr of manufacturerOptions; track mfr._id) {
+                                <option [value]="mfr._id">{{ mfr.companyName }}</option>
+                                }
+                            </select>
+                        </div>
+
                         <!-- Is Active -->
                         <div class="col-12 col-md-6 mb-3 d-flex">
                             <div class="form-check form-switch my-auto">

@@ -73,6 +73,34 @@ export class Utils {
     return this._appConfig.roles && this._appConfig.roles.MASTER === this.decodeToken?.user?.type;
   }
 
+  get isManufacturerAuthenticated(): boolean {
+    try {
+      const token = localStorage.getItem(StorageKeys.MANUFACTURER_TOKEN);
+      if (!token) return false;
+      const decoded = jwtDecode<any>(token);
+      const exp = decoded?.exp;
+      if (exp) return new Date().getTime() < exp * 1000;
+      return !!decoded?.manufacturer?.id;
+    } catch {
+      return false;
+    }
+  }
+
+  get manufacturerInfo(): any {
+    try {
+      const raw = localStorage.getItem(StorageKeys.MANUFACTURER_INFO);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  logoutManufacturer(): void {
+    localStorage.removeItem(StorageKeys.MANUFACTURER_TOKEN);
+    localStorage.removeItem(StorageKeys.MANUFACTURER_INFO);
+    this._router.navigateByUrl(`/${ROUTES.MANUFACTURER.BASE}/${ROUTES.MANUFACTURER.LOGIN}`);
+  }
+
   logout(): void {
     localStorage.clear();
     const baseKey = this.isSuperAdmin ? 'ADMIN' : 'AUTH';

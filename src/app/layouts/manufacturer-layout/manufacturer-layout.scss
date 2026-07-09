@@ -1,0 +1,273 @@
+:host {
+    display: contents;
+}
+
+.mfr-shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: #f0f2f7;
+}
+
+// ─── Sidebar ────────────────────────────────────────────────────────────────
+.mfr-sidebar {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.25s ease, min-width 0.25s ease;
+    overflow: hidden;
+    position: relative;
+    z-index: 100;
+
+    &.collapsed {
+        width: 72px;
+        min-width: 72px;
+
+        .sidebar-brand-text,
+        .sidebar-company,
+        .nav-label,
+        .logout-label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar-header {
+            padding: 0 16px;
+            justify-content: center;
+        }
+
+        .nav-item a {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        .sidebar-footer button {
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .sidebar-avatar {
+            margin-right: 0;
+        }
+    }
+}
+
+// Header
+.sidebar-header {
+    height: 64px;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+}
+
+.sidebar-logo-mark {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-brand-text {
+    transition: opacity 0.2s, width 0.2s;
+
+    .brand-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #f1f5f9;
+        line-height: 1.2;
+        letter-spacing: -0.2px;
+    }
+
+    .brand-sub {
+        font-size: 11px;
+        color: rgba(148, 163, 184, 0.8);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
+}
+
+// Company pill
+.sidebar-company-row {
+    padding: 16px 16px 8px;
+}
+
+.sidebar-company {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.2s, width 0.2s;
+    min-width: 0;
+}
+
+.sidebar-avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    transition: margin 0.2s;
+}
+
+.company-info {
+    min-width: 0;
+
+    .company-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .company-role {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 1px;
+    }
+}
+
+// Nav
+.sidebar-nav {
+    flex: 1;
+    padding: 8px 12px;
+    list-style: none;
+    margin: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #334155;
+    padding: 8px 8px 4px;
+}
+
+.nav-item {
+    margin-bottom: 2px;
+
+    a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #94a3b8;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.15s, color 0.15s;
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .nav-label {
+            white-space: nowrap;
+            transition: opacity 0.2s, width 0.2s;
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+    }
+
+    &.active a {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.15));
+        color: #a5b4fc;
+        border: 1px solid rgba(99, 102, 241, 0.25);
+
+        .nav-icon svg {
+            filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.5));
+        }
+    }
+}
+
+// Footer
+.sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+    button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        background: rgba(239, 68, 68, 0.06);
+        color: #f87171;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+
+        &:hover {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .logout-label {
+            white-space: nowrap;
+            transition: opacity 0.2s, width 0.2s;
+        }
+    }
+}
+
+// ─── Main content ────────────────────────────────────────────────────────────
+.mfr-main {
+    flex: 1;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}

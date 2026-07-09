@@ -25,6 +25,7 @@ export class UpsertWorkspace {
   protected readonly _fb = inject(FormBuilder);
 
   protected isEditMode: boolean = false;
+  protected manufacturerOptions: any[] = [];
   @Input('workspaceData') workspaceData: any = null;
   @Output('close') closeOrCancel: EventEmitter<any> = new EventEmitter<any>();
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
@@ -47,6 +48,7 @@ export class UpsertWorkspace {
         startTime: ['', [this.shiftTimeValidatorFactory('endTime', 'start')]],
         endTime: ['', [this.shiftTimeValidatorFactory('startTime', 'end')]],
       }),
+      manufacturerId: [null]
     },
     // for user only
     user: {
@@ -68,6 +70,14 @@ export class UpsertWorkspace {
 
 
   protected ngOnChanges(changes: SimpleChanges) {
+    if (changes['workspaceData']?.firstChange) {
+      // Load manufacturer options once
+      this._apiFs.manufacturer.optionList().subscribe({
+        next: (res: any) => { if (res.code === 'OK') this.manufacturerOptions = res.data || []; },
+        error: () => {}
+      });
+    }
+
     if (!changes['workspaceData']?.currentValue && changes['workspaceData']?.firstChange) {
       // Initializing form for create mode
       this.workspaceForm = this._fb.group({
@@ -82,14 +92,13 @@ export class UpsertWorkspace {
         ...this.formConfig.workspace
       });
 
-      // let shiftType = this.workspaceData?.dayShift ? 'day' : 'night';
-      // const shiftData = this.workspaceData?.[`${shiftType}Shift`] || {};
       this.workspaceForm.patchValue({
-        workspaceName: this.workspaceData?.firmName || '',
-        GSTNo: this.workspaceData?.GSTNo || '',
-        dayShift: this.workspaceData?.dayShift,
-        nightShift: this.workspaceData?.nightShift,
-        isActive: this.workspaceData?.isActive || false
+        workspaceName:  this.workspaceData?.firmName || '',
+        GSTNo:          this.workspaceData?.GSTNo || '',
+        dayShift:       this.workspaceData?.dayShift,
+        nightShift:     this.workspaceData?.nightShift,
+        isActive:       this.workspaceData?.isActive || false,
+        manufacturerId: this.workspaceData?.manufacturerId || null
       });
     }
   }

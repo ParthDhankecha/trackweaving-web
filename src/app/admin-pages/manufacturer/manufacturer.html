@@ -1,0 +1,113 @@
+<!-- inner header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+    <div class="d-flex flex-grow-1 gap-2"></div>
+    <div></div>
+</div>
+
+<!-- main content -->
+<div class="p-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <div class="d-flex gap-3 align-items-center flex-wrap">
+                    <app-entries-per-page-selector [pageSize]="pageSize"
+                        (pageSizeChange)="onEntriesPerPageChange($event)" />
+
+                    <div class="d-flex align-items-center gap-3">
+                        <label for="mfrStatus" class="form-label m-0">Filter</label>
+                        <select id="mfrStatus" class="form-select d-inline-block w-auto"
+                            [(ngModel)]="statusFilter" (ngModelChange)="onApplyFilter()">
+                            <option value="" selected>All</option>
+                            <option [value]="true">Active</option>
+                            <option [value]="false">Inactive</option>
+                        </select>
+                    </div>
+
+                    <input type="text" class="form-control" placeholder="Search by Company Name"
+                        [(ngModel)]="searchTerm" (keydown)="onSearch($event)" />
+                </div>
+
+                <button class="btn btn-outline-primary d-flex align-items-center gap-2" (click)="onOpenCreate()">
+                    <svg height="20" width="20" viewBox="0 0 48 48">
+                        <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                            stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                        <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                            stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                    </svg>
+                    <span class="text-nowrap">New Manufacturer</span>
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Company Name</th>
+                            <th>Email</th>
+                            <th>Contact Person</th>
+                            <th>Phone</th>
+                            <th class="text-center">Active</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(item of manufacturerList; track item._id; let i = $index) {
+                        <tr>
+                            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                            <td class="fw-medium">{{ item.companyName }}</td>
+                            <td>{{ item.email }}</td>
+                            <td>{{ item.contactPerson || '-' }}</td>
+                            <td>{{ item.phone || '-' }}</td>
+                            <td class="text-center">
+                                <span class="badge" [class.bg-success]="item.isActive" [class.bg-secondary]="!item.isActive">
+                                    {{ item.isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary me-1" (click)="onOpenEdit(item)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" (click)="onOpenDelete(item)">Delete</button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No manufacturers found.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <app-pagination [currentPage]="currentPage" [pageSize]="pageSize" [totalEntries]="totalEntries"
+                (pageChange)="onPageChange($event)" />
+        </div>
+    </div>
+</div>
+
+<!-- Upsert Modal -->
+@if(isUpsertModalOpen) {
+<app-upsert-manufacturer [manufacturerData]="upsertModalData"
+    (close)="onCloseModal()" (upsert)="onUpserted()" />
+}
+
+<!-- Delete Confirm Modal -->
+@if(deleteConfirmConfig.isOpen) {
+<div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.4)">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" (click)="onCancelDelete()"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong>{{ deleteConfirmConfig.data?.companyName }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" (click)="onCancelDelete()">Cancel</button>
+                <button class="btn btn-danger" (click)="onConfirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
