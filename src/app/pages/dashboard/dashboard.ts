@@ -128,7 +128,7 @@ export class Dashboard {
       { key: 'pieceLengthM', label: 'Mtrs' }
     ],
     rightKeys: [
-      { key: 'stops', label: 'Stops' },
+      { key: 'runTime', label: 'Run Time' },
       { key: 'beamLeft', label: 'Beam Left' },
       { key: 'setPicks', label: 'Set Picks' }
     ]

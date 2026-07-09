@@ -33,7 +33,7 @@ export class ExportData {
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const tableColspan = 8 + stopColumns.length * 2 + 2;
+    const tableColspan = 9 + stopColumns.length * 2 + 2;
     const docDefinition: any = {
       pageOrientation: 'landscape',
       pageSize: 'A4',
@@ -99,6 +99,20 @@ export class ExportData {
     return data?.stopsData?.[key]?.[field] ?? '-';
   }
 
+  private readonly grandTotalFill = {
+    style: 'grandTotalCell',
+    fillColor: '#495057',
+    color: 'white',
+    bold: true
+  };
+
+  protected colSpanCells(text: string, colSpan: number, cellStyle: Record<string, unknown>, extra: Record<string, unknown> = {}): any[] {
+    return [
+      { text: text || ' ', colSpan, ...cellStyle, ...extra },
+      ...Array(colSpan - 1).fill({})
+    ];
+  }
+
   protected buildTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
     const stopSectionColspan = stopColumns.length * 2 + 2;
@@ -107,6 +121,7 @@ export class ExportData {
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
       { text: 'Shift', rowSpan: 2, style: 'tableHeader' },
       { text: 'Machine', rowSpan: 2, style: 'tableHeader' },
+      { text: 'Quality', rowSpan: 2, style: 'tableHeader' },
       { text: 'Prod. [Mtrs]', rowSpan: 2, style: 'tableHeader' },
       { text: 'Picks', rowSpan: 2, style: 'tableHeader' },
       { text: 'Eff. %', rowSpan: 2, style: 'tableHeader' },
@@ -119,7 +134,7 @@ export class ExportData {
     headerRow1.push({ text: 'Total Stops', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {});
     body.push(headerRow1);
 
-    const headerRow2: any[] = Array(8).fill({});
+    const headerRow2: any[] = Array(9).fill({});
     stopColumns.forEach(() => {
       headerRow2.push({ text: 'Count', style: 'tableSubHeader' });
       headerRow2.push({ text: 'Duration', style: 'tableSubHeader' });
@@ -143,6 +158,7 @@ export class ExportData {
         const row: any[] = [
           ...cells,
           { text: data.machineCode, style: cellStyle },
+          { text: data.quality || '-', style: cellStyle },
           { text: data.pieceLengthM, style: cellStyle },
           { text: data.picksCurrentShift, style: cellStyle },
           { text: data.efficiencyPercent, style: cellStyle },
@@ -163,8 +179,8 @@ export class ExportData {
 
       const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
       body.push([
-        { text: this.formatDate(item.reportDate), colSpan: 2, style: subTtlCellStyle }, {},
-        { text: item.shiftLabel, style: subTtlCellStyle },
+        { text: '', style: subTtlCellStyle },
+        { text: `${this.formatDate(item.reportDate)} - ${item.shiftLabel}`, colSpan: 3, style: subTtlCellStyle }, {}, {},
         { text: this.num(item.prodMeter), style: subTtlCellStyle },
         { text: item.totalPicks, style: subTtlCellStyle },
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
@@ -180,12 +196,12 @@ export class ExportData {
     ]);
 
     body.push([
-      { text: 'Total', colSpan: 3, alignment: 'center', style: 'grandTotalCell' }, {}, {},
-      { text: reportData.avgProdMeter, style: 'grandTotalCell' },
-      { text: reportData.totalPicks, style: 'grandTotalCell' },
-      { text: reportData.totalEfficiency, style: 'grandTotalCell' },
-      { text: `Total Avg: ${reportData.avgPicks}`, colSpan: 2, alignment: 'left', style: 'grandTotalCell' }, {},
-      { text: '', colSpan: stopSectionColspan, style: 'grandTotalCell' }, ...Array(stopSectionColspan - 1).fill({})
+      ...this.colSpanCells('Total', 4, this.grandTotalFill, { alignment: 'center' }),
+      { text: reportData.avgProdMeter, ...this.grandTotalFill },
+      { text: reportData.totalPicks, ...this.grandTotalFill },
+      { text: reportData.totalEfficiency, ...this.grandTotalFill },
+      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, 3, this.grandTotalFill, { alignment: 'left' }),
+      ...this.colSpanCells(' ', Math.max(stopSectionColspan - 1, 1), this.grandTotalFill)
     ]);
 
     return body;

@@ -149,6 +149,7 @@
                         <th rowspan="2">Date</th>
                         <th rowspan="2">Shift</th>
                         <th rowspan="2">Machine</th>
+                        <th rowspan="2">Quality</th>
                         <th rowspan="2" class="text-nowrap">
                             Prod. [Mtrs]
                         </th>
@@ -194,6 +195,9 @@
                             {{data.machineCode}}
                         </td>
                         <td>
+                            {{data.quality || ''}}
+                        </td>
+                        <td>
                             {{data.pieceLengthM|number:'1.0-2'}}
                         </td>
                         <td>
@@ -226,7 +230,7 @@
                     }
                     <tr class="small fw-semibold" [class.custom-tr-bg]="even">
                         <td></td>
-                        <td colspan="2">
+                        <td colspan="3">
                             {{item.reportDate|date:'dd-MMM-yyyy'}} - {{item.shiftLabel}}
                         </td>
                         <td>
@@ -248,7 +252,7 @@
                         <td [attr.colspan]="reportTableColspan">&nbsp;</td>
                     </tr>
                     <tr class="custom-tr-bg fw-semibold">
-                        <td colspan="3" class="text-uppercase">
+                        <td colspan="4" class="text-uppercase">
                             Total
                         </td>
                         <td>

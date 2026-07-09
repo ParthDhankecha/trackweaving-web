@@ -67,11 +67,11 @@ export class Reports {
   protected reportStopColumns: { key: string; label: string }[] = [];
 
   get stopSectionColspan(): number {
-    return this.reportStopColumns.length * 2 + 2;
+    return this.reportStopColumns.length * 2 + 3;
   }
 
   get reportTableColspan(): number {
-    return 8 + this.stopSectionColspan;
+    return 9 + this.stopSectionColspan;
   }
 
   protected getStopValue(data: any, key: string, field: 'count' | 'duration'): string | number {

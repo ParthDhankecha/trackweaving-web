@@ -31,6 +31,7 @@ export class MachineConfigure {
     machineCode: ['', [Validators.required, Validators.pattern('^M[0-9]+$')]],
     machineGroupId: ['', []],
     maxSpeedLimit: [null, [Validators.min(0)]],
+    quality: ['', []],
     isAlertActive: [false, []]
   });
 
@@ -82,6 +83,9 @@ export class MachineConfigure {
   get maxSpeedLimit(): AbstractControl | null {
     return this.mcForm.get('maxSpeedLimit');
   }
+  get quality(): AbstractControl | null {
+    return this.mcForm.get('quality');
+  }
   get isAlertActive(): AbstractControl | null {
     return this.mcForm.get('isAlertActive');
   }
@@ -100,6 +104,7 @@ export class MachineConfigure {
       machineCode: machineConfigure?.machineCode ?? '',
       machineGroupId: machineConfigure?.machineGroupId?._id ?? '',
       maxSpeedLimit: machineConfigure?.maxSpeedLimit ?? null,
+      quality: machineConfigure?.quality ?? '',
       isAlertActive: machineConfigure?.isAlertActive ?? false
     });
     this.machineName?.disable();
@@ -114,6 +119,7 @@ export class MachineConfigure {
       machineCode: '',
       machineGroupId: '',
       maxSpeedLimit: null,
+      quality: '',
       isAlertActive: false
     });
   }

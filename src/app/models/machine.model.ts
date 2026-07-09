@@ -62,6 +62,7 @@ export function hasStopKey(machineType: MachineType = 'rapier', key: string): bo
 export interface IMachineLog {
     machineCode: string;
     machineName: string;
+    quality?: string;
     machineType?: MachineType;
     efficiency: number;
     picks: number;
