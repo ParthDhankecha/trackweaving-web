@@ -36,6 +36,12 @@ body {
     height: var(--header-height);
 }
 
+@media (max-width: 767.98px) {
+    .sticky-inner-header {
+        top: 0;
+    }
+}
+
 .word-break-all {
     word-break: break-all;
 }

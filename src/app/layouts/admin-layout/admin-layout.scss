@@ -5,8 +5,53 @@
     display: contents;
 }
 
+.admin-layout {
+    min-height: 100vh;
+}
+
+.admin-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: var(--header-height);
+    padding: 0 1rem;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.admin-mobile-menu-btn {
+    color: #212529;
+    line-height: 1;
+
+    &:hover,
+    &:focus {
+        color: var(--bs-primary);
+    }
+}
+
+.admin-mobile-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--bs-primary);
+}
+
+.admin-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1040;
+    cursor: pointer;
+}
 
 .side-nav {
+    position: sticky;
+    top: 0;
     width: 100%;
     max-width: 250px;
     height: 100vh;
@@ -92,5 +137,65 @@
                 }
             }
         }
+    }
+}
+
+@media (max-width: 767.98px) {
+    .admin-layout-body {
+        margin: 0;
+        display: block;
+        min-height: 0;
+    }
+
+    .side-nav {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1050;
+        width: min(280px, 85vw);
+        max-width: min(280px, 85vw);
+        height: 100vh;
+        max-height: 100vh;
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+        box-shadow: none;
+
+        &.mobile-menu-open {
+            display: block;
+            transform: translateX(0);
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+        }
+
+        &.collapsed {
+            width: min(280px, 85vw);
+            max-width: min(280px, 85vw);
+
+            .side-nav-wrapper {
+                max-width: 100%;
+
+                .nav-menu-wrapper .menu-item a span,
+                .side-nav-footer button span,
+                .side-nav-header span {
+                    display: inline;
+                }
+            }
+        }
+
+        .side-nav-wrapper {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+        }
+    }
+
+    .admin-main-content {
+        width: 100%;
+        max-width: 100%;
+        flex: none;
+        display: block;
+        height: auto !important;
+        min-height: 0;
+        overflow: visible;
     }
 }

@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 
 import { ROUTES } from '@src/app/constants/app.routes';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -15,10 +16,12 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.scss'
 })
-export class AdminLayout {
+export class AdminLayout implements OnInit, OnDestroy {
 
   // Inject services
   protected readonly _coreService = inject(CoreFacadeService);
+  private readonly _router = inject(Router);
+  private _routerSub?: Subscription;
 
 
   protected readonly sidebarRoutes: { label: string, link: string, icon: string }[] = [
@@ -59,9 +62,44 @@ export class AdminLayout {
     }
   ];
   isSidebarCollapsed: boolean = false;
+  isMobileMenuOpen: boolean = false;
+
+
+  ngOnInit(): void {
+    this._routerSub = this._router.events.pipe(
+      filter((event) => event instanceof NavigationEnd)
+    ).subscribe(() => this.closeMobileMenu());
+  }
+
+  ngOnDestroy(): void {
+    this._routerSub?.unsubscribe();
+    document.body.style.overflow = '';
+  }
+
+  protected toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    this.updateBodyScrollLock();
+  }
+
+  protected closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+    this.updateBodyScrollLock();
+  }
+
+  private updateBodyScrollLock(): void {
+    document.body.style.overflow = this.isMobileMenuOpen ? 'hidden' : '';
+  }
+
+  protected onSidebarHeaderClick(): void {
+    if (window.matchMedia('(max-width: 767.98px)').matches) {
+      return;
+    }
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
 
 
   protected logout(): void {
+    this.closeMobileMenu();
     this._coreService.utils.logout();
   }
 }

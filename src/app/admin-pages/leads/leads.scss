@@ -33,4 +33,84 @@
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
+
+  @media (max-width: 767.98px) {
+    padding: 0.75rem;
+  }
+}
+
+.leads-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lead-mobile-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background: #fff;
+  overflow: hidden;
+
+  &.lead-mobile-card-overdue {
+    border-color: rgba(220, 53, 69, 0.35);
+    background: rgba(220, 53, 69, 0.03);
+  }
+}
+
+.lead-mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.lead-mobile-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.lead-mobile-card-subtitle {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.15rem;
+  word-break: break-word;
+}
+
+.lead-mobile-card-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lead-mobile-field {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  font-size: 0.875rem;
+}
+
+.lead-mobile-label {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.lead-mobile-value {
+  word-break: break-word;
+}
+
+.lead-mobile-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f1f3f5;
+  background: #fafbfc;
+
+  .btn {
+    flex: 1;
+  }
 }

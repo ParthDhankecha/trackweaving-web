@@ -1,14 +1,32 @@
 <!-- Load component based on the current route -->
-<div class="container-fluid">
-    <div class="row flex-nowrap bg-light">
+<div class="container-fluid admin-layout">
+    <!-- Mobile Header -->
+    <header class="admin-mobile-header d-md-none">
+        <button type="button" class="btn btn-link admin-mobile-menu-btn p-0" (click)="toggleMobileMenu()"
+            [attr.aria-expanded]="isMobileMenuOpen" aria-label="Toggle navigation menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M4 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </button>
+        <span class="admin-mobile-header-title">TrackWeaving</span>
+    </header>
+
+    @if(isMobileMenuOpen) {
+    <button type="button" class="admin-mobile-overlay d-md-none" (click)="closeMobileMenu()"
+        aria-label="Close navigation menu"></button>
+    }
+
+    <div class="row flex-nowrap bg-light admin-layout-body">
 
 
-        <nav class="col-auto p-0 bg-white sidebar position-sticky top-0 p-0 border-end border-light shadow side-nav"
-            [class.collapsed]="isSidebarCollapsed">
+        <nav class="col-auto p-0 bg-white sidebar border-end border-light shadow side-nav"
+            [class.collapsed]="isSidebarCollapsed" [class.mobile-menu-open]="isMobileMenuOpen">
             <div class="side-nav-wrapper">
                 <!-- Sidebar Header -->
                 <div class="p-2 border-bottom text-center user-select-none side-nav-header"
-                    (click)="isSidebarCollapsed = !isSidebarCollapsed">
+                    (click)="onSidebarHeaderClick()">
                     <svg width="42" height="42" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg"
                         style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
                         class="brand-logo">
@@ -50,7 +68,7 @@
                 <ul class="nav-menu-wrapper">
                     @for(item of sidebarRoutes; track item){
                     <li class="menu-item rounded" routerLinkActive="bg-primary">
-                        <a class="text-decoration-none text-dark" routerLink="{{item.link}}">
+                        <a class="text-decoration-none text-dark" routerLink="{{item.link}}" (click)="closeMobileMenu()">
                             <div class="d-flex gap-2 align-items-center py-2 px-3" routerLinkActive="text-white">
                                 @switch (item.icon) {
                                 @case('workspace'){
@@ -191,7 +209,7 @@
         </nav>
 
         <!-- Body Section (Right) -->
-        <main class="col m-0 p-0 h-100 overflow-auto">
+        <main class="col m-0 p-0 h-100 overflow-auto admin-main-content">
             <router-outlet></router-outlet>
         </main>
     </div>

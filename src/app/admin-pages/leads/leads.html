@@ -15,7 +15,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="p-4">
+<div class="p-2 p-md-4">
 
   <!-- Stats Cards -->
   @if(stats) {
@@ -89,6 +89,13 @@
 
   <!-- Filters -->
   <div class="filter-section">
+    <button class="btn btn-sm btn-outline-secondary d-md-none w-100 mb-2 d-flex justify-content-between align-items-center"
+      type="button" data-bs-toggle="collapse" data-bs-target="#leadsFiltersCollapse" aria-expanded="false"
+      aria-controls="leadsFiltersCollapse">
+      <span>Filters & Search</span>
+      <span class="small text-muted">Tap to expand</span>
+    </button>
+    <div class="collapse d-md-block" id="leadsFiltersCollapse">
     <div class="row g-2 align-items-end">
       <!-- Search -->
       <div class="col-12 col-md-4">
@@ -172,6 +179,7 @@
         <button class="btn btn-sm btn-outline-secondary" (click)="onResetFilters()">Reset</button>
       </div>
     </div>
+    </div>
   </div>
 
   <!-- Table Card -->
@@ -184,8 +192,8 @@
         <span class="text-muted small">{{ totalEntries }} record(s)</span>
       </div>
 
-      <!-- Table -->
-      <div class="table-responsive">
+      <!-- Desktop Table -->
+      <div class="d-none d-md-block table-responsive">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -200,7 +208,7 @@
                 <span>{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
                 }
               </th>
-              <th>City</th>
+              <th>Landmark</th>
               <th>Status</th>
               <th class="text-center">Visited</th>
               <th>Visited By</th>
@@ -236,7 +244,7 @@
               <td class="text-nowrap">{{ lead.mobileNumber }}</td>
               <td class="text-nowrap">{{ lead.machineType }}</td>
               <td class="text-center">{{ lead.numberOfMachines }}</td>
-              <td>{{ lead.city || '-' }}</td>
+              <td class="word-break-all">{{ lead.landmark || '-' }}</td>
               <td class="text-nowrap">
                 <span class="badge {{ getStatusBadgeClass(lead.leadStatus) }}">{{ lead.leadStatus }}</span>
               </td>
@@ -290,6 +298,98 @@
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="d-md-none leads-mobile-list">
+        @if(isLoading) {
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        } @else {
+        @for(lead of leadList; track lead._id; let i = $index) {
+        <div class="lead-mobile-card" [class.lead-mobile-card-overdue]="isOverdue(lead)">
+          <div class="lead-mobile-card-header">
+            <div>
+              <div class="lead-mobile-card-title">{{ lead.customerName }}</div>
+              <div class="lead-mobile-card-subtitle">{{ lead.firmName }}</div>
+            </div>
+            <span class="badge {{ getStatusBadgeClass(lead.leadStatus) }}">{{ lead.leadStatus }}</span>
+          </div>
+
+          <div class="lead-mobile-card-body">
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Mobile</span>
+              @if(lead.mobileNumber) {
+              <a class="lead-mobile-value text-decoration-none" [href]="'tel:' + lead.mobileNumber">{{ lead.mobileNumber }}</a>
+              } @else {
+              <span class="lead-mobile-value text-muted">-</span>
+              }
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Landmark</span>
+              <span class="lead-mobile-value">{{ lead.landmark || '-' }}</span>
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Machine</span>
+              <span class="lead-mobile-value">{{ lead.machineType }} ({{ lead.numberOfMachines }})</span>
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Visited</span>
+              <span class="lead-mobile-value">
+                @if(lead.isVisited) {
+                <span class="badge bg-success">Yes</span>
+                } @else {
+                <span class="badge bg-secondary">No</span>
+                }
+                @if(lead.visitedBy) {
+                <span class="text-muted small ms-1">by {{ lead.visitedBy }}</span>
+                }
+              </span>
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Follow Up</span>
+              <span class="lead-mobile-value">
+                @if(lead.nextFollowUpDate) {
+                <span [class.text-danger]="isOverdue(lead)" [class.fw-bold]="isOverdue(lead)">
+                  {{ lead.nextFollowUpDate | date:'dd MMM yyyy' }}
+                  @if(isOverdue(lead)) { <span class="badge bg-danger ms-1">Overdue</span> }
+                </span>
+                } @else {
+                <span class="text-muted">-</span>
+                }
+              </span>
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Converted</span>
+              <span class="lead-mobile-value">
+                @if(lead.isConverted) {
+                <span class="badge bg-success">Yes</span>
+                } @else {
+                <span class="badge bg-secondary">No</span>
+                }
+              </span>
+            </div>
+            <div class="lead-mobile-field">
+              <span class="lead-mobile-label">Created</span>
+              <span class="lead-mobile-value">{{ lead.createdAt | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="lead-mobile-card-actions">
+            <button class="btn btn-sm btn-outline-secondary" (click)="openViewModal(lead)">View</button>
+            <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(lead)">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(lead)">Delete</button>
+          </div>
+        </div>
+        }
+        @empty {
+        <div class="text-center py-5 text-muted">
+          <div class="mb-2">No leads found.</div>
+          <button class="btn btn-sm btn-outline-primary" (click)="openAddModal()">Add your first lead</button>
+        </div>
+        }
+        }
       </div>
 
       <!-- Pagination -->
