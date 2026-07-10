@@ -168,6 +168,21 @@
                                 </label>
                             </div>
                         </div>
+                        <!-- WhatsApp Report -->
+                        <div class="col-12 col-md-6 mb-3 d-flex">
+                            <div class="form-check form-switch my-auto">
+                                <input class="form-check-input" type="checkbox" id="receiveWhatsappReport"
+                                    formControlName="receiveWhatsappReport"
+                                    [checked]="receiveWhatsappReport?.value"
+                                    [disabled]="!mobile?.value">
+                                <label class="form-check-label" for="receiveWhatsappReport">
+                                    WhatsApp Shift Report
+                                </label>
+                            </div>
+                            @if(!mobile?.value){
+                            <small class="text-muted ms-2 my-auto">Add mobile number to enable</small>
+                            }
+                        </div>
                     </div>
                     <!-- Plan -->
                     @if(isEditMode && userForm.contains('plan')){

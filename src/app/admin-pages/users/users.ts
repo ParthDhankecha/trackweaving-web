@@ -159,6 +159,44 @@ export class Users {
   }
 
 
+  protected onWhatsappReportChange(event: Event, user: any): void {
+    if (this.isReqAlive || !user?.mobile) return;
+
+    event?.stopPropagation();
+    event?.preventDefault();
+
+    const index = this.userList.findIndex(u => u._id === user._id);
+    if (index === -1) return;
+
+    const previousValue = !!this.userList[index].receiveWhatsappReport;
+    const nextValue = !previousValue;
+    this.userList[index].receiveWhatsappReport = nextValue;
+
+    this.isReqAlive = true;
+    this._apiFs.users.adminUpdate(
+      user._id,
+      { receiveWhatsappReport: nextValue } as any
+    ).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this.userList[index] = { ...this.userList[index], ...res.data };
+          this._coreService.utils.showToaster(
+            EToasterType.Success,
+            `WhatsApp reports ${nextValue ? 'enabled' : 'disabled'} for ${user.userName}.`
+          );
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        this.userList[index].receiveWhatsappReport = previousValue;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+
   protected onOpenUpsertUserModal(user: any = null): void {
     this.upsertUserModalData = user;
     this.isUpsertUserModalOpen = true;

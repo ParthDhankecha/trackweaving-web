@@ -43,7 +43,8 @@ export class UpsertUser {
     password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
-    isActive: [true, [Validators.required]]
+    isActive: [true, [Validators.required]],
+    receiveWhatsappReport: [false]
   });
   protected isEyeOpen: boolean = false;
 
@@ -60,6 +61,7 @@ export class UpsertUser {
         mobile: this.userData?.mobile ?? '',
         email: this.userData?.email ?? '',
         isActive: this.userData?.isActive ?? true,
+        receiveWhatsappReport: this.userData?.receiveWhatsappReport ?? false,
         workspace: this.workspaceList.find((ws: any) => ws._id === this.userData.workspaceId?._id) || null,
       });
       if (this.userData?.isOwner) {
@@ -141,6 +143,9 @@ export class UpsertUser {
   get isActive(): AbstractControl | null {
     return this.userForm.get('isActive');
   }
+  get receiveWhatsappReport(): AbstractControl | null {
+    return this.userForm.get('receiveWhatsappReport');
+  }
   get planStartDate(): AbstractControl | null {
     return this.userForm?.get('plan.startDate');
   }
@@ -186,6 +191,9 @@ export class UpsertUser {
     const body: any = {
       ...restFields,
     };
+    if (!body.mobile) {
+      body.receiveWhatsappReport = false;
+    }
     if (workspace) {
       body.workspaceId = workspace._id;
     }
