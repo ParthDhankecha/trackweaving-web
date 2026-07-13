@@ -46,13 +46,24 @@ export class Reports {
     { id: 'night', val: 1, label: 'Night Shift' }
   ];
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
-    { id: 'productionShiftWise', label: 'Production Shiftwise Report' }
+    { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
+    { id: 'stoppageReport', label: 'Stoppage Report' }
   ];
+  protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
+    { id: '5', label: '5 mins', value: 5 },
+    { id: '10', label: '10 mins', value: 10 },
+    { id: '15', label: '15 mins', value: 15 },
+    { id: '30', label: '30 mins', value: 30 },
+    { id: '45', label: '45 mins', value: 45 }
+  ];
+  protected readonly stopTimeCustomId = 'custom';
   protected filterForm: FormGroup = this._fb.group({
     reportType: [this.reportTypeOptions[0].id, []],
     startDate: [moment().format('YYYY-MM-DD'), [Validators.required, this.startDateValidator.bind(this)]],
     endDate: [moment().format('YYYY-MM-DD'), [Validators.required, this.endDateValidator.bind(this)]],
     shift: [this.shiftOptions[0].id, []],
+    stopTimeFilter: [this.stopTimeOptions[0].id, []],
+    customStopMinutes: [null, []],
     groupByMachine: [false, []],
     selectAll: [false, []],
     machineIds: [null, [Validators.required]],
@@ -65,6 +76,16 @@ export class Reports {
 
   protected reportData: any;
   protected reportStopColumns: { key: string; label: string }[] = [];
+  protected stoppageTableRows: any[] = [];
+  protected stopTimeSelectionError: boolean = false;
+
+  protected get isStoppageReport(): boolean {
+    return this.reportType?.value === 'stoppageReport';
+  }
+
+  protected get isCustomStopTime(): boolean {
+    return this.stopTimeFilter?.value === this.stopTimeCustomId;
+  }
 
   get stopSectionColspan(): number {
     return this.reportStopColumns.length * 2 + 3;
@@ -143,6 +164,71 @@ export class Reports {
   }
   get machineIds(): AbstractControl | null {
     return this.filterForm.get('machineIds');
+  }
+  get stopTimeFilter(): AbstractControl | null {
+    return this.filterForm.get('stopTimeFilter');
+  }
+  get customStopMinutes(): AbstractControl | null {
+    return this.filterForm.get('customStopMinutes');
+  }
+
+  private getSelectedMinStopMinutes(): number | null {
+    const filter = this.stopTimeFilter?.value;
+    if (filter === this.stopTimeCustomId) {
+      const customMins = Number(this.customStopMinutes?.value);
+      return customMins > 0 ? customMins : null;
+    }
+    const option = this.stopTimeOptions.find(o => o.id === filter);
+    return option ? option.value : null;
+  }
+
+  private getDateGroupKey(row: any): string {
+    return `${row.reportDate}`;
+  }
+
+  private getShiftGroupKey(row: any): string {
+    return `${row.reportDate}|${row.shift}|${row.shiftLabel}`;
+  }
+
+  private getMachineGroupKey(row: any): string {
+    return `${row.reportDate}|${row.shift}|${row.shiftLabel}|${row.machineCode}`;
+  }
+
+  private countGroupSpan(list: any[], startIndex: number, keyFn: (row: any) => string): number {
+    const key = keyFn(list[startIndex]);
+    let count = 1;
+    for (let i = startIndex + 1; i < list.length; i++) {
+      if (keyFn(list[i]) === key) count++;
+      else break;
+    }
+    return count;
+  }
+
+  private prepareStoppageTableRows(list: any[] = []): void {
+    const rows: any[] = [];
+    let shiftGroupIndex = 0;
+
+    list.forEach((row, index) => {
+      const prevRow = index > 0 ? list[index - 1] : null;
+      const isDateStart = !prevRow || this.getDateGroupKey(row) !== this.getDateGroupKey(prevRow);
+      const isShiftStart = !prevRow || this.getShiftGroupKey(row) !== this.getShiftGroupKey(prevRow);
+      const isMachineStart = !prevRow || this.getMachineGroupKey(row) !== this.getMachineGroupKey(prevRow);
+
+      if (isShiftStart && index > 0) shiftGroupIndex++;
+
+      rows.push({
+        ...row,
+        showDate: isDateStart,
+        dateRowspan: isDateStart ? this.countGroupSpan(list, index, r => this.getDateGroupKey(r)) : undefined,
+        showShift: isShiftStart,
+        shiftRowspan: isShiftStart ? this.countGroupSpan(list, index, r => this.getShiftGroupKey(r)) : undefined,
+        showMachine: isMachineStart,
+        machineRowspan: isMachineStart ? this.countGroupSpan(list, index, r => this.getMachineGroupKey(r)) : undefined,
+        groupEven: shiftGroupIndex % 2 === 0
+      });
+    });
+
+    this.stoppageTableRows = rows;
   }
 
 
@@ -278,6 +364,17 @@ export class Reports {
     const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
     this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
 
+    if (this.isStoppageReport) {
+      const minStopMinutes = this.getSelectedMinStopMinutes();
+      if (!minStopMinutes) {
+        this.stopTimeSelectionError = true;
+        this.customStopMinutes?.markAsTouched();
+        return;
+      }
+      this.stopTimeSelectionError = false;
+      this.customStopMinutes?.setErrors(null);
+    }
+
     if (this.filterForm.invalid) {
       this.filterForm.markAllAsTouched();
       return;
@@ -293,6 +390,10 @@ export class Reports {
       shift: this.shiftOptions.filter(shiftCb).map(o => o.val)
     };
 
+    if (filter.reportType === 'stoppageReport') {
+      payload.minStopMinutes = this.getSelectedMinStopMinutes();
+    }
+
     this.isReqAlive = true;
     this._apiFs.reports.generateReport(payload).subscribe({
       next: (res: any) => {
@@ -300,8 +401,16 @@ export class Reports {
         if (res.code === 'OK') {
           this.reportData = res.data || {};
           this.reportData.reportTitle = this.reportTypeOptions.find(rt => rt.id === filter.reportType)?.label || 'Report';
+          this.reportData.reportType = filter.reportType;
           this.reportData.fromDate = filter.startDate;
           this.reportData.toDate = filter.endDate;
+
+          if (filter.reportType === 'stoppageReport') {
+            this.reportStopColumns = [];
+            this.prepareStoppageTableRows(this.reportData.list || []);
+            this.reportData.stoppageTableRows = this.stoppageTableRows;
+            return;
+          }
 
           if (Array.isArray(this.reportData?.list)) {
             const list: any[] = [];
@@ -331,6 +440,7 @@ export class Reports {
         this.isReqAlive = false;
         this.reportData = null;
         this.reportStopColumns = [];
+        this.stoppageTableRows = [];
         const msg = err?.error.message || 'An error occurred while generating the report';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }

@@ -32,10 +32,11 @@ export class ExportData {
    */
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
+    const isStoppageReport = reportData.reportType === 'stoppageReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const tableColspan = 9 + stopColumns.length * 2 + 2;
+    const tableColspan = isStoppageReport ? 7 : 9 + stopColumns.length * 2 + 2;
     const docDefinition: any = {
-      pageOrientation: 'landscape',
+      pageOrientation: isStoppageReport ? 'portrait' : 'landscape',
       pageSize: 'A4',
       pageMargins: [16, 16, 16, 16],
       content: [
@@ -46,9 +47,13 @@ export class ExportData {
         },
         {
           table: {
-            headerRows: 2,
-            widths: Array(tableColspan).fill('auto'),
-            body: this.buildTableBody(reportData, stopColumns, tableColspan)
+            headerRows: isStoppageReport ? 1 : 2,
+            widths: isStoppageReport
+              ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto']
+              : Array(tableColspan).fill('auto'),
+            body: isStoppageReport
+              ? this.buildStoppageTableBody(reportData)
+              : this.buildTableBody(reportData, stopColumns, tableColspan)
           },
           // layout: 'lightHorizontalLines',
           width: 'auto',
@@ -206,6 +211,74 @@ export class ExportData {
 
     return body;
   }
+
+  protected buildStoppageTableBody(reportData: any) {
+    const body: any[] = [[
+      { text: 'Date', style: 'tableHeader' },
+      { text: 'Shift', style: 'tableHeader' },
+      { text: 'Machine', style: 'tableHeader' },
+      { text: 'Stop Reason', style: 'tableHeader' },
+      { text: 'From', style: 'tableHeader' },
+      { text: 'To', style: 'tableHeader' },
+      { text: 'Stop Time', style: 'tableHeader' }
+    ]];
+
+    const rows = reportData.stoppageTableRows || reportData.list || [];
+    rows.forEach((row: any) => {
+      const cellStyle = row.groupEven ? 'contentCell' : 'contentCellBg';
+      const tableRow: any[] = [];
+      const hasMergeMeta = row.showDate !== undefined;
+
+      if (hasMergeMeta) {
+        if (row.showDate) {
+          tableRow.push({ text: this.formatDate(row.reportDate), rowSpan: row.dateRowspan, style: cellStyle });
+        } else {
+          tableRow.push({});
+        }
+
+        if (row.showShift) {
+          tableRow.push({ text: row.shiftLabel || '-', rowSpan: row.shiftRowspan, style: cellStyle });
+        } else {
+          tableRow.push({});
+        }
+
+        if (row.showMachine) {
+          tableRow.push({ text: row.machineCode || '-', rowSpan: row.machineRowspan, style: cellStyle });
+        } else {
+          tableRow.push({});
+        }
+      } else {
+        tableRow.push(
+          { text: this.formatDate(row.reportDate), style: cellStyle },
+          { text: row.shiftLabel || '-', style: cellStyle },
+          { text: row.machineCode || '-', style: cellStyle }
+        );
+      }
+
+      tableRow.push(
+        { text: row.stopReason || '-', style: cellStyle },
+        { text: this.formatDateTime(row.from), style: cellStyle },
+        { text: this.formatDateTime(row.to), style: cellStyle },
+        { text: row.stopTime || '-', style: cellStyle }
+      );
+      body.push(tableRow);
+    });
+
+    if (rows.length) {
+      body.push([
+        ...this.colSpanCells('Total Stops', 6, this.grandTotalFill, { alignment: 'right' }),
+        { text: reportData.totalStops ?? 0, ...this.grandTotalFill }
+      ]);
+    }
+
+    return body;
+  }
+
+  protected formatDateTime(dateStr: string): string {
+    if (!dateStr) return '-';
+    return moment(dateStr).format('DD-MMM-YYYY hh:mm:ss A');
+  }
+
   protected num(value: any, toFixed: number = 2): string {
     return value != null ? Number(value).toFixed(toFixed) : '-';
   }

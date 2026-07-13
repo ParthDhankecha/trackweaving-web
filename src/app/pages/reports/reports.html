@@ -46,6 +46,43 @@
                     }
                 </select>
             </div>
+            @if (isStoppageReport) {
+            <div class="col-12 mb-2 user-select-none">
+                <label class="form-label small fw-semibold mb-1">Min Stop Time:</label>
+                <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
+                    @for (option of stopTimeOptions; track option.id) {
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <input type="radio" id="stop-time-{{option.id}}" name="stopTimeFilter"
+                            class="form-check-input m-0" formControlName="stopTimeFilter" [value]="option.id"
+                            (change)="stopTimeSelectionError = false">
+                        <label for="stop-time-{{option.id}}" class="form-check-label small">
+                            {{ option.label }}
+                        </label>
+                    </div>
+                    }
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <input type="radio" id="stop-time-custom" name="stopTimeFilter" class="form-check-input m-0"
+                            formControlName="stopTimeFilter" [value]="stopTimeCustomId"
+                            (change)="stopTimeSelectionError = false">
+                        <label for="stop-time-custom" class="form-check-label small fw-semibold mb-0">Custom:</label>
+                        <input type="number" id="customStopMinutes" class="form-control form-control-sm"
+                            style="width: 100px;" formControlName="customStopMinutes" min="1" placeholder="mins"
+                            [disabled]="!isCustomStopTime" (input)="stopTimeSelectionError = false">
+                    </div>
+                </div>
+                @if (stopTimeSelectionError) {
+                <div class="invalid-feedback d-block">
+                    <span>
+                        @if (isCustomStopTime) {
+                        Please enter custom minutes.
+                        } @else {
+                        Please select a stop time.
+                        }
+                    </span>
+                </div>
+                }
+            </div>
+            }
         </div>
         <!-- Machine Options -->
         <div class="mb-2 user-select-none">
@@ -143,6 +180,57 @@
         </div>
 
         <div class="table-responsive">
+            @if (reportData?.reportType === 'stoppageReport') {
+            <table class="table table-bordered" #reportTable>
+                <thead class="table-dark text-center align-middle">
+                    <tr>
+                        <th>Date</th>
+                        <th>Shift</th>
+                        <th>Machine</th>
+                        <th>Stop Reason</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Stop Time</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle text-center">
+                    @for (row of stoppageTableRows; track $index) {
+                    <tr class="small" [class.custom-tr-bg]="row.groupEven">
+                        @if (row.showDate) {
+                        <td [attr.rowspan]="row.dateRowspan">
+                            {{ row.reportDate | date:'dd-MMM-yyyy' }}
+                        </td>
+                        }
+                        @if (row.showShift) {
+                        <td [attr.rowspan]="row.shiftRowspan">
+                            {{ row.shiftLabel }}
+                        </td>
+                        }
+                        @if (row.showMachine) {
+                        <td [attr.rowspan]="row.machineRowspan">
+                            {{ row.machineCode }}
+                        </td>
+                        }
+                        <td>{{ row.stopReason }}</td>
+                        <td class="text-nowrap">{{ row.from | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
+                        <td class="text-nowrap">{{ row.to | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
+                        <td class="text-nowrap">{{ row.stopTime }}</td>
+                    </tr>
+                    }
+                    @if (!stoppageTableRows.length) {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-3">No stoppages found for the selected filters.</td>
+                    </tr>
+                    }
+                    @if (stoppageTableRows.length) {
+                    <tr class="custom-tr-bg fw-semibold">
+                        <td colspan="6" class="text-end text-uppercase">Total Stops</td>
+                        <td>{{ reportData?.totalStops }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            } @else {
             <table class="table table-bordered" #reportTable>
                 <thead class="table-dark text-center align-middle">
                     <tr>
@@ -271,6 +359,7 @@
                     </tr>
                 </tbody>
             </table>
+            }
         </div>
     </div>
     }
