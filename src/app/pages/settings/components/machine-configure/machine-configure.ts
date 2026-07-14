@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -10,7 +10,8 @@ import { EToasterType } from '@src/app/models/utils.model';
 @Component({
   selector: 'app-machine-configure',
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule
   ],
   templateUrl: './machine-configure.html',
   styleUrl: './machine-configure.scss'
@@ -180,6 +181,79 @@ export class MachineConfigure {
       },
       error: (err: any) => {
         this.isReqAlive = false;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+
+  protected isGroupChangeConfirmOpen: boolean = false;
+  protected groupChangeConfirmData: {
+    machine: any;
+    newGroupId: string | null;
+    currentGroupName: string;
+    newGroupName: string;
+    selectEl: HTMLSelectElement;
+  } | null = null;
+
+  protected getMachineGroupId(machineConfigure: any): string {
+    const group = machineConfigure?.machineGroupId;
+    if (!group) return '';
+    return typeof group === 'string' ? group : (group._id ?? '');
+  }
+
+  protected onGroupChangeRequest(newGroupId: string, machineConfigure: any, selectEl: HTMLSelectElement): void {
+    const normalizedNewId = newGroupId || null;
+    const currentGroupId = this.getMachineGroupId(machineConfigure) || null;
+
+    if (normalizedNewId === currentGroupId) return;
+
+    const selectedGroup = this.machineGroupList.find((mg) => mg._id === normalizedNewId);
+    this.groupChangeConfirmData = {
+      machine: machineConfigure,
+      newGroupId: normalizedNewId,
+      currentGroupName: machineConfigure?.machineGroupId?.groupName || '-',
+      newGroupName: selectedGroup?.groupName || '-',
+      selectEl
+    };
+    this.isGroupChangeConfirmOpen = true;
+  }
+
+  protected closeGroupChangeConfirm(): void {
+    if (this.groupChangeConfirmData?.selectEl) {
+      this.groupChangeConfirmData.selectEl.value =
+        this.getMachineGroupId(this.groupChangeConfirmData.machine);
+    }
+    this.isGroupChangeConfirmOpen = false;
+    this.groupChangeConfirmData = null;
+  }
+
+  protected confirmGroupChange(): void {
+    if (this.isReqAlive || !this.groupChangeConfirmData?.machine?._id) return;
+
+    const machineId = this.groupChangeConfirmData.machine._id;
+    const body = {
+      machineGroupId: this.groupChangeConfirmData.newGroupId
+    };
+
+    this.isReqAlive = true;
+    this._apiFs.machineConfigure.update(machineId, body).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          const index = this.machineConfigureList.findIndex((mc) => mc._id === machineId);
+          if (index > -1 && res.data?._id) {
+            this.machineConfigureList[index] = res.data;
+          }
+          this._coreService.utils.showToaster(EToasterType.Success, 'Machine group updated successfully.');
+          this.isGroupChangeConfirmOpen = false;
+          this.groupChangeConfirmData = null;
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        this.closeGroupChangeConfirm();
         const msg = err?.error?.message || 'Something went wrong, please try again later.';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }

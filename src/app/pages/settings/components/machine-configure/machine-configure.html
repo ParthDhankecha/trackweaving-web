@@ -40,8 +40,16 @@
                     <td class="text-capitalize">
                         {{mgItem?.machineName}}
                     </td>
-                    <td class="text-capitalize">
-                        {{mgItem?.machineGroupId?.groupName || '-'}}
+                    <td>
+                        <select #groupSelect class="form-select form-select-sm text-capitalize"
+                            [ngModel]="getMachineGroupId(mgItem)"
+                            [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onGroupChangeRequest($event, mgItem, groupSelect)">
+                            <option value="">No Group</option>
+                            @for (mg of machineGroupList; track mg._id) {
+                            <option [value]="mg._id">{{ mg.groupName }}</option>
+                            }
+                        </select>
                     </td>
                     <td class="text-capitalize">
                         {{mgItem?.quality || '-'}}
@@ -189,6 +197,37 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Change Machine Group Confirmation Modal -->
+@if (isGroupChangeConfirmOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Group Change</h5>
+                <button type="button" class="btn-close" (click)="closeGroupChangeConfirm()"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to change the machine group of
+                <strong>{{ groupChangeConfirmData?.machine?.machineCode }}</strong>
+                from
+                <strong>{{ groupChangeConfirmData?.currentGroupName }}</strong>
+                to
+                <strong>{{ groupChangeConfirmData?.newGroupName }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeGroupChangeConfirm()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmGroupChange()"
+                    [disabled]="isReqAlive">
+                    Confirm
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -64,6 +64,7 @@ export interface IMachineLog {
     machineName: string;
     quality?: string;
     machineType?: MachineType;
+    machineGroupId?: string | null;
     efficiency: number;
     picks: number;
     speed: number;
@@ -112,11 +113,37 @@ export interface IMachineLog {
 };
 
 
-export type LayoutOption = 'default' | '1x1' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3';
+export type LayoutOption = 'default' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3' | 'dense';
+
+export type MetricDisplayMode = 'icon' | 'label';
+
+export type GroupByOption = 'default' | 'machine' | 'efficiency';
+
+export interface IMachineLogGroup {
+    key: string;
+    label: string;
+    machines: IMachineLog[];
+    metrics: {
+        efficiency: number;
+        pick: number;
+        avgPicks: number;
+        avgSpeed: number;
+        count: number;
+    };
+}
+
+export const EFFICIENCY_BANDS: { key: string; label: string; min: number; max: number }[] = [
+    { key: '0-50', label: '0-50%', min: 0, max: 50 },
+    { key: '51-70', label: '51-70%', min: 51, max: 70 },
+    { key: '71-80', label: '71-80%', min: 71, max: 80 },
+    { key: '81-90', label: '81-90%', min: 81, max: 90 },
+    { key: '91-100', label: '91-100%', min: 91, max: 100 },
+];
 
 export interface LayoutConfig {
     rows: number;
     cols: number;
     fs?: string;
     bootstrap?: string; // optional bootstrap class
+    autoFill?: boolean; // responsive auto-fill grid (no fixed rows/cols)
 };

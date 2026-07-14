@@ -8,6 +8,8 @@ export default class StorageKeys {
     static readonly WORKSPACE_ID = `${_prefix}workspaceId`;
     static readonly MANUFACTURER_TOKEN = `${_prefix}manufacturer_token`;
     static readonly MANUFACTURER_INFO = `${_prefix}manufacturer`;
+    static readonly DASHBOARD_LAYOUT = `${_prefix}dashboard_layout`;
+    static readonly DASHBOARD_GROUP_BY = `${_prefix}dashboard_group_by`;
 
     /** sessionStorage */
     static readonly SST = {
