@@ -1,5 +1,6 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
@@ -10,6 +11,12 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
+
+interface IReportNavState {
+  reportType?: string;
+  machineCode?: string;
+  machineGroupId?: string;
+}
 
 
 @Component({
@@ -28,6 +35,12 @@ export class Reports {
   // Inject services
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
+  private readonly _router = inject(Router);
+  /** Captured at construction — `getCurrentNavigation()` is only available then. */
+  private readonly navState: IReportNavState | null =
+    (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
+    ?? (history.state as IReportNavState | null)
+    ?? null;
 
   protected readonly _fb = inject(FormBuilder);
 
@@ -63,7 +76,7 @@ export class Reports {
     endDate: [moment().format('YYYY-MM-DD'), [Validators.required, this.endDateValidator.bind(this)]],
     shift: [this.shiftOptions[0].id, []],
     stopTimeFilter: [this.stopTimeOptions[0].id, []],
-    customStopMinutes: [null, []],
+    customStopMinutes: [{ value: null, disabled: true }, []],
     groupByMachine: [false, []],
     selectAll: [false, []],
     machineIds: [null, [Validators.required]],
@@ -116,6 +129,10 @@ export class Reports {
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
 
 
+  private machinesLoaded = false;
+  private machineGroupsLoaded = false;
+  private deepLinkApplied = false;
+
   ngOnInit(): void {
     this.loadMachineList();
     this.loadMachineGroupList();
@@ -129,18 +146,59 @@ export class Reports {
         if (res.code === 'OK') {
           this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
           this.machineList = [...this.rawMachineList];
+          this.machinesLoaded = true;
+          this.applyNavStateAndLoadReport();
         }
       }
     });
   }
+
   private loadMachineGroupList(): void {
     this._apiFs.machineGroup.list().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
           this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
+          this.machineGroupsLoaded = true;
+          this.applyNavStateAndLoadReport();
         }
       }
     });
+  }
+
+  /** Prefill filters from dashboard navigation state and auto-generate the report. */
+  private applyNavStateAndLoadReport(): void {
+    if (this.deepLinkApplied || !this.machinesLoaded || !this.machineGroupsLoaded) return;
+
+    const reportType = this.navState?.reportType;
+    const machineCode = this.navState?.machineCode;
+    const machineGroupId = this.navState?.machineGroupId;
+
+    if (!reportType && !machineCode) return;
+    this.deepLinkApplied = true;
+
+    if (reportType && this.reportTypeOptions.some(o => o.id === reportType)) {
+      this.reportType?.patchValue(reportType, { emitEvent: false });
+      if (reportType === 'stoppageReport') {
+        // custom stop time filter
+        this.stopTimeFilter?.patchValue(this.stopTimeCustomId, { emitEvent: false });
+        this.customStopMinutes?.patchValue(1, { emitEvent: false });
+        this.syncCustomStopMinutesControl();
+      }
+    }
+
+    if (machineCode) {
+      const machine = this.machineList.find(m => m.machineCode === machineCode && m.machineGroupId === machineGroupId);
+
+      if (machine) {
+        machine.selected = true;
+      }
+      this.machineIds?.patchValue(machine ? [machine._id] : null, { emitEvent: false });
+      this.toggleSelectAllState();
+    }
+
+    if (this.rawMachineList.some(m => m.selected)) {
+      this.onShowReport();
+    }
   }
 
 
@@ -269,6 +327,22 @@ export class Reports {
     ).subscribe(value => {
       this.onSelectAllChange(value);
     });
+    this.stopTimeFilter?.valueChanges.pipe(
+      takeUntil(this.subscriptionHandler$)
+    ).subscribe(() => {
+      this.syncCustomStopMinutesControl();
+    });
+  }
+
+  private syncCustomStopMinutesControl(): void {
+    const control = this.customStopMinutes;
+    if (!control) return;
+
+    if (this.isCustomStopTime) {
+      if (control.disabled) control.enable({ emitEvent: false });
+    } else if (control.enabled) {
+      control.disable({ emitEvent: false });
+    }
   }
 
   protected arrangeMachineList(flag: boolean): void {
@@ -276,7 +350,8 @@ export class Reports {
       // Group machines by their machine groups
       const groupedMachines: any = [];
       this.machineGroupList.forEach(mg => {
-        const list = this.rawMachineList.filter(m => m.machineGroupId === mg._id);
+        const mgId = String(mg._id ?? '');
+        const list = this.rawMachineList.filter(m => String(m.machineGroupId ?? '') === mgId);
         if (list.length > 0) {
           groupedMachines.push({
             _id: mg._id,

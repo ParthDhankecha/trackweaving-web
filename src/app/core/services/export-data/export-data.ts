@@ -34,7 +34,8 @@ export class ExportData {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const tableColspan = isStoppageReport ? 7 : 9 + stopColumns.length * 2 + 2;
+    // Fixed cols: Date, Shift, Machine, Quality, Prod, Picks, Eff %, Real Eff %, Run Time, Beam Left
+    const tableColspan = isStoppageReport ? 7 : 10 + stopColumns.length * 2 + 2;
     const docDefinition: any = {
       pageOrientation: isStoppageReport ? 'portrait' : 'landscape',
       pageSize: 'A4',
@@ -121,6 +122,7 @@ export class ExportData {
   protected buildTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
     const stopSectionColspan = stopColumns.length * 2 + 2;
+    const fixedColCount = 10;
 
     const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
@@ -130,6 +132,7 @@ export class ExportData {
       { text: 'Prod. [Mtrs]', rowSpan: 2, style: 'tableHeader' },
       { text: 'Picks', rowSpan: 2, style: 'tableHeader' },
       { text: 'Eff. %', rowSpan: 2, style: 'tableHeader' },
+      { text: 'Real Eff.%', rowSpan: 2, style: 'tableHeader' },
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
     ];
@@ -139,7 +142,7 @@ export class ExportData {
     headerRow1.push({ text: 'Total Stops', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {});
     body.push(headerRow1);
 
-    const headerRow2: any[] = Array(9).fill({});
+    const headerRow2: any[] = Array(fixedColCount).fill({});
     stopColumns.forEach(() => {
       headerRow2.push({ text: 'Count', style: 'tableSubHeader' });
       headerRow2.push({ text: 'Duration', style: 'tableSubHeader' });
@@ -167,6 +170,7 @@ export class ExportData {
           { text: data.pieceLengthM, style: cellStyle },
           { text: data.picksCurrentShift, style: cellStyle },
           { text: data.efficiencyPercent, style: cellStyle },
+          { text: data.realEfficiencyPercent ?? '-', style: cellStyle },
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
         ];
@@ -189,6 +193,7 @@ export class ExportData {
         { text: this.num(item.prodMeter), style: subTtlCellStyle },
         { text: item.totalPicks, style: subTtlCellStyle },
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
+        { text: this.num(item.realEfficiency, 1), style: subTtlCellStyle },
         { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
         { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
@@ -205,8 +210,9 @@ export class ExportData {
       { text: reportData.avgProdMeter, ...this.grandTotalFill },
       { text: reportData.totalPicks, ...this.grandTotalFill },
       { text: reportData.totalEfficiency, ...this.grandTotalFill },
-      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, 3, this.grandTotalFill, { alignment: 'left' }),
-      ...this.colSpanCells(' ', Math.max(stopSectionColspan - 1, 1), this.grandTotalFill)
+      { text: reportData.totalRealEfficiency, ...this.grandTotalFill },
+      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, 2, this.grandTotalFill, { alignment: 'left' }),
+      ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
     ]);
 
     return body;

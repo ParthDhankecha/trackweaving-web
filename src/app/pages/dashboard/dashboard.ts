@@ -1,6 +1,7 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 
 import moment from 'moment';
@@ -17,6 +18,7 @@ import { IResponse } from '@src/app/models/http-response.model';
 import { EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS } from '@src/app/models/machine.model';
 import { IAppConfigData } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 
 @Component({
@@ -38,6 +40,7 @@ export class Dashboard {
   // Inject services
   constructor(
     private _apiFs: ApiFacadeService,
+    private _router: Router,
     protected _coreService: CoreFacadeService
   ) {
     this.config = this._coreService.appConfig.configData;
@@ -69,8 +72,8 @@ export class Dashboard {
   protected metricDisplayMode: MetricDisplayMode = 'label';
 
   protected groupByOptions: { key: GroupByOption; label: string }[] = [
-    { key: 'default', label: 'All Machines' },
-    { key: 'machine', label: 'By Machine' },
+    { key: 'default', label: 'Default' },
+    { key: 'group', label: 'By Group' },
     { key: 'efficiency', label: 'By Efficiency' },
   ];
   protected selectedGroupBy: GroupByOption = this.readStoredGroupBy() ?? 'default';
@@ -305,7 +308,7 @@ export class Dashboard {
     }
 
     let groups: IMachineLogGroup[] = [];
-    if (this.selectedGroupBy === 'machine') {
+    if (this.selectedGroupBy === 'group') {
       groups = this.groupByMachine(this.machineLogs);
     } else if (this.selectedGroupBy === 'efficiency') {
       groups = this.groupByEfficiency(this.machineLogs);
@@ -357,7 +360,7 @@ export class Dashboard {
         }
 
         // Resolve labels if machine logs already arrived
-        if (this.selectedGroupBy === 'machine' && this.machineLogs.length) {
+        if (this.selectedGroupBy === 'group' && this.machineLogs.length) {
           this.applyGrouping();
         }
       },
@@ -575,6 +578,18 @@ export class Dashboard {
 
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {
     return buildStopColumns(machineType);
+  }
+
+  protected onTotalStopsClick(machineLog: IMachineLog): void {
+    if (!machineLog?.machineCode) return;
+
+    this._router.navigate([`/${ROUTES.BASE}/${ROUTES.REPORT}`], {
+      state: {
+        reportType: 'stoppageReport',
+        machineCode: machineLog.machineCode,
+        machineGroupId: machineLog.machineGroupId || undefined,
+      },
+    });
   }
 
   protected machineCardViewModelId: string = 'viewMachineDetails';

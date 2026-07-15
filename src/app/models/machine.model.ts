@@ -117,7 +117,7 @@ export type LayoutOption = 'default' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3' | '
 
 export type MetricDisplayMode = 'icon' | 'label';
 
-export type GroupByOption = 'default' | 'machine' | 'efficiency';
+export type GroupByOption = 'default' | 'group' | 'efficiency';
 
 export interface IMachineLogGroup {
     key: string;

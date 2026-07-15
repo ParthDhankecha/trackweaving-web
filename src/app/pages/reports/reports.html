@@ -67,7 +67,7 @@
                         <label for="stop-time-custom" class="form-check-label small fw-semibold mb-0">Custom:</label>
                         <input type="number" id="customStopMinutes" class="form-control form-control-sm"
                             style="width: 100px;" formControlName="customStopMinutes" min="1" placeholder="mins"
-                            [disabled]="!isCustomStopTime" (input)="stopTimeSelectionError = false">
+                            (input)="stopTimeSelectionError = false">
                     </div>
                 </div>
                 @if (stopTimeSelectionError) {
@@ -246,6 +246,9 @@
                             Eff. %
                         </th>
                         <th rowspan="2" class="text-nowrap">
+                            Real Eff. %
+                        </th>
+                        <th rowspan="2" class="text-nowrap">
                             Run Time
                         </th>
                         <th rowspan="2" class="text-nowrap">
@@ -295,6 +298,9 @@
                             {{data.efficiencyPercent|number:'1.1-2'}}
                         </td>
                         <td class="text-nowrap">
+                            {{data.realEfficiencyPercent|number:'1.1-2'}}
+                        </td>
+                        <td class="text-nowrap">
                             {{data.runTime}}
                         </td>
                         <td>
@@ -330,6 +336,9 @@
                         <td>
                             {{item?.efficiency|number:'1.1-2'}}
                         </td>
+                        <td>
+                            {{item?.realEfficiency|number:'1.1-2'}}
+                        </td>
                         <td colspan="2" class="text-start text-capitalize">
                             Avg: {{item?.avgPicks}}
                         </td>
@@ -351,6 +360,9 @@
                         </td>
                         <td>
                             {{reportData?.totalEfficiency|number:'1.0-2'}}
+                        </td>
+                        <td>
+                            {{reportData?.totalRealEfficiency|number:'1.0-2'}}
                         </td>
                         <td colspan="2" class="text-start text-capitalize">
                             Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}

@@ -362,7 +362,7 @@
                             @for(stopColumn of getStopColumns(machineLog.machineType); track stopColumn.key) {
                             <td>{{machineLog.stopsData[stopColumn.key]?.count || 0}}</td>
                             }
-                            <td class="bg-secondary-subtle">
+                            <td class="bg-secondary-subtle" (click)="onTotalStopsClick(machineLog)">
                                 {{machineLog.stopsData.total?.count}}
                             </td>
                         </tr>
