@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 
 import { ROUTES } from './constants/app.routes';
-import { APP_PAGE_TITLE, LANDING_SEO } from './constants/app-config';
+import { APP_PAGE_TITLE } from './constants/app-config';
 
-import { Landing } from './pages/landing/landing';
+// import { Landing } from './pages/landing/landing';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
@@ -13,17 +13,22 @@ import { Support } from './pages/support/support';
 import { PageNotFound } from './shared/components/page-not-found/page-not-found';
 
 import { authGuard } from './core/guards/auth-guard';
-import { landingGuard } from './core/guards/landing-guard';
+// import { landingGuard } from './core/guards/landing-guard';
 
 
 export const routes: Routes = [
     {
         path: ROUTES.LANDING,
-        title: LANDING_SEO.title,
-        component: Landing,
         pathMatch: 'full',
-        canActivate: [landingGuard],
+        redirectTo: `${ROUTES.AUTH.BASE}/${ROUTES.AUTH.LOGIN}`,
     },
+    // {
+    //     path: ROUTES.LANDING,
+    //     title: LANDING_SEO.title,
+    //     component: Landing,
+    //     pathMatch: 'full',
+    //     canActivate: [landingGuard],
+    // },
     {
         path: ROUTES.BASE,
         title: APP_PAGE_TITLE.BRAND_NAME,

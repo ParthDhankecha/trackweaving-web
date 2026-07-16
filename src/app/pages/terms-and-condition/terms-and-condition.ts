@@ -19,10 +19,10 @@ export class TermsAndCondition {
     effectiveDate: string;
     year: string;
   } = {
-      dpoName: 'Ronak',
-      companyName: 'Dwarkesh Infotech',
-      companyEmail: 'trackweaving@gmail.com',
-      companyAddress: '706, Surat Digital Valley, VIP Circle, Uttran, Surat, Gujarat 394105',
+      dpoName: '-',
+      companyName: 'Pickwell Exim',
+      companyEmail: 'info@pickwell.in',
+      companyAddress: 'Plot No. 316, 1st Floor, Road No. 3, Near Paliwal Chokadi, Sachin G.I.D.C., Surat-394230, Gujarat, India',
       companyCity: 'Surat',
       companyState: 'Gujarat',
       effectiveDate: moment().format('MMMM D, YYYY'),

@@ -1,4 +1,4 @@
-const TITLE_POSTFIX = '- TrackWeaving';
+const TITLE_POSTFIX = '- Pickwell';
 
 /** Homepage / landing SEO — keep `src/index.html` meta tags aligned when editing. */
 export const LANDING_SEO = {
@@ -17,7 +17,7 @@ export const LANDING_SEO = {
 };
 
 export const APP_PAGE_TITLE = {
-    BRAND_NAME: `TrackWeaving`,
+    BRAND_NAME: `Pickwell`,
     HOME: `Home ${TITLE_POSTFIX}`,
     AUTH: {
         BASE: `Authentication ${TITLE_POSTFIX}`,

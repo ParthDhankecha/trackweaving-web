@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './support.scss'
 })
 export class Support {
-  protected readonly supportEmail: string = 'trackweaving@gmail.com';
+  protected readonly supportEmail: string = 'info@pickwell.in';
 }
