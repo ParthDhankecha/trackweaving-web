@@ -85,6 +85,7 @@
             }
         </div>
         <!-- Machine Options -->
+        @if (showMachineSelection) {
         <div class="mb-2 user-select-none">
             <div [formGroup]="filterForm" class="d-flex align-items-center flex-wrap gap-3 mb-2">
                 <span class="fw-semibold">Machine: </span>
@@ -148,6 +149,32 @@
             </div>
             }
         </div>
+        }
+        @if (isQualityWiseReport) {
+        <div class="mb-2" [formGroup]="filterForm">
+            <div class="row">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <label for="quality" class="form-label small fw-semibold mb-1">Quality:</label>
+                    <select id="quality" class="form-select text-capitalize" formControlName="quality">
+                        <option value="" disabled>Select quality</option>
+                        @for (item of qualityList; track item) {
+                        <option [value]="item">{{ item }}</option>
+                        }
+                    </select>
+                    @if (!qualityList.length) {
+                    <div class="small text-muted mt-1">No qualities found in machine logs.</div>
+                    }
+                    @if(quality && quality.touched && quality.errors) {
+                    <div class="invalid-feedback d-block">
+                        @if (quality.errors['required']) {
+                        <span>Please select a quality.</span>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+        }
     </div>
     <!-- Show Report Button -->
     <div class="text-center mb-3 user-select-none">
@@ -219,7 +246,9 @@
                     }
                     @if (!stoppageTableRows.length) {
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-3">No stoppages found for the selected filters.</td>
+                        <td colspan="7" class="text-center text-muted py-3">
+                            No stoppages found for the selected filters.
+                        </td>
                     </tr>
                     }
                     @if (stoppageTableRows.length) {
@@ -228,6 +257,99 @@
                         <td>{{ reportData?.totalStops }}</td>
                     </tr>
                     }
+                </tbody>
+            </table>
+            } @else if (reportData?.reportType === 'productionQualityWise') {
+            <h5 class="fw-semibold text-capitalize mt-3 mb-2">
+                {{ `Quality: ${reportData?.quality || '-'}` }}
+            </h5>
+            <table class="table table-bordered" #reportTable>
+                <thead class="table-dark text-center align-middle">
+                    <tr>
+                        <th rowspan="2">Date</th>
+                        <th rowspan="2">Shift</th>
+                        <th rowspan="2">Machine</th>
+                        <th rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
+                        <th rowspan="2">Picks</th>
+                        <th rowspan="2" class="text-nowrap">Eff. %</th>
+                        <th rowspan="2" class="text-nowrap">Real Eff. %</th>
+                        <th rowspan="2" class="text-nowrap">Run Time</th>
+                        <th rowspan="2" class="text-nowrap">Beam Left</th>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                        <th colspan="2" class="text-nowrap">{{stopColumn.label}}</th>
+                        }
+                        <th colspan="2" rowspan="2" class="text-nowrap">Total Stops</th>
+                    </tr>
+                    <tr>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                        <th>Count</th>
+                        <th>Duration</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody class="align-middle text-center">
+                    @for (item of reportData?.list; track $index; let even = $even;) {
+                    @for (data of item?.list; track data._id; let shiftIndex = $index;) {
+                    <tr class="small" [class.custom-tr-bg]="even">
+                        @if(shiftIndex === 0) {
+                        <td [attr.rowspan]="item?.list?.length ?? 1">
+                            {{ item.reportDate | date:'dd-MMM-yyyy' }}
+                        </td>
+                        <td [attr.rowspan]="item?.list?.length ?? 1">
+                            {{ item.shiftLabel }}
+                        </td>
+                        }
+                        <td>{{data.machineCode}}</td>
+                        <td>{{data.pieceLengthM|number:'1.0-2'}}</td>
+                        <td>{{data.picksCurrentShift}}</td>
+                        <td>{{data.efficiencyPercent|number:'1.1-2'}}</td>
+                        <td class="text-nowrap">{{data.realEfficiencyPercent|number:'1.1-2'}}</td>
+                        <td class="text-nowrap">{{data.runTime}}</td>
+                        <td>{{data.beamLeft}}</td>
+                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                        <td>{{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}</td>
+                        <td class="text-nowrap">{{getStopValue(data, stopColumn.key, 'duration')}}</td>
+                        }
+                        <td class="fw-semibold">{{data.stopsData.total.count|number:'1.0-2'}}</td>
+                        <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
+                    </tr>
+                    }
+                    <tr class="small fw-semibold" [class.custom-tr-bg]="even">
+                        <td></td>
+                        <td colspan="2">
+                            {{item.reportDate|date:'dd-MMM-yyyy'}} - {{item.shiftLabel}}
+                        </td>
+                        <td>{{item?.prodMeter|number:'1.0-2'}}</td>
+                        <td>{{item?.totalPicks}}</td>
+                        <td>{{item?.efficiency|number:'1.1-2'}}</td>
+                        <td>{{item?.realEfficiency|number:'1.1-2'}}</td>
+                        <td colspan="2" class="text-start text-capitalize">
+                            Avg: {{item?.avgPicks}}
+                        </td>
+                        <td [attr.colspan]="stopSectionColspan"></td>
+                    </tr>
+                    }
+                    @if (!reportData?.list?.length) {
+                    <tr>
+                        <td [attr.colspan]="qualityWiseTableColspan" class="text-center text-muted py-3">
+                            No data found for this quality.
+                        </td>
+                    </tr>
+                    }
+                    <tr>
+                        <td [attr.colspan]="qualityWiseTableColspan">&nbsp;</td>
+                    </tr>
+                    <tr class="custom-tr-bg fw-semibold">
+                        <td colspan="3" class="text-uppercase">Total</td>
+                        <td>{{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}</td>
+                        <td>{{reportData?.totalPicks}}</td>
+                        <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
+                        <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
+                        <td colspan="2" class="text-start text-capitalize">
+                            Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
+                        </td>
+                        <td [attr.colspan]="stopSectionColspan"></td>
+                    </tr>
                 </tbody>
             </table>
             } @else {

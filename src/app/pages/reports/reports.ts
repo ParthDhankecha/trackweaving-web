@@ -60,6 +60,7 @@ export class Reports {
   ];
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
+    { id: 'productionQualityWise', label: 'Production Qualitywise Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
@@ -80,11 +81,13 @@ export class Reports {
     groupByMachine: [false, []],
     selectAll: [false, []],
     machineIds: [null, [Validators.required]],
+    quality: ['', []],
   });
 
   protected rawMachineList: any[] = [];
   protected machineList: any[] = [];
   protected machineGroupList: any[] = [];
+  protected qualityList: string[] = [];
   private subscriptionHandler$ = new Subject<void>();
 
   protected reportData: any;
@@ -94,6 +97,14 @@ export class Reports {
 
   protected get isStoppageReport(): boolean {
     return this.reportType?.value === 'stoppageReport';
+  }
+
+  protected get isQualityWiseReport(): boolean {
+    return this.reportType?.value === 'productionQualityWise';
+  }
+
+  protected get showMachineSelection(): boolean {
+    return !this.isQualityWiseReport;
   }
 
   protected get isCustomStopTime(): boolean {
@@ -106,6 +117,10 @@ export class Reports {
 
   get reportTableColspan(): number {
     return 9 + this.stopSectionColspan;
+  }
+
+  get qualityWiseTableColspan(): number {
+    return 8 + this.stopSectionColspan;
   }
 
   protected getStopValue(data: any, key: string, field: 'count' | 'duration'): string | number {
@@ -134,8 +149,10 @@ export class Reports {
   private deepLinkApplied = false;
 
   ngOnInit(): void {
+    this.syncReportTypeValidators();
     this.loadMachineList();
     this.loadMachineGroupList();
+    this.loadQualityList();
     this.setSubscriptions();
   }
 
@@ -148,6 +165,16 @@ export class Reports {
           this.machineList = [...this.rawMachineList];
           this.machinesLoaded = true;
           this.applyNavStateAndLoadReport();
+        }
+      }
+    });
+  }
+
+  private loadQualityList(): void {
+    this._apiFs.reports.getQualities().subscribe({
+      next: (res: any) => {
+        if (res.code === 'OK') {
+          this.qualityList = res.data || [];
         }
       }
     });
@@ -223,11 +250,47 @@ export class Reports {
   get machineIds(): AbstractControl | null {
     return this.filterForm.get('machineIds');
   }
+  get quality(): AbstractControl | null {
+    return this.filterForm.get('quality');
+  }
   get stopTimeFilter(): AbstractControl | null {
     return this.filterForm.get('stopTimeFilter');
   }
   get customStopMinutes(): AbstractControl | null {
     return this.filterForm.get('customStopMinutes');
+  }
+
+  private flattenProductionReportList(parsedList: any[] = []): any[] {
+    const list: any[] = [];
+    parsedList.forEach((item: any) => {
+      if (item.reportData?.dayShift) {
+        list.push({
+          ...item.reportData.dayShift,
+          reportDate: item.reportDate,
+          shiftLabel: this.tableShiftObj[0].label,
+        });
+      }
+      if (item.reportData?.nightShift) {
+        list.push({
+          ...item.reportData.nightShift,
+          reportDate: item.reportDate,
+          shiftLabel: this.tableShiftObj[1].label,
+        });
+      }
+    });
+    return list;
+  }
+
+  private syncReportTypeValidators(): void {
+    if (this.isQualityWiseReport) {
+      this.machineIds?.clearValidators();
+      this.quality?.setValidators([Validators.required]);
+    } else {
+      this.quality?.clearValidators();
+      this.machineIds?.setValidators([Validators.required]);
+    }
+    this.machineIds?.updateValueAndValidity({ emitEvent: false });
+    this.quality?.updateValueAndValidity({ emitEvent: false });
   }
 
   private getSelectedMinStopMinutes(): number | null {
@@ -315,6 +378,14 @@ export class Reports {
 
 
   private setSubscriptions(): void {
+    this.reportType?.valueChanges.pipe(
+      takeUntil(this.subscriptionHandler$)
+    ).subscribe(() => {
+      this.syncReportTypeValidators();
+      this.reportData = null;
+      this.reportStopColumns = [];
+      this.stoppageTableRows = [];
+    });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
       takeUntil(this.subscriptionHandler$)
@@ -436,8 +507,11 @@ export class Reports {
   protected isReqAlive: boolean = false;
   protected onShowReport(): void {
     if (this.isReqAlive) return;
-    const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
-    this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
+
+    if (!this.isQualityWiseReport) {
+      const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
+      this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
+    }
 
     if (this.isStoppageReport) {
       const minStopMinutes = this.getSelectedMinStopMinutes();
@@ -461,9 +535,14 @@ export class Reports {
       reportType: filter.reportType,
       startDate: filter.startDate,
       endDate: filter.endDate,
-      machineIds: machineIds,
       shift: this.shiftOptions.filter(shiftCb).map(o => o.val)
     };
+
+    if (filter.reportType === 'productionQualityWise') {
+      payload.quality = filter.quality;
+    } else {
+      payload.machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
+    }
 
     if (filter.reportType === 'stoppageReport') {
       payload.minStopMinutes = this.getSelectedMinStopMinutes();
@@ -488,23 +567,7 @@ export class Reports {
           }
 
           if (Array.isArray(this.reportData?.list)) {
-            const list: any[] = [];
-            this.reportData.list?.forEach((item: any) => {
-              if (item.reportData?.dayShift) {
-                list.push({
-                  ...item.reportData.dayShift,
-                  reportDate: item.reportDate,
-                  shiftLabel: this.tableShiftObj[0].label,
-                });
-              }
-              if (item.reportData?.nightShift) {
-                list.push({
-                  ...item.reportData.nightShift,
-                  reportDate: item.reportDate,
-                  shiftLabel: this.tableShiftObj[1].label,
-                });
-              }
-            });
+            const list = this.flattenProductionReportList(this.reportData.list);
             this.reportData.list = list;
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;

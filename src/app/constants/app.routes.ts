@@ -33,6 +33,7 @@ export const ROUTES = {
         APK_VERSION: 'apk-version',
         LEAD: 'lead',
         MANUFACTURER: 'manufacturer',
+        ALERT_CONFIG: (id: string = ':workspaceId') => `alert-config/${id}`,
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
     MANUFACTURER: {

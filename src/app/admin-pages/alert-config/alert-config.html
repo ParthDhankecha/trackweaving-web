@@ -1,0 +1,178 @@
+<!-- inner header -->
+<div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
+    <div class="d-flex flex-grow-1 gap-2 align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="goBackToWorkspaces()">
+            ← Workspaces
+        </button>
+    </div>
+</div>
+
+<!-- main content -->
+<div class="p-4">
+    @if (missingWorkspaceId) {
+    <div class="card">
+        <div class="card-body text-center text-muted py-5">
+            <p class="mb-3">Open alert configuration from a workspace using the Alerts action.</p>
+            <button type="button" class="btn btn-primary" (click)="goBackToWorkspaces()">
+                Go to Workspaces
+            </button>
+        </div>
+    </div>
+    } @else if (isLoading) {
+    <div class="card">
+        <div class="card-body text-center text-muted py-5">
+            Loading alert configuration...
+        </div>
+    </div>
+    } @else {
+    <!-- Workspace defaults -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div>
+                    <h5 class="mb-1">Workspace Defaults</h5>
+                    <p class="text-muted small mb-0">
+                        Master switches for this workspace. If an alert is off here, no user receives it.
+                    </p>
+                </div>
+                @if (workspaceName) {
+                <span class="badge text-bg-light border text-dark">
+                    {{ workspaceName }}
+                </span>
+                }
+            </div>
+
+            <div class="row g-3">
+                @for (item of alertKeys; track item.key) {
+                <div class="col-12 col-sm-6 col-xl text-nowrap">
+                    <div class="border rounded p-3 h-100 d-flex align-items-center justify-content-between gap-2">
+                        <span class="fw-medium">{{ item.label }}</span>
+                        <div class="form-check form-switch m-0 ms-2">
+                            <input class="form-check-input fs-5" type="checkbox" role="switch"
+                                [checked]="workspaceAlerts[item.key]"
+                                (click)="onWorkspaceAlertToggle($event, item.key)">
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-user overrides -->
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <h5 class="mb-1">User Alerts</h5>
+                <p class="text-muted small mb-0">
+                    Per-user settings under workspace rules. Users can only turn off alerts that are enabled at
+                    workspace level. Reset restores workspace defaults.
+                </p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Username</th>
+                            @for (item of alertKeys; track item.key) {
+                            <th scope="col" class="text-center">
+                                {{ item.label }}
+                            </th>
+                            }
+                            <th scope="col" class="text-center">
+                                Override
+                            </th>
+                            <th scope="col" class="w-1-percent text-center">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (row of userConfigs; track row.user?._id; let i = $index) {
+                        <tr>
+                            <th scope="row">{{ i + 1 }}</th>
+                            <td>
+                                <div class="fw-medium">{{ row.user?.fullname || '—' }}</div>
+                                @if (!row.user?.isActive) {
+                                <span class="badge text-bg-secondary">
+                                    Inactive
+                                </span>
+                                }
+                            </td>
+                            <td>{{ row.user?.userName || '—' }}</td>
+                            @for (item of alertKeys; track item.key) {
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex p-0 justify-content-center m-0">
+                                    <input class="form-check-input fs-5" type="checkbox"
+                                        [checked]="row.alerts?.[item.key]" role="switch"
+                                        (click)="onUserAlertToggle($event, row, item.key)">
+                                </div>
+                            </td>
+                            }
+                            <td class="text-center">
+                                @if (row.hasOverride) {
+                                <span class="badge text-bg-warning">
+                                    Custom
+                                </span>
+                                } @else {
+                                <span class="badge text-bg-light border text-muted">
+                                    Default
+                                </span>
+                                }
+                            </td>
+                            <td class="text-nowrap text-end">
+                                <button class="btn btn-sm btn-outline-secondary" [disabled]="!row.hasOverride"
+                                    (click)="onOpenResetConfirm(row)">
+                                    Reset
+                                </button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td [attr.colspan]="alertKeys.length + 5" class="text-center text-muted py-4">
+                                No users found in this workspace.
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+
+<!-- Reset override confirmation -->
+@if (resetConfirmModal.isOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Reset Alert Override
+                </h5>
+                <button type="button" class="btn-close" (click)="closeResetConfirm()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center mb-0">
+                    Reset alert settings for<strong>
+                        {{ resetConfirmModal.data?.user?.fullname || resetConfirmModal.data?.user?.userName}}
+                    </strong>to workspace defaults?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeResetConfirm()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmResetOverride()">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

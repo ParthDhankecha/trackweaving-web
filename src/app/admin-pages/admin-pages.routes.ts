@@ -11,6 +11,7 @@ import { Machine } from './machine/machine';
 import { ApkVersion } from './apk-version/apk-version';
 import { Leads } from './leads/leads';
 import { ManufacturerPage } from './manufacturer/manufacturer';
+import { AlertConfigPage } from './alert-config/alert-config';
 import { CommonOutlet } from '../layouts/common-outlet/common-outlet';
 
 import { authGuard } from '../core/guards/auth-guard';
@@ -64,6 +65,11 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.MANUFACTURER,
                 title: APP_PAGE_TITLE.ADMIN.MANUFACTURER,
                 component: ManufacturerPage
+            },
+            {
+                path: `${ROUTES.ADMIN.ALERT_CONFIG()}`,
+                title: APP_PAGE_TITLE.ADMIN.ALERT_CONFIG,
+                component: AlertConfigPage
             }
         ],
     },

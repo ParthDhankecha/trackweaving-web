@@ -18,6 +18,7 @@ import { Reports } from './reports/reports';
 import { Lead } from './lead/lead';
 import { Manufacturer } from './manufacturer/manufacturer';
 import { ManufacturerPortal } from './manufacturer-portal/manufacturer-portal';
+import { AlertConfig } from './alert-config/alert-config';
 
 
 @Injectable({
@@ -61,4 +62,6 @@ export class ApiFacadeService {
   public readonly manufacturer: Manufacturer = inject(Manufacturer);
   // Inject Manufacturer Portal service
   public readonly manufacturerPortal: ManufacturerPortal = inject(ManufacturerPortal);
+  // Inject Alert Config (admin) service
+  public readonly alertConfig: AlertConfig = inject(AlertConfig);
 }

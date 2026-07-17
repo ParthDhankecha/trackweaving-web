@@ -20,4 +20,8 @@ export class Reports {
   generateReport(payload: any = {}): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}`, payload);
   }
+
+  getQualities(): Observable<IResponse> {
+    return this._http.post('machine-logs/qualities', {});
+  }
 }

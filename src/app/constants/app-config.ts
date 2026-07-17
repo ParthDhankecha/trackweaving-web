@@ -49,6 +49,7 @@ export const APP_PAGE_TITLE = {
         APK_VERSION: `APK Version Management ${TITLE_POSTFIX}`,
         LEAD: `Lead / CRM Management ${TITLE_POSTFIX}`,
         MANUFACTURER: `Manufacturer Management ${TITLE_POSTFIX}`,
+        ALERT_CONFIG: `Alert Configuration ${TITLE_POSTFIX}`,
     },
     MANUFACTURER: {
         BASE: `Manufacturer Portal ${TITLE_POSTFIX}`,
