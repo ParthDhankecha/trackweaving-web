@@ -33,7 +33,7 @@ export class ExportData {
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
-    const isQualityWiseReport = reportData.reportType === 'productionQualityWise';
+    const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
     const tableColspan = isStoppageReport ? 7 : 10 + stopColumns.length * 2 + 2;
     const content: any[] = [

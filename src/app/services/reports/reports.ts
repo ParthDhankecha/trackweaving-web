@@ -22,6 +22,6 @@ export class Reports {
   }
 
   getQualities(): Observable<IResponse> {
-    return this._http.post('machine-logs/qualities', {});
+    return this._http.get('machine-logs/qualities', {});
   }
 }

@@ -259,8 +259,8 @@
                     }
                 </tbody>
             </table>
-            } @else if (reportData?.reportType === 'productionQualityWise') {
-            <h5 class="fw-semibold text-capitalize mt-3 mb-2">
+            } @else if (reportData?.reportType === 'qualityProductionReport') {
+            <h5 class="text-capitalize m-0 mb-2">
                 {{ `Quality: ${reportData?.quality || '-'}` }}
             </h5>
             <table class="table table-bordered" #reportTable>

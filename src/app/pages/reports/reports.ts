@@ -60,7 +60,7 @@ export class Reports {
   ];
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
-    { id: 'productionQualityWise', label: 'Production Qualitywise Report' },
+    { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
@@ -100,7 +100,7 @@ export class Reports {
   }
 
   protected get isQualityWiseReport(): boolean {
-    return this.reportType?.value === 'productionQualityWise';
+    return this.reportType?.value === 'qualityProductionReport';
   }
 
   protected get showMachineSelection(): boolean {
@@ -382,6 +382,13 @@ export class Reports {
       takeUntil(this.subscriptionHandler$)
     ).subscribe(() => {
       this.syncReportTypeValidators();
+      const now = moment();
+      if (this.isStoppageReport) {
+        this.startDate?.patchValue(now.clone().startOf('month').format('YYYY-MM-DD'), { emitEvent: false });
+      } else {
+        this.startDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
+        this.endDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
+      }
       this.reportData = null;
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
@@ -538,7 +545,7 @@ export class Reports {
       shift: this.shiftOptions.filter(shiftCb).map(o => o.val)
     };
 
-    if (filter.reportType === 'productionQualityWise') {
+    if (filter.reportType === 'qualityProductionReport') {
       payload.quality = filter.quality;
     } else {
       payload.machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
