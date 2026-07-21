@@ -35,7 +35,7 @@ export class ExportData {
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const tableColspan = isStoppageReport ? 7 : 10 + stopColumns.length * 2 + 2;
+    const tableColspan = isStoppageReport ? 7 : 11 + stopColumns.length * 2 + 2;
     const content: any[] = [
       { text: title, style: 'header' },
       {
@@ -47,7 +47,7 @@ export class ExportData {
     if (isQualityWiseReport) {
       content.push({ text: reportData.quality || 'Quality', style: 'sectionTitle' });
       const qualityStopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-      const qualityColspan = 9 + qualityStopColumns.length * 2 + 2;
+      const qualityColspan = 10 + qualityStopColumns.length * 2 + 2;
       content.push({
         table: {
           headerRows: 2,
@@ -90,7 +90,7 @@ export class ExportData {
         subHeader: { alignment: 'center', margin: [0, 0, 0, 10] },
         sectionTitle: { bold: true, margin: [0, 6, 0, 4], fontSize: 12 },
         tableHeader: { bold: true, fillColor: '#343a40', color: 'white', alignment: 'center' },
-        tableSubHeader: { bold: true, fillColor: '#495057', color: 'white', alignment: 'center' },
+        tableSubHeader: { bold: true, fillColor: '#495057', color: 'white', alignment: 'center', fontSize: 8 },
         cellCenter: { alignment: 'center' },
         contentCell: { alignment: 'center', fontSize: 8 },
         contentCellBg: { alignment: 'center', fontSize: 8, fillColor: '#ededed' },
@@ -142,7 +142,7 @@ export class ExportData {
   protected buildTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
     const stopSectionColspan = stopColumns.length * 2 + 2;
-    const fixedColCount = 10;
+    const fixedColCount = 11;
 
     const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
@@ -153,6 +153,7 @@ export class ExportData {
       { text: 'Picks', rowSpan: 2, style: 'tableHeader' },
       { text: 'Eff. %', rowSpan: 2, style: 'tableHeader' },
       { text: 'Real Eff.%', rowSpan: 2, style: 'tableHeader' },
+      { text: 'Speed', rowSpan: 2, style: 'tableHeader' },
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
     ];
@@ -191,6 +192,7 @@ export class ExportData {
           { text: data.picksCurrentShift, style: cellStyle },
           { text: data.efficiencyPercent, style: cellStyle },
           { text: data.realEfficiencyPercent ?? '-', style: cellStyle },
+          { text: data.speedRpm ?? '0', style: cellStyle },
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
         ];
@@ -214,9 +216,23 @@ export class ExportData {
         { text: item.totalPicks, style: subTtlCellStyle },
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
         { text: this.num(item.realEfficiency, 1), style: subTtlCellStyle },
+        { text: this.formatNum(item.avgSpeed), style: subTtlCellStyle },
         { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
         { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
+      if (item?.fullDay) {
+        body.push([
+          { text: '', style: subTtlCellStyle },
+          { text: `${this.formatDate(item.fullDay.reportDate)} - ${item.fullDay.shiftLabel}`, colSpan: 3, style: subTtlCellStyle }, {}, {},
+          { text: this.formatNum(item.fullDay.prodMeter), style: subTtlCellStyle },
+          { text: item.fullDay.totalPicks, style: subTtlCellStyle },
+          { text: this.num(item.fullDay.efficiency, 1), style: subTtlCellStyle },
+          { text: this.num(item.fullDay.realEfficiency, 1), style: subTtlCellStyle },
+          { text: this.formatNum(item.fullDay.avgSpeed), style: subTtlCellStyle },
+          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+          { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
+        ]);
+      }
       groupIndex++;
     }
 
@@ -231,6 +247,7 @@ export class ExportData {
       { text: reportData.totalPicks, ...this.grandTotalFill },
       { text: reportData.totalEfficiency, ...this.grandTotalFill },
       { text: reportData.totalRealEfficiency, ...this.grandTotalFill },
+      { text: reportData.avgSpeed || 0, ...this.grandTotalFill },
       ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, 2, this.grandTotalFill, { alignment: 'left' }),
       ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
     ]);
@@ -241,7 +258,7 @@ export class ExportData {
   protected buildQualityWiseTableBody(section: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
     const stopSectionColspan = stopColumns.length * 2 + 2;
-    const fixedColCount = 9;
+    const fixedColCount = 10;
 
     const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
@@ -251,6 +268,7 @@ export class ExportData {
       { text: 'Picks', rowSpan: 2, style: 'tableHeader' },
       { text: 'Eff. %', rowSpan: 2, style: 'tableHeader' },
       { text: 'Real Eff.%', rowSpan: 2, style: 'tableHeader' },
+      { text: 'Speed', rowSpan: 2, style: 'tableHeader' },
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
     ];
@@ -287,6 +305,7 @@ export class ExportData {
           { text: data.picksCurrentShift, style: cellStyle },
           { text: data.efficiencyPercent, style: cellStyle },
           { text: data.realEfficiencyPercent ?? '-', style: cellStyle },
+          { text: data.speedRpm ?? '0', style: cellStyle },
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
         ];
@@ -310,9 +329,23 @@ export class ExportData {
         { text: item.totalPicks, style: subTtlCellStyle },
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
         { text: this.num(item.realEfficiency, 1), style: subTtlCellStyle },
+        { text: this.formatNum(item.avgSpeed), style: subTtlCellStyle },
         { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
         { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
+      if (item?.fullDay) {
+        body.push([
+          { text: '', style: subTtlCellStyle },
+          { text: `${this.formatDate(item.fullDay.reportDate)} - ${item.fullDay.shiftLabel}`, colSpan: 2, style: subTtlCellStyle }, {},
+          { text: this.formatNum(item.fullDay.prodMeter), style: subTtlCellStyle },
+          { text: item.fullDay.totalPicks, style: subTtlCellStyle },
+          { text: this.num(item.fullDay.efficiency, 1), style: subTtlCellStyle },
+          { text: this.num(item.fullDay.realEfficiency, 1), style: subTtlCellStyle },
+          { text: this.formatNum(item.fullDay.avgSpeed), style: subTtlCellStyle },
+          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+          { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
+        ]);
+      }
       groupIndex++;
     }
 
@@ -327,6 +360,7 @@ export class ExportData {
       { text: section.totalPicks, ...this.grandTotalFill },
       { text: section.totalEfficiency, ...this.grandTotalFill },
       { text: section.totalRealEfficiency, ...this.grandTotalFill },
+      { text: section.avgSpeed, ...this.grandTotalFill },
       ...this.colSpanCells(`Total Avg: ${section.avgPicks}`, 2, this.grandTotalFill, { alignment: 'left' }),
       ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
     ]);

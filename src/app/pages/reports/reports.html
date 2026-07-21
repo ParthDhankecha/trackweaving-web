@@ -206,8 +206,28 @@
             </div>
         </div>
 
+        <ng-template #shiftTotalRow let-row="row" let-even="even" let-labelColspan="labelColspan"
+            let-highlight="highlight">
+            <tr class="small fw-semibold" [class.custom-tr-bg]="even && !highlight" [class.table-secondary]="highlight">
+                <td></td>
+                <td [attr.colspan]="labelColspan">
+                    {{ row.reportDate | date:'dd-MMM-yyyy' }} - {{ row.shiftLabel }}
+                </td>
+                <td>{{ row.prodMeter | number:'1.0-2' }}</td>
+                <td>{{ row.totalPicks }}</td>
+                <td>{{ row.efficiency | number:'1.1-2' }}</td>
+                <td>{{ row.realEfficiency | number:'1.1-2' }}</td>
+                <td>{{ row?.avgSpeed ?? '0' }}</td>
+                <td colspan="2" class="text-start text-capitalize">
+                    Avg: {{ row.avgPicks }}
+                </td>
+                <td [attr.colspan]="stopSectionColspan"></td>
+            </tr>
+        </ng-template>
+
         <div class="table-responsive">
-            @if (reportData?.reportType === 'stoppageReport') {
+            @switch(reportData?.reportType){
+            @case('stoppageReport'){
             <table class="table table-bordered" #reportTable>
                 <thead class="table-dark text-center align-middle">
                     <tr>
@@ -259,7 +279,8 @@
                     }
                 </tbody>
             </table>
-            } @else if (reportData?.reportType === 'qualityProductionReport') {
+            }
+            @case('qualityProductionReport'){
             <h5 class="text-capitalize m-0 mb-2">
                 {{ `Quality: ${reportData?.quality || '-'}` }}
             </h5>
@@ -273,6 +294,7 @@
                         <th rowspan="2">Picks</th>
                         <th rowspan="2" class="text-nowrap">Eff. %</th>
                         <th rowspan="2" class="text-nowrap">Real Eff. %</th>
+                        <th rowspan="2">Speed</th>
                         <th rowspan="2" class="text-nowrap">Run Time</th>
                         <th rowspan="2" class="text-nowrap">Beam Left</th>
                         @for (stopColumn of reportStopColumns; track stopColumn.key) {
@@ -304,6 +326,7 @@
                         <td>{{data.picksCurrentShift}}</td>
                         <td>{{data.efficiencyPercent|number:'1.1-2'}}</td>
                         <td class="text-nowrap">{{data.realEfficiencyPercent|number:'1.1-2'}}</td>
+                        <td>{{data?.speedRpm||'-'}}</td>
                         <td class="text-nowrap">{{data.runTime}}</td>
                         <td>{{data.beamLeft}}</td>
                         @for (stopColumn of reportStopColumns; track stopColumn.key) {
@@ -314,20 +337,12 @@
                         <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
                     </tr>
                     }
-                    <tr class="small fw-semibold" [class.custom-tr-bg]="even">
-                        <td></td>
-                        <td colspan="2">
-                            {{item.reportDate|date:'dd-MMM-yyyy'}} - {{item.shiftLabel}}
-                        </td>
-                        <td>{{item?.prodMeter|number:'1.0-2'}}</td>
-                        <td>{{item?.totalPicks}}</td>
-                        <td>{{item?.efficiency|number:'1.1-2'}}</td>
-                        <td>{{item?.realEfficiency|number:'1.1-2'}}</td>
-                        <td colspan="2" class="text-start text-capitalize">
-                            Avg: {{item?.avgPicks}}
-                        </td>
-                        <td [attr.colspan]="stopSectionColspan"></td>
-                    </tr>
+                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                        [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 2 }" />
+                    @if (item.fullDay; as fullDay) {
+                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                        [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 2, highlight: true }" />
+                    }
                     }
                     @if (!reportData?.list?.length) {
                     <tr>
@@ -352,7 +367,8 @@
                     </tr>
                 </tbody>
             </table>
-            } @else {
+            }
+            @case ('productionShiftWise') {
             <table class="table table-bordered" #reportTable>
                 <thead class="table-dark text-center align-middle">
                     <tr>
@@ -370,6 +386,7 @@
                         <th rowspan="2" class="text-nowrap">
                             Real Eff. %
                         </th>
+                        <th rowspan="2">Speed</th>
                         <th rowspan="2" class="text-nowrap">
                             Run Time
                         </th>
@@ -422,6 +439,9 @@
                         <td class="text-nowrap">
                             {{data.realEfficiencyPercent|number:'1.1-2'}}
                         </td>
+                        <td>
+                            {{data?.speedRpm||'-'}}
+                        </td>
                         <td class="text-nowrap">
                             {{data.runTime}}
                         </td>
@@ -444,28 +464,12 @@
                         </td>
                     </tr>
                     }
-                    <tr class="small fw-semibold" [class.custom-tr-bg]="even">
-                        <td></td>
-                        <td colspan="3">
-                            {{item.reportDate|date:'dd-MMM-yyyy'}} - {{item.shiftLabel}}
-                        </td>
-                        <td>
-                            {{item?.prodMeter|number:'1.0-2'}}
-                        </td>
-                        <td>
-                            {{item?.totalPicks}}
-                        </td>
-                        <td>
-                            {{item?.efficiency|number:'1.1-2'}}
-                        </td>
-                        <td>
-                            {{item?.realEfficiency|number:'1.1-2'}}
-                        </td>
-                        <td colspan="2" class="text-start text-capitalize">
-                            Avg: {{item?.avgPicks}}
-                        </td>
-                        <td [attr.colspan]="stopSectionColspan"></td>
-                    </tr>
+                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                        [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 3 }" />
+                    @if (item.fullDay; as fullDay) {
+                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                        [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 3, highlight: true }" />
+                    }
                     }
                     <tr>
                         <td [attr.colspan]="reportTableColspan">&nbsp;</td>
@@ -486,6 +490,9 @@
                         <td>
                             {{reportData?.totalRealEfficiency|number:'1.0-2'}}
                         </td>
+                        <td>
+                            {{reportData?.avgSpeed||'0'}}
+                        </td>
                         <td colspan="2" class="text-start text-capitalize">
                             Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
                         </td>
@@ -493,6 +500,7 @@
                     </tr>
                 </tbody>
             </table>
+            }
             }
         </div>
     </div>

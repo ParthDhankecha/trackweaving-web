@@ -2,7 +2,7 @@ import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 
 import moment from 'moment';
 
@@ -25,7 +25,8 @@ interface IReportNavState {
     ReactiveFormsModule,
     FormsModule,
     DecimalPipe,
-    DatePipe
+    DatePipe,
+    NgTemplateOutlet
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
@@ -45,10 +46,6 @@ export class Reports {
   protected readonly _fb = inject(FormBuilder);
 
 
-  protected readonly tableShifts: { key: string, label: string }[] = [
-    { key: 'dayShift', label: 'Day Shift' },
-    { key: 'nightShift', label: 'Night Shift' }
-  ];
   protected readonly tableShiftObj: any = {
     0: { key: 'dayShift', label: 'Day Shift' },
     1: { key: 'nightShift', label: 'Night Shift' }
@@ -116,11 +113,11 @@ export class Reports {
   }
 
   get reportTableColspan(): number {
-    return 9 + this.stopSectionColspan;
+    return 10 + this.stopSectionColspan;
   }
 
   get qualityWiseTableColspan(): number {
-    return 8 + this.stopSectionColspan;
+    return 9 + this.stopSectionColspan;
   }
 
   protected getStopValue(data: any, key: string, field: 'count' | 'duration'): string | number {
@@ -260,25 +257,45 @@ export class Reports {
     return this.filterForm.get('customStopMinutes');
   }
 
-  private flattenProductionReportList(parsedList: any[] = []): any[] {
+  private flattenProductionReportList(parsedList: any[] = [], includeEntireDay = false): any[] {
     const list: any[] = [];
     parsedList.forEach((item: any) => {
-      if (item.reportData?.dayShift) {
+      const dayShift = item.reportData?.dayShift;
+      if (dayShift) {
         list.push({
-          ...item.reportData.dayShift,
+          ...dayShift,
           reportDate: item.reportDate,
           shiftLabel: this.tableShiftObj[0].label,
         });
       }
-      if (item.reportData?.nightShift) {
+
+      const nightShift = item.reportData?.nightShift;
+      if (nightShift) {
         list.push({
-          ...item.reportData.nightShift,
+          ...nightShift,
           reportDate: item.reportDate,
           shiftLabel: this.tableShiftObj[1].label,
         });
       }
+      if (includeEntireDay && dayShift && nightShift) {
+        list.at(-1).fullDay = this.buildEntireDayTotal(item.reportDate, dayShift, nightShift);
+      }
     });
     return list;
+  }
+
+  private buildEntireDayTotal(reportDate: string, dayShift: any, nightShift: any): any {
+    const shiftCount = 2;
+    return {
+      reportDate,
+      shiftLabel: 'Full Day',
+      prodMeter: (dayShift.prodMeter || 0) + (nightShift.prodMeter || 0),
+      totalPicks: (dayShift.totalPicks || 0) + (nightShift.totalPicks || 0),
+      efficiency: Math.round(((dayShift.efficiency || 0) + (nightShift.efficiency || 0)) / shiftCount),
+      realEfficiency: Math.round((((dayShift.realEfficiency || 0) + (nightShift.realEfficiency || 0)) / shiftCount) * 10) / 10,
+      avgSpeed: (dayShift.avgSpeed || 0) + (nightShift.avgSpeed || 0),
+      avgPicks: Math.round(((dayShift.avgPicks || 0) + (nightShift.avgPicks || 0)) / shiftCount),
+    };
   }
 
   private syncReportTypeValidators(): void {
@@ -574,7 +591,7 @@ export class Reports {
           }
 
           if (Array.isArray(this.reportData?.list)) {
-            const list = this.flattenProductionReportList(this.reportData.list);
+            const list = this.flattenProductionReportList(this.reportData.list, filter.shift === 'all');
             this.reportData.list = list;
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;
