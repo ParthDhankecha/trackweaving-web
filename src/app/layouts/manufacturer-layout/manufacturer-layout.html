@@ -3,7 +3,7 @@
     <aside class="mfr-sidebar" [class.collapsed]="isSidebarCollapsed">
         <!-- Header / Brand -->
         <div class="sidebar-header" (click)="isSidebarCollapsed = !isSidebarCollapsed">
-            <div class="sidebar-logo-mark">TW</div>
+            <app-track-weaving-logo class="sidebar-logo-mark" [size]="36" />
             @if (!isSidebarCollapsed) {
             <div class="sidebar-brand-text">
                 <div class="brand-name">TrackWeaving</div>
@@ -14,10 +14,6 @@
 
         <!-- Nav -->
         <ul class="sidebar-nav">
-            <li class="nav-section-label">
-                @if (!isSidebarCollapsed) { Menu }
-            </li>
-
             @for(item of sidebarRoutes; track item.link) {
             <li class="nav-item" routerLinkActive="active">
                 <a routerLink="{{ item.link }}">

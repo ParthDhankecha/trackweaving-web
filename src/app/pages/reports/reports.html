@@ -1,508 +1,569 @@
-<div class="container-fluid p-3 my-4 bg-white shadow-sm rounded-2 border">
-    <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2">
-        Reports
-    </strong>
-    <!-- Report Filters -->
-    <div class="border-bottom mb-3">
-        <div [formGroup]="filterForm" class="row mb-2">
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                <label for="reportType" class="form-label small fw-semibold mb-1">Report Type:</label>
-                <select id="reportType" class="form-select text-capitalize" formControlName="reportType">
-                    @for (type of reportTypeOptions; track $index;){
-                    <option [value]="type.id">{{ type.label }}</option>
+@if(showFactoryFilter) {
+<div class="py-2 px-3 shadow bg-white position-sticky top-0 sticky-header">
+    <button type="button" class="btn btn-outline-primary btn-sm p-1 p-sm-2" title="Dashboard"
+        (click)="goToManufacturerDashboard()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" class="d-block">
+            <path d="M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3" fill="currentColor" />
+            <path
+                d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5"
+                fill="currentColor" />
+        </svg>
+    </button>
+</div>
+}
+
+<div class="container-fluid" [class.px-3]="showFactoryFilter">
+    <div class="p-3 my-4 bg-white shadow-sm rounded-2 border">
+        <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2">
+            Reports
+        </strong>
+        <!-- Report Filters -->
+        <div class="border-bottom mb-3">
+            <div [formGroup]="filterForm" class="row mb-2">
+                @if (showFactoryFilter) {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <span class="form-label small fw-semibold mb-1">Factory:</span>
+                    <app-common-dropdown [optionsList]="workspaceOptions" [selectedOption]="selectedWorkspace"
+                        displayKey1="firmName" uniqueKey="_id" placeholder="Select factory" [filterKeys]="['firmName']"
+                        btnClass="btn-sm" (onSelect)="onWorkspaceSelect($event)" />
+                </div>
+                }
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="reportType" class="form-label small fw-semibold mb-1">Report Type:</label>
+                    <select id="reportType" class="form-select text-capitalize" formControlName="reportType">
+                        @for (type of reportTypeOptions; track $index;){
+                        <option [value]="type.id">{{ type.label }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="startDate" class="form-label small fw-semibold mb-1">From Date:</label>
+                    <input type="date" id="startDate" class="form-control" formControlName="startDate">
+                    @if (startDate?.touched && startDate?.errors) {
+                    <div class="invalid-feedback d-block">
+                        @if (startDate?.errors?.['required']) {
+                        <span>From date is required.</span>
+                        }
+                    </div>
                     }
-                </select>
-            </div>
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                <label for="startDate" class="form-label small fw-semibold mb-1">From Date:</label>
-                <input type="date" id="startDate" class="form-control" formControlName="startDate">
-                @if (startDate?.touched && startDate?.errors) {
-                <div class="invalid-feedback d-block">
-                    @if (startDate?.errors?.['required']) {
-                    <span>From date is required.</span>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="endDate" class="form-label small fw-semibold mb-1">End Date:</label>
+                    <input type="date" id="endDate" class="form-control" formControlName="endDate">
+                    @if (endDate?.touched && endDate?.errors) {
+                    <div class="invalid-feedback d-block">
+                        @if (endDate?.errors?.['required']) {
+                        <span>End date is required.</span>
+                        }
+                        @if (endDate?.errors?.['invalidRange']) {
+                        <span>End date must be after or same as From date.</span>
+                        }
+                    </div>
+                    }
+                </div>
+                @if (!isBeamLeftReport) {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
+                    <select id="shift" class="form-select text-capitalize" formControlName="shift">
+                        @for (shift of shiftOptions; track $index;){
+                        <option [value]="shift.id">{{shift.label}}</option>
+                        }
+                    </select>
+                </div>
+                }
+                @if (isStoppageReport) {
+                <div class="col-12 mb-2 user-select-none">
+                    <label class="form-label small fw-semibold mb-1">Min Stop Time:</label>
+                    <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
+                        @for (option of stopTimeOptions; track option.id) {
+                        <div class="d-inline-flex align-items-center gap-2">
+                            <input type="radio" id="stop-time-{{option.id}}" name="stopTimeFilter"
+                                class="form-check-input m-0" formControlName="stopTimeFilter" [value]="option.id"
+                                (change)="stopTimeSelectionError = false">
+                            <label for="stop-time-{{option.id}}" class="form-check-label small">
+                                {{ option.label }}
+                            </label>
+                        </div>
+                        }
+                        <div class="d-inline-flex align-items-center gap-2">
+                            <input type="radio" id="stop-time-custom" name="stopTimeFilter" class="form-check-input m-0"
+                                formControlName="stopTimeFilter" [value]="stopTimeCustomId"
+                                (change)="stopTimeSelectionError = false">
+                            <label for="stop-time-custom" class="form-check-label small fw-semibold mb-0">Custom:</label>
+                            <input type="number" id="customStopMinutes" class="form-control form-control-sm"
+                                style="width: 100px;" formControlName="customStopMinutes" min="1" placeholder="mins"
+                                (input)="stopTimeSelectionError = false">
+                        </div>
+                    </div>
+                    @if (stopTimeSelectionError) {
+                    <div class="invalid-feedback d-block">
+                        <span>
+                            @if (isCustomStopTime) {
+                            Please enter custom minutes.
+                            } @else {
+                            Please select a stop time.
+                            }
+                        </span>
+                    </div>
                     }
                 </div>
                 }
             </div>
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                <label for="endDate" class="form-label small fw-semibold mb-1">End Date:</label>
-                <input type="date" id="endDate" class="form-control" formControlName="endDate">
-                @if (endDate?.touched && endDate?.errors) {
-                <div class="invalid-feedback d-block">
-                    @if (endDate?.errors?.['required']) {
-                    <span>End date is required.</span>
-                    }
-                    @if (endDate?.errors?.['invalidRange']) {
-                    <span>End date must be after or same as From date.</span>
-                    }
+            <!-- Machine Options -->
+            @if (showMachineSelection) {
+            <div class="mb-2 user-select-none">
+                <div [formGroup]="filterForm" class="d-flex align-items-center flex-wrap gap-3 mb-2">
+                    <span class="fw-semibold">Machine: </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="groupByMachine" name="groupByMachine" formControlName="groupByMachine"
+                            class="form-check-input fs-5 m-0">
+                        <label for="groupByMachine" class="form-check-label small fw-semibold">Group by Machine</label>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="selectAll" name="selectAll" formControlName="selectAll"
+                            class="form-check-input fs-5 m-0">
+                        <label for="selectAll" class="form-check-label small fw-semibold">Select All</label>
+                    </div>
                 </div>
-                }
-            </div>
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
-                <select id="shift" class="form-select text-capitalize" formControlName="shift">
-                    @for (shift of shiftOptions; track $index;){
-                    <option [value]="shift.id">{{shift.label}}</option>
-                    }
-                </select>
-            </div>
-            @if (isStoppageReport) {
-            <div class="col-12 mb-2 user-select-none">
-                <label class="form-label small fw-semibold mb-1">Min Stop Time:</label>
-                <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
-                    @for (option of stopTimeOptions; track option.id) {
-                    <div class="d-inline-flex align-items-center gap-2">
-                        <input type="radio" id="stop-time-{{option.id}}" name="stopTimeFilter"
-                            class="form-check-input m-0" formControlName="stopTimeFilter" [value]="option.id"
-                            (change)="stopTimeSelectionError = false">
-                        <label for="stop-time-{{option.id}}" class="form-check-label small">
-                            {{ option.label }}
+                <!-- Machine List by Group or Individual -->
+                @if(groupByMachine?.value){
+                @for (group of machineList; track group._id) {
+                <div class="mb-3 text-capitalize">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <input type="checkbox" id="{{group._id}}" name="groupByMachine" class="form-check-input fs-5 m-0"
+                            [value]="group.selected" [(ngModel)]="group.selected"
+                            (ngModelChange)="onMachineGroupSelectionChange($event, group)">
+                        <label for="{{group._id}}" class="form-check-label small fw-semibold">
+                            {{ group.groupName }}
                         </label>
                     </div>
-                    }
-                    <div class="d-inline-flex align-items-center gap-2">
-                        <input type="radio" id="stop-time-custom" name="stopTimeFilter" class="form-check-input m-0"
-                            formControlName="stopTimeFilter" [value]="stopTimeCustomId"
-                            (change)="stopTimeSelectionError = false">
-                        <label for="stop-time-custom" class="form-check-label small fw-semibold mb-0">Custom:</label>
-                        <input type="number" id="customStopMinutes" class="form-control form-control-sm"
-                            style="width: 100px;" formControlName="customStopMinutes" min="1" placeholder="mins"
-                            (input)="stopTimeSelectionError = false">
+                    <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3 ps-4">
+                        @for (machine of group.machines; track machine._id) {
+                        <div class="d-inline-flex align-items-center gap-2">
+                            <input type="checkbox" id="machine-{{machine._id}}" name="machineIds"
+                                class="form-check-input m-0" [value]="machine.selected" [(ngModel)]="machine.selected"
+                                (ngModelChange)="onMachineSelectionChange(group)">
+                            <label for="machine-{{machine._id}}" class="form-check-label small">
+                                {{ machine.machineCode }}
+                            </label>
+                        </div>
+                        }
                     </div>
                 </div>
-                @if (stopTimeSelectionError) {
-                <div class="invalid-feedback d-block">
-                    <span>
-                        @if (isCustomStopTime) {
-                        Please enter custom minutes.
-                        } @else {
-                        Please select a stop time.
-                        }
-                    </span>
-                </div>
                 }
-            </div>
-            }
-        </div>
-        <!-- Machine Options -->
-        @if (showMachineSelection) {
-        <div class="mb-2 user-select-none">
-            <div [formGroup]="filterForm" class="d-flex align-items-center flex-wrap gap-3 mb-2">
-                <span class="fw-semibold">Machine: </span>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="checkbox" id="groupByMachine" name="groupByMachine" formControlName="groupByMachine"
-                        class="form-check-input fs-5 m-0">
-                    <label for="groupByMachine" class="form-check-label small fw-semibold">Group by Machine</label>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="checkbox" id="selectAll" name="selectAll" formControlName="selectAll"
-                        class="form-check-input fs-5 m-0">
-                    <label for="selectAll" class="form-check-label small fw-semibold">Select All</label>
-                </div>
-            </div>
-            <!-- Machine List by Group or Individual -->
-            @if(groupByMachine?.value){
-            @for (group of machineList; track group._id) {
-            <div class="mb-3 text-capitalize">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <input type="checkbox" id="{{group._id}}" name="groupByMachine" class="form-check-input fs-5 m-0"
-                        [value]="group.selected" [(ngModel)]="group.selected"
-                        (ngModelChange)="onMachineGroupSelectionChange($event, group)">
-                    <label for="{{group._id}}" class="form-check-label small fw-semibold">
-                        {{ group.groupName }}
-                    </label>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3 ps-4">
-                    @for (machine of group.machines; track machine._id) {
+                }@else {
+                <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
+                    @for (machine of machineList; track machine._id) {
                     <div class="d-inline-flex align-items-center gap-2">
-                        <input type="checkbox" id="machine-{{machine._id}}" name="machineIds"
-                            class="form-check-input m-0" [value]="machine.selected" [(ngModel)]="machine.selected"
-                            (ngModelChange)="onMachineSelectionChange(group)">
+                        <input type="checkbox" id="machine-{{machine._id}}" name="machineIds" class="form-check-input m-0"
+                            [value]="machine.selected" [(ngModel)]="machine.selected"
+                            (ngModelChange)="onMachineSelectionChange()">
                         <label for="machine-{{machine._id}}" class="form-check-label small">
                             {{ machine.machineCode }}
                         </label>
                     </div>
                     }
                 </div>
-            </div>
-            }
-            }@else {
-            <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
-                @for (machine of machineList; track machine._id) {
-                <div class="d-inline-flex align-items-center gap-2">
-                    <input type="checkbox" id="machine-{{machine._id}}" name="machineIds" class="form-check-input m-0"
-                        [value]="machine.selected" [(ngModel)]="machine.selected"
-                        (ngModelChange)="onMachineSelectionChange()">
-                    <label for="machine-{{machine._id}}" class="form-check-label small">
-                        {{ machine.machineCode }}
-                    </label>
+                }
+    
+                @if(machineIds?.touched && machineIds?.errors) {
+                <div class="invalid-feedback d-block">
+                    @if (machineIds?.errors?.['required']) {
+                    <span>Please select at least one machine.</span>
+                    }
                 </div>
                 }
             </div>
             }
-
-            @if(machineIds?.touched && machineIds?.errors) {
-            <div class="invalid-feedback d-block">
-                @if (machineIds?.errors?.['required']) {
-                <span>Please select at least one machine.</span>
-                }
-            </div>
-            }
-        </div>
-        }
-        @if (isQualityWiseReport) {
-        <div class="mb-2" [formGroup]="filterForm">
-            <div class="row">
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <label for="quality" class="form-label small fw-semibold mb-1">Quality:</label>
-                    <select id="quality" class="form-select text-capitalize" formControlName="quality">
-                        <option value="" disabled>Select quality</option>
-                        @for (item of qualityList; track item) {
-                        <option [value]="item">{{ item }}</option>
+            @if (isQualityWiseReport) {
+            <div class="mb-2" [formGroup]="filterForm">
+                <div class="row">
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="quality" class="form-label small fw-semibold mb-1">Quality:</label>
+                        <select id="quality" class="form-select text-capitalize" formControlName="quality">
+                            <option value="" disabled>Select quality</option>
+                            @for (item of qualityList; track item) {
+                            <option [value]="item">{{ item }}</option>
+                            }
+                        </select>
+                        @if (!qualityList.length) {
+                        <div class="small text-muted mt-1">No qualities found in machine logs.</div>
                         }
-                    </select>
-                    @if (!qualityList.length) {
-                    <div class="small text-muted mt-1">No qualities found in machine logs.</div>
-                    }
-                    @if(quality && quality.touched && quality.errors) {
-                    <div class="invalid-feedback d-block">
-                        @if (quality.errors['required']) {
-                        <span>Please select a quality.</span>
+                        @if(quality && quality.touched && quality.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (quality.errors['required']) {
+                            <span>Please select a quality.</span>
+                            }
+                        </div>
                         }
                     </div>
-                    }
                 </div>
+            </div>
+            }
+        </div>
+        <!-- Show Report Button -->
+        <div class="text-center mb-3 user-select-none">
+            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()" [disabled]="isReqAlive"
+                [class.disabled]="isReqAlive">
+                Show Report
+            </button>
+        </div>
+    
+        @if(reportData){
+        <div class="p-3" id="print-section">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+                <div class="">
+                    <h2 class="d-inline-block font-semibold fs-5 m-0">
+                        {{reportData?.reportTitle}}
+                    </h2>
+                    <span class="small">
+                        (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
+                        <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
+                    </span>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
+                        Export to PDF
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsExcel()">
+                        Export to Excel
+                    </button>
+                </div>
+            </div>
+    
+            <ng-template #shiftTotalRow let-row="row" let-even="even" let-labelColspan="labelColspan"
+                let-highlight="highlight">
+                <tr class="small fw-semibold" [class.custom-tr-bg]="even && !highlight" [class.table-secondary]="highlight">
+                    <td></td>
+                    <td [attr.colspan]="labelColspan">
+                        {{ row.reportDate | date:'dd-MMM-yyyy' }} - {{ row.shiftLabel }}
+                    </td>
+                    <td>{{ row.prodMeter | number:'1.0-2' }}</td>
+                    <td>{{ row.totalPicks }}</td>
+                    <td>{{ row.efficiency | number:'1.1-2' }}</td>
+                    <td>{{ row.realEfficiency | number:'1.1-2' }}</td>
+                    <td>{{ row?.avgSpeed ?? '0' }}</td>
+                    <td colspan="2" class="text-start text-capitalize">
+                        Avg: {{ row.avgPicks }}
+                    </td>
+                    <td [attr.colspan]="stopSectionColspan"></td>
+                </tr>
+            </ng-template>
+    
+            <div class="table-responsive">
+                @switch(reportData?.reportType){
+                @case('stoppageReport'){
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Machine</th>
+                            <th>Stop Reason</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Stop Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (row of stoppageTableRows; track $index) {
+                        <tr class="small" [class.custom-tr-bg]="row.groupEven">
+                            @if (row.showDate) {
+                            <td [attr.rowspan]="row.dateRowspan">
+                                {{ row.reportDate | date:'dd-MMM-yyyy' }}
+                            </td>
+                            }
+                            @if (row.showShift) {
+                            <td [attr.rowspan]="row.shiftRowspan">
+                                {{ row.shiftLabel }}
+                            </td>
+                            }
+                            @if (row.showMachine) {
+                            <td [attr.rowspan]="row.machineRowspan">
+                                {{ row.machineCode }}
+                            </td>
+                            }
+                            <td>{{ row.stopReason }}</td>
+                            <td class="text-nowrap">{{ row.from | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.to | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.stopTime }}</td>
+                        </tr>
+                        }@empty {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">
+                                No stoppages found for the selected filters.
+                            </td>
+                        </tr>
+                        }
+                        @if (stoppageTableRows.length) {
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="6" class="text-end text-uppercase">Total Stops</td>
+                            <td>{{ reportData?.totalStops }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                }
+                @case('beamLeftReport'){
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th>Machine Name</th>
+                            <th>Start Date</th>
+                            <th>Shift</th>
+                            <th>End Date</th>
+                            <th>Quality</th>
+                            <th>Beam Length</th>
+                            <th>Production Mtr</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (row of reportData?.list; track $index; let even = $even) {
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            <td>{{ row.machineName }}</td>
+                            <td class="text-nowrap">{{ row.startDate | date:'dd-MMM-yyyy' }}</td>
+                            <td>{{ row.shift }}</td>
+                            <td class="text-nowrap">
+                                @if (row.endDate) {
+                                {{ row.endDate | date:'dd-MMM-yyyy' }}
+                                } @else {
+                                -
+                                }
+                            </td>
+                            <td>{{ row.quality || '-' }}</td>
+                            <td>{{ row.beamLength != null ? (row.beamLength | number:'1.0-2') : '-' }}</td>
+                            <td>{{ row.productionMtr != null ? (row.productionMtr | number:'1.0-2') : '-' }}</td>
+                        </tr>
+                        }
+                        @if (!reportData?.list?.length) {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">
+                                No beam left records found for the selected filters.
+                            </td>
+                        </tr>
+                        }
+                        @if (reportData?.list?.length) {
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="6" class="text-end text-uppercase">Total Production Mtr</td>
+                            <td>{{ reportData?.totalProductionMtr | number:'1.0-2' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                }
+                @case('qualityProductionReport'){
+                <h5 class="text-capitalize m-0 mb-2">
+                    {{ `Quality: ${reportData?.quality || '-'}` }}
+                </h5>
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th rowspan="2">Date</th>
+                            <th rowspan="2">Shift</th>
+                            <th rowspan="2">Machine</th>
+                            <th rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
+                            <th rowspan="2">Picks</th>
+                            <th rowspan="2" class="text-nowrap">Eff. %</th>
+                            <th rowspan="2" class="text-nowrap">Real Eff. %</th>
+                            <th rowspan="2">Speed</th>
+                            <th rowspan="2" class="text-nowrap">Run Time</th>
+                            <th rowspan="2" class="text-nowrap">Beam Left</th>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <th colspan="2" class="text-nowrap">{{stopColumn.label}}</th>
+                            }
+                            <th colspan="2" rowspan="2" class="text-nowrap">Total Stops</th>
+                        </tr>
+                        <tr>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <th>Count</th>
+                            <th>Duration</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (item of reportData?.list; track $index; let even = $even;) {
+                        @for (data of item?.list; track data._id; let shiftIndex = $index;) {
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            @if(shiftIndex === 0) {
+                            <td [attr.rowspan]="item?.list?.length ?? 1">
+                                {{ item.reportDate | date:'dd-MMM-yyyy' }}
+                            </td>
+                            <td [attr.rowspan]="item?.list?.length ?? 1">
+                                {{ item.shiftLabel }}
+                            </td>
+                            }
+                            <td>{{data.machineCode}}</td>
+                            <td>{{data.pieceLengthM|number:'1.0-2'}}</td>
+                            <td>{{data.picksCurrentShift}}</td>
+                            <td>{{data.efficiencyPercent|number:'1.1-2'}}</td>
+                            <td class="text-nowrap">{{data.realEfficiencyPercent|number:'1.1-2'}}</td>
+                            <td>{{data?.speedRpm||'-'}}</td>
+                            <td class="text-nowrap">{{data.runTime}}</td>
+                            <td>{{data.beamLeft}}</td>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <td>{{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}</td>
+                            <td class="text-nowrap">{{getStopValue(data, stopColumn.key, 'duration')}}</td>
+                            }
+                            <td class="fw-semibold">{{data.stopsData.total.count|number:'1.0-2'}}</td>
+                            <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
+                        </tr>
+                        }
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 2 }" />
+                        @if (item.fullDay; as fullDay) {
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 2, highlight: true }" />
+                        }
+                        }
+                        @if (!reportData?.list?.length) {
+                        <tr>
+                            <td [attr.colspan]="qualityWiseTableColspan" class="text-center text-muted py-3">
+                                No data found for this quality.
+                            </td>
+                        </tr>
+                        }
+                        <tr>
+                            <td [attr.colspan]="qualityWiseTableColspan">&nbsp;</td>
+                        </tr>
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="3" class="text-uppercase">Total</td>
+                            <td>{{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}</td>
+                            <td>{{reportData?.totalPicks}}</td>
+                            <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
+                            <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
+                            <td>{{reportData?.avgSpeed||'0'}}</td>
+                            <td colspan="2" class="text-start text-capitalize">
+                                Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
+                            </td>
+                            <td [attr.colspan]="stopSectionColspan"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                }
+                @case ('productionShiftWise') {
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th rowspan="2">Date</th>
+                            <th rowspan="2">Shift</th>
+                            <th rowspan="2">Machine</th>
+                            <th rowspan="2">Quality</th>
+                            <th rowspan="2" class="text-nowrap">
+                                Prod. [Mtrs]
+                            </th>
+                            <th rowspan="2">Picks</th>
+                            <th rowspan="2" class="text-nowrap">
+                                Eff. %
+                            </th>
+                            <th rowspan="2" class="text-nowrap">
+                                Real Eff. %
+                            </th>
+                            <th rowspan="2">Speed</th>
+                            <th rowspan="2" class="text-nowrap">
+                                Run Time
+                            </th>
+                            <th rowspan="2" class="text-nowrap">
+                                Beam Left
+                            </th>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <th colspan="2" class="text-nowrap">
+                                {{stopColumn.label}}
+                            </th>
+                            }
+                            <th colspan="2" rowspan="2" class="text-nowrap">
+                                Total Stops
+                            </th>
+                        </tr>
+                        <tr>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <th>Count</th>
+                            <th>Duration</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (item of reportData?.list; track $index; let even = $even;) {
+                        @for (data of item?.list; track data._id;let shiftIndex = $index;) {
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            @if(shiftIndex === 0) {
+                            <td [attr.rowspan]="item?.list?.length ?? 1">
+                                {{ item.reportDate | date:'dd-MMM-yyyy' }}
+                            </td>
+                            <td [attr.rowspan]="item?.list?.length ?? 1">
+                                {{ item.shiftLabel }}
+                            </td>
+                            }
+                            <td>
+                                {{data.machineCode}}
+                            </td>
+                            <td>
+                                {{data.quality || ''}}
+                            </td>
+                            <td>
+                                {{data.pieceLengthM|number:'1.0-2'}}
+                            </td>
+                            <td>
+                                {{data.picksCurrentShift}}
+                            </td>
+                            <td>
+                                {{data.efficiencyPercent|number:'1.1-2'}}
+                            </td>
+                            <td class="text-nowrap">
+                                {{data.realEfficiencyPercent|number:'1.1-2'}}
+                            </td>
+                            <td>
+                                {{data?.speedRpm||'-'}}
+                            </td>
+                            <td class="text-nowrap">
+                                {{data.runTime}}
+                            </td>
+                            <td>
+                                {{data.beamLeft}}
+                            </td>
+                            @for (stopColumn of reportStopColumns; track stopColumn.key) {
+                            <td>
+                                {{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}
+                            </td>
+                            <td class="text-nowrap">
+                                {{getStopValue(data, stopColumn.key, 'duration')}}
+                            </td>
+                            }
+                            <td class="fw-semibold">
+                                {{data.stopsData.total.count|number:'1.0-2'}}
+                            </td>
+                            <td class="fw-semibold text-nowrap">
+                                {{data.stopsData.total.duration}}
+                            </td>
+                        </tr>
+                        }
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 3 }" />
+                        @if (item.fullDay; as fullDay) {
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
+                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 3, highlight: true }" />
+                        }
+                        }
+                        <tr>
+                            <td [attr.colspan]="reportTableColspan">&nbsp;</td>
+                        </tr>
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="4" class="text-uppercase">Total</td>
+                            <td>{{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}</td>
+                            <td>{{reportData?.totalPicks}}</td>
+                            <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
+                            <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
+                            <td>{{reportData?.avgSpeed||'0'}}</td>
+                            <td colspan="2" class="text-start text-capitalize">
+                                Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
+                            </td>
+                            <td [attr.colspan]="stopSectionColspan"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                }
+                }
             </div>
         </div>
         }
     </div>
-    <!-- Show Report Button -->
-    <div class="text-center mb-3 user-select-none">
-        <button type="button" class="btn btn-outline-primary" (click)="onShowReport()" [disabled]="isReqAlive"
-            [class.disabled]="isReqAlive">
-            Show Report
-        </button>
-    </div>
-
-    @if(reportData){
-    <div class="p-3" id="print-section">
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
-            <div class="">
-                <h2 class="d-inline-block font-semibold fs-5 m-0">
-                    {{reportData?.reportTitle}}
-                </h2>
-                <span class="small">
-                    (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
-                    <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
-                </span>
-            </div>
-            <div>
-                <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
-                    Export to PDF
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsExcel()">
-                    Export to Excel
-                </button>
-            </div>
-        </div>
-
-        <ng-template #shiftTotalRow let-row="row" let-even="even" let-labelColspan="labelColspan"
-            let-highlight="highlight">
-            <tr class="small fw-semibold" [class.custom-tr-bg]="even && !highlight" [class.table-secondary]="highlight">
-                <td></td>
-                <td [attr.colspan]="labelColspan">
-                    {{ row.reportDate | date:'dd-MMM-yyyy' }} - {{ row.shiftLabel }}
-                </td>
-                <td>{{ row.prodMeter | number:'1.0-2' }}</td>
-                <td>{{ row.totalPicks }}</td>
-                <td>{{ row.efficiency | number:'1.1-2' }}</td>
-                <td>{{ row.realEfficiency | number:'1.1-2' }}</td>
-                <td>{{ row?.avgSpeed ?? '0' }}</td>
-                <td colspan="2" class="text-start text-capitalize">
-                    Avg: {{ row.avgPicks }}
-                </td>
-                <td [attr.colspan]="stopSectionColspan"></td>
-            </tr>
-        </ng-template>
-
-        <div class="table-responsive">
-            @switch(reportData?.reportType){
-            @case('stoppageReport'){
-            <table class="table table-bordered" #reportTable>
-                <thead class="table-dark text-center align-middle">
-                    <tr>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>Machine</th>
-                        <th>Stop Reason</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Stop Time</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle text-center">
-                    @for (row of stoppageTableRows; track $index) {
-                    <tr class="small" [class.custom-tr-bg]="row.groupEven">
-                        @if (row.showDate) {
-                        <td [attr.rowspan]="row.dateRowspan">
-                            {{ row.reportDate | date:'dd-MMM-yyyy' }}
-                        </td>
-                        }
-                        @if (row.showShift) {
-                        <td [attr.rowspan]="row.shiftRowspan">
-                            {{ row.shiftLabel }}
-                        </td>
-                        }
-                        @if (row.showMachine) {
-                        <td [attr.rowspan]="row.machineRowspan">
-                            {{ row.machineCode }}
-                        </td>
-                        }
-                        <td>{{ row.stopReason }}</td>
-                        <td class="text-nowrap">{{ row.from | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
-                        <td class="text-nowrap">{{ row.to | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
-                        <td class="text-nowrap">{{ row.stopTime }}</td>
-                    </tr>
-                    }
-                    @if (!stoppageTableRows.length) {
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-3">
-                            No stoppages found for the selected filters.
-                        </td>
-                    </tr>
-                    }
-                    @if (stoppageTableRows.length) {
-                    <tr class="custom-tr-bg fw-semibold">
-                        <td colspan="6" class="text-end text-uppercase">Total Stops</td>
-                        <td>{{ reportData?.totalStops }}</td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-            }
-            @case('qualityProductionReport'){
-            <h5 class="text-capitalize m-0 mb-2">
-                {{ `Quality: ${reportData?.quality || '-'}` }}
-            </h5>
-            <table class="table table-bordered" #reportTable>
-                <thead class="table-dark text-center align-middle">
-                    <tr>
-                        <th rowspan="2">Date</th>
-                        <th rowspan="2">Shift</th>
-                        <th rowspan="2">Machine</th>
-                        <th rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
-                        <th rowspan="2">Picks</th>
-                        <th rowspan="2" class="text-nowrap">Eff. %</th>
-                        <th rowspan="2" class="text-nowrap">Real Eff. %</th>
-                        <th rowspan="2">Speed</th>
-                        <th rowspan="2" class="text-nowrap">Run Time</th>
-                        <th rowspan="2" class="text-nowrap">Beam Left</th>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <th colspan="2" class="text-nowrap">{{stopColumn.label}}</th>
-                        }
-                        <th colspan="2" rowspan="2" class="text-nowrap">Total Stops</th>
-                    </tr>
-                    <tr>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <th>Count</th>
-                        <th>Duration</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody class="align-middle text-center">
-                    @for (item of reportData?.list; track $index; let even = $even;) {
-                    @for (data of item?.list; track data._id; let shiftIndex = $index;) {
-                    <tr class="small" [class.custom-tr-bg]="even">
-                        @if(shiftIndex === 0) {
-                        <td [attr.rowspan]="item?.list?.length ?? 1">
-                            {{ item.reportDate | date:'dd-MMM-yyyy' }}
-                        </td>
-                        <td [attr.rowspan]="item?.list?.length ?? 1">
-                            {{ item.shiftLabel }}
-                        </td>
-                        }
-                        <td>{{data.machineCode}}</td>
-                        <td>{{data.pieceLengthM|number:'1.0-2'}}</td>
-                        <td>{{data.picksCurrentShift}}</td>
-                        <td>{{data.efficiencyPercent|number:'1.1-2'}}</td>
-                        <td class="text-nowrap">{{data.realEfficiencyPercent|number:'1.1-2'}}</td>
-                        <td>{{data?.speedRpm||'-'}}</td>
-                        <td class="text-nowrap">{{data.runTime}}</td>
-                        <td>{{data.beamLeft}}</td>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <td>{{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}</td>
-                        <td class="text-nowrap">{{getStopValue(data, stopColumn.key, 'duration')}}</td>
-                        }
-                        <td class="fw-semibold">{{data.stopsData.total.count|number:'1.0-2'}}</td>
-                        <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
-                    </tr>
-                    }
-                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                        [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 2 }" />
-                    @if (item.fullDay; as fullDay) {
-                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                        [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 2, highlight: true }" />
-                    }
-                    }
-                    @if (!reportData?.list?.length) {
-                    <tr>
-                        <td [attr.colspan]="qualityWiseTableColspan" class="text-center text-muted py-3">
-                            No data found for this quality.
-                        </td>
-                    </tr>
-                    }
-                    <tr>
-                        <td [attr.colspan]="qualityWiseTableColspan">&nbsp;</td>
-                    </tr>
-                    <tr class="custom-tr-bg fw-semibold">
-                        <td colspan="3" class="text-uppercase">Total</td>
-                        <td>{{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}</td>
-                        <td>{{reportData?.totalPicks}}</td>
-                        <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
-                        <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
-                        <td colspan="2" class="text-start text-capitalize">
-                            Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
-                        </td>
-                        <td [attr.colspan]="stopSectionColspan"></td>
-                    </tr>
-                </tbody>
-            </table>
-            }
-            @case ('productionShiftWise') {
-            <table class="table table-bordered" #reportTable>
-                <thead class="table-dark text-center align-middle">
-                    <tr>
-                        <th rowspan="2">Date</th>
-                        <th rowspan="2">Shift</th>
-                        <th rowspan="2">Machine</th>
-                        <th rowspan="2">Quality</th>
-                        <th rowspan="2" class="text-nowrap">
-                            Prod. [Mtrs]
-                        </th>
-                        <th rowspan="2">Picks</th>
-                        <th rowspan="2" class="text-nowrap">
-                            Eff. %
-                        </th>
-                        <th rowspan="2" class="text-nowrap">
-                            Real Eff. %
-                        </th>
-                        <th rowspan="2">Speed</th>
-                        <th rowspan="2" class="text-nowrap">
-                            Run Time
-                        </th>
-                        <th rowspan="2" class="text-nowrap">
-                            Beam Left
-                        </th>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <th colspan="2" class="text-nowrap">
-                            {{stopColumn.label}}
-                        </th>
-                        }
-                        <th colspan="2" rowspan="2" class="text-nowrap">
-                            Total Stops
-                        </th>
-                    </tr>
-                    <tr>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <th>Count</th>
-                        <th>Duration</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody class="align-middle text-center">
-                    @for (item of reportData?.list; track $index; let even = $even;) {
-                    @for (data of item?.list; track data._id;let shiftIndex = $index;) {
-                    <tr class="small" [class.custom-tr-bg]="even">
-                        @if(shiftIndex === 0) {
-                        <td [attr.rowspan]="item?.list?.length ?? 1">
-                            {{ item.reportDate | date:'dd-MMM-yyyy' }}
-                        </td>
-                        <td [attr.rowspan]="item?.list?.length ?? 1">
-                            {{ item.shiftLabel }}
-                        </td>
-                        }
-                        <td>
-                            {{data.machineCode}}
-                        </td>
-                        <td>
-                            {{data.quality || ''}}
-                        </td>
-                        <td>
-                            {{data.pieceLengthM|number:'1.0-2'}}
-                        </td>
-                        <td>
-                            {{data.picksCurrentShift}}
-                        </td>
-                        <td>
-                            {{data.efficiencyPercent|number:'1.1-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.realEfficiencyPercent|number:'1.1-2'}}
-                        </td>
-                        <td>
-                            {{data?.speedRpm||'-'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{data.runTime}}
-                        </td>
-                        <td>
-                            {{data.beamLeft}}
-                        </td>
-                        @for (stopColumn of reportStopColumns; track stopColumn.key) {
-                        <td>
-                            {{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}
-                        </td>
-                        <td class="text-nowrap">
-                            {{getStopValue(data, stopColumn.key, 'duration')}}
-                        </td>
-                        }
-                        <td class="fw-semibold">
-                            {{data.stopsData.total.count|number:'1.0-2'}}
-                        </td>
-                        <td class="fw-semibold text-nowrap">
-                            {{data.stopsData.total.duration}}
-                        </td>
-                    </tr>
-                    }
-                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                        [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 3 }" />
-                    @if (item.fullDay; as fullDay) {
-                    <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                        [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 3, highlight: true }" />
-                    }
-                    }
-                    <tr>
-                        <td [attr.colspan]="reportTableColspan">&nbsp;</td>
-                    </tr>
-                    <tr class="custom-tr-bg fw-semibold">
-                        <td colspan="4" class="text-uppercase">
-                            Total
-                        </td>
-                        <td>
-                            {{(reportData?.avgProdMeter|number:'1.0-2')?.replace(',','')}}
-                        </td>
-                        <td>
-                            {{reportData?.totalPicks}}
-                        </td>
-                        <td>
-                            {{reportData?.totalEfficiency|number:'1.0-2'}}
-                        </td>
-                        <td>
-                            {{reportData?.totalRealEfficiency|number:'1.0-2'}}
-                        </td>
-                        <td>
-                            {{reportData?.avgSpeed||'0'}}
-                        </td>
-                        <td colspan="2" class="text-start text-capitalize">
-                            Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
-                        </td>
-                        <td [attr.colspan]="stopSectionColspan"></td>
-                    </tr>
-                </tbody>
-            </table>
-            }
-            }
-        </div>
-    </div>
-    }
 </div>

@@ -78,6 +78,18 @@ export class ManufacturerPortal {
     return this._http.post(`${this._baseUrl}/dashboard/machine-log-list`, payload);
   }
 
+  getReportMachines(workspaceId: string): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}/dashboard/machines/${workspaceId}`);
+  }
+
+  getReportQualities(workspaceId: string): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}/dashboard/qualities/${workspaceId}`);
+  }
+
+  generateReport(payload: Record<string, unknown>): Observable<IResponse> {
+    return this._http.post(`${this._baseUrl}/dashboard/report`, payload);
+  }
+
 
   logout(): void {
     localStorage.removeItem(StorageKeys.MANUFACTURER_TOKEN);

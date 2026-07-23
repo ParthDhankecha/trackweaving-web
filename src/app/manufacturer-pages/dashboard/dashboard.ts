@@ -8,12 +8,14 @@ import { Header } from '@src/app/layouts/header/header';
 import { Footer } from '@src/app/layouts/footer/footer';
 import { ModalLayer } from '@src/app/shared/components/modal-layer/modal-layer';
 import { RegisterModalLayer } from '@src/app/shared/directives/register-modal-layer';
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { Dashboard } from '@src/app/pages/dashboard/dashboard';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { IMachineLog } from '@src/app/models/machine.model';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 
 interface IManufacturerDashboardNavState {
@@ -30,7 +32,8 @@ interface IManufacturerDashboardNavState {
     Header,
     Footer,
     ModalLayer,
-    RegisterModalLayer
+    RegisterModalLayer,
+    CommonDropdown
   ],
   templateUrl: '../../pages/dashboard/dashboard.html',
   styleUrl: '../../pages/dashboard/dashboard.scss'
@@ -98,7 +101,16 @@ export class ManufacturerDashboard extends Dashboard implements OnInit, OnDestro
     return this._apiFs.manufacturerPortal.getMachineGroupOptions(this.selectedWorkspaceId);
   }
 
-  protected override onTotalStopsClick(_machineLog: IMachineLog): void {
-    // Manufacturer portal has no workspace report route.
+  protected override onTotalStopsClick(machineLog: IMachineLog): void {
+    if (!machineLog?.machineCode) return;
+
+    this._router.navigate([ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.REPORT)], {
+      state: {
+        workspaceId: this.selectedWorkspaceId,
+        reportType: 'stoppageReport',
+        machineCode: machineLog.machineCode,
+        machineGroupId: machineLog.machineGroupId || undefined,
+      },
+    });
   }
 }

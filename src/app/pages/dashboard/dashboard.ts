@@ -9,6 +9,7 @@ import moment from 'moment';
 import { Header } from '@src/app/layouts/header/header';
 import { Footer } from '@src/app/layouts/footer/footer';
 import { ModalLayer } from '@src/app/shared/components/modal-layer/modal-layer';
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -30,7 +31,8 @@ import { ROUTES } from '@src/app/constants/app.routes';
     Header,
     Footer,
     ModalLayer,
-    RegisterModalLayer
+    RegisterModalLayer,
+    CommonDropdown
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -237,6 +239,18 @@ export class Dashboard implements OnInit, OnDestroy {
 
   protected fetchMachineLogs(payload: any) {
     return this._apiFs.dashboard.getList(payload);
+  }
+
+  protected get selectedWorkspace(): { _id: string; firmName: string } | null {
+    if (!this.selectedWorkspaceId) return null;
+    return this.workspaceOptions.find(ws => ws._id === this.selectedWorkspaceId) ?? null;
+  }
+
+  protected onWorkspaceSelect(workspace: { _id: string; firmName: string } | null): void {
+    if (!workspace?._id) return;
+
+    this.selectedWorkspaceId = workspace._id;
+    this.onWorkspaceChange();
   }
 
   protected onWorkspaceChange(): void {

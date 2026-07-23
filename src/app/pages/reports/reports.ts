@@ -8,14 +8,17 @@ import moment from 'moment';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 interface IReportNavState {
   reportType?: string;
   machineCode?: string;
   machineGroupId?: string;
+  workspaceId?: string;
 }
 
 
@@ -26,7 +29,8 @@ interface IReportNavState {
     FormsModule,
     DecimalPipe,
     DatePipe,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    CommonDropdown
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
@@ -36,7 +40,7 @@ export class Reports {
   // Inject services
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
-  private readonly _router = inject(Router);
+  protected readonly _router = inject(Router);
   /** Captured at construction — `getCurrentNavigation()` is only available then. */
   private readonly navState: IReportNavState | null =
     (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
@@ -44,6 +48,10 @@ export class Reports {
     ?? null;
 
   protected readonly _fb = inject(FormBuilder);
+
+  protected showFactoryFilter = false;
+  protected workspaceOptions: { _id: string; firmName: string }[] = [];
+  protected selectedWorkspaceId = '';
 
 
   protected readonly tableShiftObj: any = {
@@ -58,7 +66,8 @@ export class Reports {
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
-    { id: 'stoppageReport', label: 'Stoppage Report' }
+    { id: 'stoppageReport', label: 'Stoppage Report' },
+    { id: 'beamLeftReport', label: 'Beam Left Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
     { id: '5', label: '5 mins', value: 5 },
@@ -94,6 +103,10 @@ export class Reports {
 
   protected get isStoppageReport(): boolean {
     return this.reportType?.value === 'stoppageReport';
+  }
+
+  protected get isBeamLeftReport(): boolean {
+    return this.reportType?.value === 'beamLeftReport';
   }
 
   protected get isQualityWiseReport(): boolean {
@@ -141,9 +154,9 @@ export class Reports {
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
 
 
-  private machinesLoaded = false;
-  private machineGroupsLoaded = false;
-  private deepLinkApplied = false;
+  protected machinesLoaded = false;
+  protected machineGroupsLoaded = false;
+  protected navStateConsumed = false;
 
   ngOnInit(): void {
     this.syncReportTypeValidators();
@@ -154,8 +167,10 @@ export class Reports {
   }
 
 
-  private loadMachineList(): void {
-    this._apiFs.machineConfigure.optionList().subscribe({
+  protected loadMachineList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchMachineOptions().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
           this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
@@ -167,8 +182,14 @@ export class Reports {
     });
   }
 
-  private loadQualityList(): void {
-    this._apiFs.reports.getQualities().subscribe({
+  protected fetchMachineOptions() {
+    return this._apiFs.machineConfigure.optionList();
+  }
+
+  protected loadQualityList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchQualities().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
           this.qualityList = res.data || [];
@@ -177,8 +198,14 @@ export class Reports {
     });
   }
 
-  private loadMachineGroupList(): void {
-    this._apiFs.machineGroup.list().subscribe({
+  protected fetchQualities() {
+    return this._apiFs.reports.getQualities();
+  }
+
+  protected loadMachineGroupList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchMachineGroups().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
           this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
@@ -189,16 +216,64 @@ export class Reports {
     });
   }
 
+  protected fetchMachineGroups() {
+    return this._apiFs.machineGroup.list();
+  }
+
+  protected get selectedWorkspace(): { _id: string; firmName: string } | null {
+    if (!this.selectedWorkspaceId) return null;
+    return this.workspaceOptions.find(ws => ws._id === this.selectedWorkspaceId) ?? null;
+  }
+
+  protected onWorkspaceSelect(workspace: { _id: string; firmName: string } | null): void {
+    if (!workspace?._id || workspace._id === this.selectedWorkspaceId) return;
+    this.navStateConsumed = true;
+    this.selectedWorkspaceId = workspace._id;
+    this.onWorkspaceChange();
+  }
+
+  protected goToManufacturerDashboard(): void {
+    this._router.navigate(
+      [ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.DASHBOARD)],
+      { state: this.selectedWorkspaceId ? { workspaceId: this.selectedWorkspaceId } : undefined }
+    );
+  }
+
+  protected onWorkspaceChange(): void {
+    this.machinesLoaded = false;
+    this.machineGroupsLoaded = false;
+    this.rawMachineList = [];
+    this.machineList = [];
+    this.machineGroupList = [];
+    this.qualityList = [];
+    this.reportData = null;
+    this.reportStopColumns = [];
+    this.stoppageTableRows = [];
+    this.machineIds?.patchValue(null, { emitEvent: false });
+    this.selectAll?.patchValue(false, { emitEvent: false });
+    this.loadMachineList();
+    this.loadMachineGroupList();
+    this.loadQualityList();
+  }
+
   /** Prefill filters from dashboard navigation state and auto-generate the report. */
-  private applyNavStateAndLoadReport(): void {
-    if (this.deepLinkApplied || !this.machinesLoaded || !this.machineGroupsLoaded) return;
+  protected applyNavStateAndLoadReport(): void {
+    if (!this.machinesLoaded || !this.machineGroupsLoaded || this.navStateConsumed) return;
+
+    const workspaceId = this.navState?.workspaceId;
+    if (workspaceId && workspaceId !== this.selectedWorkspaceId) {
+      this.selectedWorkspaceId = workspaceId;
+      this.onWorkspaceChange();
+      return;
+    }
+
+    this.navStateConsumed = true;
 
     const reportType = this.navState?.reportType;
     const machineCode = this.navState?.machineCode;
     const machineGroupId = this.navState?.machineGroupId;
 
     if (!reportType && !machineCode) return;
-    this.deepLinkApplied = true;
 
     if (reportType && this.reportTypeOptions.some(o => o.id === reportType)) {
       this.reportType?.patchValue(reportType, { emitEvent: false });
@@ -298,7 +373,7 @@ export class Reports {
     };
   }
 
-  private syncReportTypeValidators(): void {
+  protected syncReportTypeValidators(): void {
     if (this.isQualityWiseReport) {
       this.machineIds?.clearValidators();
       this.quality?.setValidators([Validators.required]);
@@ -394,7 +469,7 @@ export class Reports {
   }
 
 
-  private setSubscriptions(): void {
+  protected setSubscriptions(): void {
     this.reportType?.valueChanges.pipe(
       takeUntil(this.subscriptionHandler$)
     ).subscribe(() => {
@@ -531,6 +606,7 @@ export class Reports {
   protected isReqAlive: boolean = false;
   protected onShowReport(): void {
     if (this.isReqAlive) return;
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
 
     if (!this.isQualityWiseReport) {
       const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
@@ -554,13 +630,16 @@ export class Reports {
     }
 
     const filter = this.filterForm.value;
-    const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
     const payload: any = {
       reportType: filter.reportType,
       startDate: filter.startDate,
       endDate: filter.endDate,
-      shift: this.shiftOptions.filter(shiftCb).map(o => o.val)
     };
+
+    if (filter.reportType !== 'beamLeftReport') {
+      const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
+      payload.shift = this.shiftOptions.filter(shiftCb).map(o => o.val);
+    }
 
     if (filter.reportType === 'qualityProductionReport') {
       payload.quality = filter.quality;
@@ -572,8 +651,12 @@ export class Reports {
       payload.minStopMinutes = this.getSelectedMinStopMinutes();
     }
 
+    if (this.showFactoryFilter) {
+      payload.workspaceId = this.selectedWorkspaceId;
+    }
+
     this.isReqAlive = true;
-    this._apiFs.reports.generateReport(payload).subscribe({
+    this.fetchGenerateReport(payload).subscribe({
       next: (res: any) => {
         this.isReqAlive = false;
         if (res.code === 'OK') {
@@ -587,6 +670,12 @@ export class Reports {
             this.reportStopColumns = [];
             this.prepareStoppageTableRows(this.reportData.list || []);
             this.reportData.stoppageTableRows = this.stoppageTableRows;
+            return;
+          }
+
+          if (filter.reportType === 'beamLeftReport') {
+            this.reportStopColumns = [];
+            this.stoppageTableRows = [];
             return;
           }
 
@@ -607,6 +696,10 @@ export class Reports {
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }
     });
+  }
+
+  protected fetchGenerateReport(payload: any) {
+    return this._apiFs.reports.generateReport(payload);
   }
 
   protected exportAsPDF(): void {

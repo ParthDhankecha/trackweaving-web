@@ -9,6 +9,7 @@ import { ManufacturerOverview } from './overview/overview';
 import { ManufacturerDashboard } from './dashboard/dashboard';
 import { ManufacturerMachines } from './machines/machines';
 import { ManufacturerAnalytics } from './analytics/analytics';
+import { ManufacturerReports } from './reports/reports';
 
 import { manufacturerAuthGuard, manufacturerLoginGuard } from '../core/guards/manufacturer-auth-guard';
 
@@ -44,6 +45,11 @@ export const routes: Routes = [
                 path: ROUTES.MANUFACTURER.ANALYTICS,
                 title: APP_PAGE_TITLE.MANUFACTURER.ANALYTICS,
                 component: ManufacturerAnalytics
+            },
+            {
+                path: ROUTES.MANUFACTURER.REPORT,
+                title: APP_PAGE_TITLE.MANUFACTURER.REPORT,
+                component: ManufacturerReports
             }
         ]
     },

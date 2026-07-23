@@ -33,9 +33,11 @@ export class ExportData {
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
+    const isBeamLeftReport = reportData.reportType === 'beamLeftReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const tableColspan = isStoppageReport ? 7 : 11 + stopColumns.length * 2 + 2;
+    const isPortrait = isStoppageReport || isBeamLeftReport;
+    const tableColspan = isPortrait ? 7 : 11 + stopColumns.length * 2 + 2;
     const content: any[] = [
       { text: title, style: 'header' },
       {
@@ -63,11 +65,20 @@ export class ExportData {
         }
       });
     } else {
+      let bodyData;
+      if (isStoppageReport) {
+        bodyData = this.buildStoppageTableBody(reportData);
+      } else if (isBeamLeftReport) {
+        bodyData = this.buildBeamLeftTableBody(reportData);
+      } else {
+        bodyData = this.buildTableBody(reportData, stopColumns, tableColspan);
+      }
+
       content.push({
         table: {
-          headerRows: isStoppageReport ? 1 : 2,
-          widths: isStoppageReport ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto'),
-          body: isStoppageReport ? this.buildStoppageTableBody(reportData) : this.buildTableBody(reportData, stopColumns, tableColspan)
+          headerRows: isPortrait ? 1 : 2,
+          widths: isPortrait ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto'),
+          body: bodyData
         },
         width: 'auto',
         // layout: 'lightHorizontalLines',
@@ -81,7 +92,7 @@ export class ExportData {
     }
 
     const docDefinition: any = {
-      pageOrientation: isStoppageReport ? 'portrait' : 'landscape',
+      pageOrientation: isPortrait ? 'portrait' : 'landscape',
       pageSize: 'A4',
       pageMargins: [16, 16, 16, 16],
       content,
@@ -424,6 +435,41 @@ export class ExportData {
       body.push([
         ...this.colSpanCells('Total Stops', 6, this.grandTotalFill, { alignment: 'right' }),
         { text: reportData.totalStops ?? 0, ...this.grandTotalFill }
+      ]);
+    }
+
+    return body;
+  }
+
+  protected buildBeamLeftTableBody(reportData: any) {
+    const body: any[] = [[
+      { text: 'Machine Name', style: 'tableHeader' },
+      { text: 'Start Date', style: 'tableHeader' },
+      { text: 'Shift', style: 'tableHeader' },
+      { text: 'End Date', style: 'tableHeader' },
+      { text: 'Quality', style: 'tableHeader' },
+      { text: 'Beam Length', style: 'tableHeader' },
+      { text: 'Production Mtr', style: 'tableHeader' }
+    ]];
+
+    const rows = reportData.list || [];
+    rows.forEach((row: any, index: number) => {
+      const cellStyle = index % 2 === 0 ? 'contentCell' : 'contentCellBg';
+      body.push([
+        { text: row.machineName || '-', style: cellStyle },
+        { text: this.formatDate(row.startDate), style: cellStyle },
+        { text: row.shift || '-', style: cellStyle },
+        { text: row.endDate ? this.formatDate(row.endDate) : '-', style: cellStyle },
+        { text: row.quality || '-', style: cellStyle },
+        { text: row.beamLength != null ? row.beamLength : '-', style: cellStyle },
+        { text: row.productionMtr != null ? row.productionMtr : '-', style: cellStyle }
+      ]);
+    });
+
+    if (rows.length) {
+      body.push([
+        ...this.colSpanCells('Total Production Mtr', 6, this.grandTotalFill, { alignment: 'right' }),
+        { text: this.num(reportData.totalProductionMtr), ...this.grandTotalFill }
       ]);
     }
 

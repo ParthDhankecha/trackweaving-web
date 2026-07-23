@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ISettingsMenu } from '@src/app/models/utils.model';
@@ -20,12 +20,15 @@ import { ROUTES } from '@src/app/constants/app.routes';
 export class Header {
   // Inject services
   protected readonly _coreService = inject(CoreFacadeService);
+  private readonly _router = inject(Router);
 
   @Input('containerClass') containerClass: string = '';
   @Input('loadFor') loadFor: string = '';
+  @Input() manufacturerWorkspaceId: string = '';
 
 
   protected readonly _appRoutes = ROUTES;
+  protected readonly manufacturerReportLink = ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.REPORT);
 
 
   ngOnInit(): void { }
@@ -90,5 +93,11 @@ export class Header {
 
   protected closeOrCancelLogoutModal(): void {
     this.isLogoutConfirmationModalOpen = false;
+  }
+
+  protected navigateManufacturerReport(): void {
+    this._router.navigate([this.manufacturerReportLink], {
+      state: this.manufacturerWorkspaceId ? { workspaceId: this.manufacturerWorkspaceId } : undefined
+    });
   }
 }

@@ -15,10 +15,10 @@
 
     <!-- KPI row -->
     <div class="kpi-grid">
-        <div class="kpi-card kpi-indigo">
+        <div class="kpi-card kpi-primary">
             <div class="kpi-content">
-                <div class="kpi-label">Workspaces</div>
-                <div class="kpi-value" style="color:#6366f1">{{ overview.totalWorkspaces }}</div>
+                <div class="kpi-label">Factories</div>
+                <div class="kpi-value">{{ overview.totalWorkspaces }}</div>
             </div>
             <div class="kpi-icon">
                 <svg fill="currentColor" width="22" height="22" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
         <!-- Picks -->
         <div class="info-card">
             <div class="card-title">Current Shift Production</div>
-            <div class="picks-number">{{ overview.totalPicksToday | number }}</div>
+            <div class="picks-number">{{ overview.totalPicksToday }}</div>
             <div class="picks-sub">Picks today</div>
         </div>
 
@@ -115,7 +115,9 @@
 
     <!-- Workspace table -->
     <div class="table-card">
-        <div class="table-card-header">Workspace Breakdown</div>
+        <div class="table-card-header">
+            Factories Breakdown
+        </div>
         <div style="overflow-x:auto">
             <table class="ws-table">
                 <thead>

@@ -62,7 +62,7 @@
         transition: border-color 0.15s;
 
         &:focus {
-            border-color: #6366f1;
+            border-color: var(--mfr-primary);
             background: #fff;
         }
     }

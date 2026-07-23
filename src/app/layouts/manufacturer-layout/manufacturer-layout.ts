@@ -5,11 +5,12 @@ import { filter, Subscription } from 'rxjs';
 import { ROUTES } from '@src/app/constants/app.routes';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
+import { TrackWeavingLogo } from '@src/app/shared/components/track-weaving-logo/track-weaving-logo';
 
 
 @Component({
   selector: 'app-manufacturer-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrackWeavingLogo],
   templateUrl: './manufacturer-layout.html',
   styleUrl: './manufacturer-layout.scss'
 })
@@ -22,6 +23,7 @@ export class ManufacturerLayout implements OnInit, OnDestroy {
 
   protected isSidebarCollapsed = false;
   private readonly dashboardPath = ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.DASHBOARD);
+  private readonly reportsPath = ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.REPORT);
 
 
   ngOnInit(): void {
@@ -33,7 +35,7 @@ export class ManufacturerLayout implements OnInit, OnDestroy {
 
 
   private syncSidebarForRoute(url: string): void {
-    this.isSidebarCollapsed = url.startsWith(this.dashboardPath);
+    this.isSidebarCollapsed = url.startsWith(this.dashboardPath) || url.startsWith(this.reportsPath);
   }
 
 

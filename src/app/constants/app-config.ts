@@ -59,6 +59,7 @@ export const APP_PAGE_TITLE = {
         DASHBOARD: `Dashboard ${TITLE_POSTFIX}`,
         MACHINES: `Machines ${TITLE_POSTFIX}`,
         ANALYTICS: `Analytics ${TITLE_POSTFIX}`,
+        REPORT: `Reports ${TITLE_POSTFIX}`,
     },
     TERMS_AND_CONDITIONS: `Terms and Conditions ${TITLE_POSTFIX}`,
     PRIVACY_POLICY: `Privacy Policy ${TITLE_POSTFIX}`,

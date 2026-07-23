@@ -44,6 +44,7 @@ export const ROUTES = {
         DASHBOARD: 'dashboard',
         MACHINES: 'machines',
         ANALYTICS: 'analytics',
+        REPORT: 'report',
         getFullRoute: (route: string) => `/${ROUTES.MANUFACTURER.BASE}/${route}`
     },
     TERMS_AND_CONDITIONS: 'terms-and-condition',

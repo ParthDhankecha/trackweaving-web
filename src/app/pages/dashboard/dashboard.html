@@ -1,15 +1,12 @@
 <div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column gap-3 position-relative">
-    <app-header [loadFor]="dashboardHeaderMode" class="position-sticky top-0">
+    <app-header [loadFor]="dashboardHeaderMode" class="position-sticky top-0"
+        [manufacturerWorkspaceId]="selectedWorkspaceId">
         <ng-container dashboard-content>
             @if(showFactoryFilter) {
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                <select class="form-select form-select-sm text-capitalize" name="factory"
-                    [(ngModel)]="selectedWorkspaceId" (ngModelChange)="onWorkspaceChange()">
-                    <option value="" disabled>Select factory</option>
-                    @for(ws of workspaceOptions; track ws._id) {
-                    <option [value]="ws._id">{{ ws.firmName }}</option>
-                    }
-                </select>
+                <app-common-dropdown [optionsList]="workspaceOptions" [selectedOption]="selectedWorkspace"
+                    displayKey1="firmName" uniqueKey="_id" placeholder="Select factory" [filterKeys]="['firmName']"
+                    btnClass="btn-sm" (onSelect)="onWorkspaceSelect($event)" />
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
                 <select class="form-select form-select-sm text-capitalize" name="machineType"
