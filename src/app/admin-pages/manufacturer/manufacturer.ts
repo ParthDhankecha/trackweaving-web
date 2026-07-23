@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
+import { ROUTES } from '@src/app/constants/app.routes';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { EntriesPerPageSelector } from '@src/app/shared/components/entries-per-page-selector/entries-per-page-selector';
 import { Pagination } from '@src/app/shared/components/pagination/pagination';
@@ -25,6 +27,7 @@ export class ManufacturerPage {
 
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _coreService = inject(CoreFacadeService);
+  private readonly _router = inject(Router);
 
   protected searchTerm: string = '';
   protected statusFilter: string = '';
@@ -55,7 +58,7 @@ export class ManufacturerPage {
           this.totalEntries = res.data.totalCount || 0;
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -92,6 +95,15 @@ export class ManufacturerPage {
     this.isUpsertModalOpen = true;
   }
 
+  protected onOpenUsers(item: any): void {
+    if (!item?._id) return;
+
+    this._router.navigate(
+      [ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.MANUFACTURER_USER)],
+      { state: { manufacturerId: item._id } }
+    );
+  }
+
   protected onCloseModal(): void {
     this.isUpsertModalOpen = false;
     this.upsertModalData = null;
@@ -124,7 +136,6 @@ export class ManufacturerPage {
         }
       },
       error: (err: any) => {
-        this.deleteConfirmConfig = { isOpen: false, data: null };
         const msg = err?.error?.message || 'Delete failed.';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }

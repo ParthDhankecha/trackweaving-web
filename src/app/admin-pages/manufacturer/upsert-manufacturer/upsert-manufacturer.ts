@@ -24,54 +24,33 @@ export class UpsertManufacturer implements OnChanges {
   @Output('close') closeOrCancel = new EventEmitter<void>();
   @Output('upsert') upsert = new EventEmitter<void>();
 
-  protected form!: FormGroup;
-  protected isEyeOpen: boolean = false;
+  protected form: FormGroup = this.buildForm();
   protected isReqAlive: boolean = false;
 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['manufacturerData']) {
       this.isEditMode = !!this.manufacturerData;
-      this.buildForm();
+      this.form = this.buildForm();
       if (this.isEditMode) {
         this.form.patchValue({
-          companyName:   this.manufacturerData.companyName || '',
-          contactPerson: this.manufacturerData.contactPerson || '',
-          phone:         this.manufacturerData.phone || '',
-          email:         this.manufacturerData.email || '',
-          isActive:      this.manufacturerData.isActive ?? true
+          companyName: this.manufacturerData.companyName || '',
+          isActive: this.manufacturerData.isActive ?? true
         });
       }
     }
   }
 
 
-  private buildForm(): void {
-    if (this.isEditMode) {
-      this.form = this._fb.group({
-        companyName:   ['', [Validators.required, Validators.maxLength(100)]],
-        contactPerson: [''],
-        phone:         ['', [Validators.pattern('^[0-9+\\-\\s]{7,15}$')]],
-        email:         [{ value: '', disabled: true }],
-        isActive:      [true, Validators.required]
-      });
-    } else {
-      this.form = this._fb.group({
-        companyName:   ['', [Validators.required, Validators.maxLength(100)]],
-        contactPerson: [''],
-        phone:         ['', [Validators.pattern('^[0-9+\\-\\s]{7,15}$')]],
-        email:         ['', [Validators.required, Validators.email]],
-        password:      ['', [Validators.required, Validators.minLength(6), Validators.maxLength(30)]],
-        isActive:      [true, Validators.required]
-      });
-    }
+  private buildForm(): FormGroup {
+    return this._fb.group({
+      companyName: ['', [Validators.required, Validators.maxLength(100)]],
+      isActive: [true, Validators.required]
+    });
   }
 
 
   get companyName(): AbstractControl | null { return this.form.get('companyName'); }
-  get email():       AbstractControl | null { return this.form.get('email'); }
-  get password():    AbstractControl | null { return this.form.get('password'); }
-  get phone():       AbstractControl | null { return this.form.get('phone'); }
 
 
   protected onSubmit(): void {
@@ -83,9 +62,13 @@ export class UpsertManufacturer implements OnChanges {
 
     this.isReqAlive = true;
     const raw = this.form.getRawValue();
+    const payload = {
+      companyName: raw.companyName?.trim(),
+      isActive: raw.isActive === true || raw.isActive === 'true'
+    };
 
     if (!this.isEditMode) {
-      this._apiFs.manufacturer.create(raw).subscribe({
+      this._apiFs.manufacturer.create(payload).subscribe({
         next: (res: IResponse) => {
           this.isReqAlive = false;
           if (res.code === 'CREATED') {
@@ -98,29 +81,24 @@ export class UpsertManufacturer implements OnChanges {
           this._coreService.utils.showToaster(EToasterType.Danger, err?.error?.message || 'Failed to create.');
         }
       });
-    } else {
-      const id = this.manufacturerData._id;
-      const payload: any = {
-        companyName:   raw.companyName,
-        contactPerson: raw.contactPerson,
-        phone:         raw.phone,
-        isActive:      raw.isActive
-      };
-      this._apiFs.manufacturer.update(id, payload).subscribe({
-        next: (res: IResponse) => {
-          this.isReqAlive = false;
-          if (res.code === 'OK') {
-            this._coreService.utils.showToaster(EToasterType.Info, 'Manufacturer updated.');
-            this.upsert.emit();
-          }
-        },
-        error: (err: any) => {
-          this.isReqAlive = false;
-          this._coreService.utils.showToaster(EToasterType.Danger, err?.error?.message || 'Failed to update.');
-        }
-      });
+      return;
     }
+
+    this._apiFs.manufacturer.update(this.manufacturerData._id, payload).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this._coreService.utils.showToaster(EToasterType.Info, 'Manufacturer updated.');
+          this.upsert.emit();
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        this._coreService.utils.showToaster(EToasterType.Danger, err?.error?.message || 'Failed to update.');
+      }
+    });
   }
+
 
   protected onClose(): void {
     this.closeOrCancel.emit();

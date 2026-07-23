@@ -1,15 +1,25 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 
 import moment from 'moment';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
+import { ROUTES } from '@src/app/constants/app.routes';
+
+interface IReportNavState {
+  reportType?: string;
+  machineCode?: string;
+  machineGroupId?: string;
+  workspaceId?: string;
+}
 
 
 @Component({
@@ -18,7 +28,9 @@ import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models
     ReactiveFormsModule,
     FormsModule,
     DecimalPipe,
-    DatePipe
+    DatePipe,
+    NgTemplateOutlet,
+    CommonDropdown
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
@@ -28,14 +40,20 @@ export class Reports {
   // Inject services
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
+  protected readonly _router = inject(Router);
+  /** Captured at construction — `getCurrentNavigation()` is only available then. */
+  private readonly navState: IReportNavState | null =
+    (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
+    ?? (history.state as IReportNavState | null)
+    ?? null;
 
   protected readonly _fb = inject(FormBuilder);
 
+  protected showFactoryFilter = false;
+  protected workspaceOptions: { _id: string; firmName: string }[] = [];
+  protected selectedWorkspaceId = '';
 
-  protected readonly tableShifts: { key: string, label: string }[] = [
-    { key: 'dayShift', label: 'Day Shift' },
-    { key: 'nightShift', label: 'Night Shift' }
-  ];
+
   protected readonly tableShiftObj: any = {
     0: { key: 'dayShift', label: 'Day Shift' },
     1: { key: 'nightShift', label: 'Night Shift' }
@@ -47,7 +65,9 @@ export class Reports {
   ];
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
-    { id: 'stoppageReport', label: 'Stoppage Report' }
+    { id: 'qualityProductionReport', label: 'Quality Production Report' },
+    { id: 'stoppageReport', label: 'Stoppage Report' },
+    { id: 'beamLeftReport', label: 'Beam Left Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
     { id: '5', label: '5 mins', value: 5 },
@@ -63,15 +83,17 @@ export class Reports {
     endDate: [moment().format('YYYY-MM-DD'), [Validators.required, this.endDateValidator.bind(this)]],
     shift: [this.shiftOptions[0].id, []],
     stopTimeFilter: [this.stopTimeOptions[0].id, []],
-    customStopMinutes: [null, []],
+    customStopMinutes: [{ value: null, disabled: true }, []],
     groupByMachine: [false, []],
     selectAll: [false, []],
     machineIds: [null, [Validators.required]],
+    quality: ['', []],
   });
 
   protected rawMachineList: any[] = [];
   protected machineList: any[] = [];
   protected machineGroupList: any[] = [];
+  protected qualityList: string[] = [];
   private subscriptionHandler$ = new Subject<void>();
 
   protected reportData: any;
@@ -83,6 +105,18 @@ export class Reports {
     return this.reportType?.value === 'stoppageReport';
   }
 
+  protected get isBeamLeftReport(): boolean {
+    return this.reportType?.value === 'beamLeftReport';
+  }
+
+  protected get isQualityWiseReport(): boolean {
+    return this.reportType?.value === 'qualityProductionReport';
+  }
+
+  protected get showMachineSelection(): boolean {
+    return !this.isQualityWiseReport;
+  }
+
   protected get isCustomStopTime(): boolean {
     return this.stopTimeFilter?.value === this.stopTimeCustomId;
   }
@@ -92,6 +126,10 @@ export class Reports {
   }
 
   get reportTableColspan(): number {
+    return 10 + this.stopSectionColspan;
+  }
+
+  get qualityWiseTableColspan(): number {
     return 9 + this.stopSectionColspan;
   }
 
@@ -116,31 +154,150 @@ export class Reports {
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
 
 
+  protected machinesLoaded = false;
+  protected machineGroupsLoaded = false;
+  protected navStateConsumed = false;
+
   ngOnInit(): void {
+    this.syncReportTypeValidators();
     this.loadMachineList();
     this.loadMachineGroupList();
+    this.loadQualityList();
     this.setSubscriptions();
   }
 
 
-  private loadMachineList(): void {
-    this._apiFs.machineConfigure.optionList().subscribe({
+  protected loadMachineList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchMachineOptions().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
           this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
           this.machineList = [...this.rawMachineList];
+          this.machinesLoaded = true;
+          this.applyNavStateAndLoadReport();
         }
       }
     });
   }
-  private loadMachineGroupList(): void {
-    this._apiFs.machineGroup.list().subscribe({
+
+  protected fetchMachineOptions() {
+    return this._apiFs.machineConfigure.optionList();
+  }
+
+  protected loadQualityList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchQualities().subscribe({
       next: (res: any) => {
         if (res.code === 'OK') {
-          this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
+          this.qualityList = res.data || [];
         }
       }
     });
+  }
+
+  protected fetchQualities() {
+    return this._apiFs.reports.getQualities();
+  }
+
+  protected loadMachineGroupList(): void {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    this.fetchMachineGroups().subscribe({
+      next: (res: any) => {
+        if (res.code === 'OK') {
+          this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
+          this.machineGroupsLoaded = true;
+          this.applyNavStateAndLoadReport();
+        }
+      }
+    });
+  }
+
+  protected fetchMachineGroups() {
+    return this._apiFs.machineGroup.list();
+  }
+
+  protected get selectedWorkspace(): { _id: string; firmName: string } | null {
+    if (!this.selectedWorkspaceId) return null;
+    return this.workspaceOptions.find(ws => ws._id === this.selectedWorkspaceId) ?? null;
+  }
+
+  protected onWorkspaceSelect(workspace: { _id: string; firmName: string } | null): void {
+    if (!workspace?._id || workspace._id === this.selectedWorkspaceId) return;
+    this.navStateConsumed = true;
+    this.selectedWorkspaceId = workspace._id;
+    this.onWorkspaceChange();
+  }
+
+  protected goToManufacturerDashboard(): void {
+    this._router.navigate(
+      [ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.DASHBOARD)],
+      { state: this.selectedWorkspaceId ? { workspaceId: this.selectedWorkspaceId } : undefined }
+    );
+  }
+
+  protected onWorkspaceChange(): void {
+    this.machinesLoaded = false;
+    this.machineGroupsLoaded = false;
+    this.rawMachineList = [];
+    this.machineList = [];
+    this.machineGroupList = [];
+    this.qualityList = [];
+    this.reportData = null;
+    this.reportStopColumns = [];
+    this.stoppageTableRows = [];
+    this.machineIds?.patchValue(null, { emitEvent: false });
+    this.selectAll?.patchValue(false, { emitEvent: false });
+    this.loadMachineList();
+    this.loadMachineGroupList();
+    this.loadQualityList();
+  }
+
+  /** Prefill filters from dashboard navigation state and auto-generate the report. */
+  protected applyNavStateAndLoadReport(): void {
+    if (!this.machinesLoaded || !this.machineGroupsLoaded || this.navStateConsumed) return;
+
+    const workspaceId = this.navState?.workspaceId;
+    if (workspaceId && workspaceId !== this.selectedWorkspaceId) {
+      this.selectedWorkspaceId = workspaceId;
+      this.onWorkspaceChange();
+      return;
+    }
+
+    this.navStateConsumed = true;
+
+    const reportType = this.navState?.reportType;
+    const machineCode = this.navState?.machineCode;
+    const machineGroupId = this.navState?.machineGroupId;
+
+    if (!reportType && !machineCode) return;
+
+    if (reportType && this.reportTypeOptions.some(o => o.id === reportType)) {
+      this.reportType?.patchValue(reportType, { emitEvent: false });
+      if (reportType === 'stoppageReport') {
+        // custom stop time filter
+        this.stopTimeFilter?.patchValue(this.stopTimeCustomId, { emitEvent: false });
+        this.customStopMinutes?.patchValue(1, { emitEvent: false });
+        this.syncCustomStopMinutesControl();
+      }
+    }
+
+    if (machineCode) {
+      const machine = this.machineList.find(m => m.machineCode === machineCode && m.machineGroupId === machineGroupId);
+
+      if (machine) {
+        machine.selected = true;
+      }
+      this.machineIds?.patchValue(machine ? [machine._id] : null, { emitEvent: false });
+      this.toggleSelectAllState();
+    }
+
+    if (this.rawMachineList.some(m => m.selected)) {
+      this.onShowReport();
+    }
   }
 
 
@@ -165,11 +322,67 @@ export class Reports {
   get machineIds(): AbstractControl | null {
     return this.filterForm.get('machineIds');
   }
+  get quality(): AbstractControl | null {
+    return this.filterForm.get('quality');
+  }
   get stopTimeFilter(): AbstractControl | null {
     return this.filterForm.get('stopTimeFilter');
   }
   get customStopMinutes(): AbstractControl | null {
     return this.filterForm.get('customStopMinutes');
+  }
+
+  private flattenProductionReportList(parsedList: any[] = [], includeEntireDay = false): any[] {
+    const list: any[] = [];
+    parsedList.forEach((item: any) => {
+      const dayShift = item.reportData?.dayShift;
+      if (dayShift) {
+        list.push({
+          ...dayShift,
+          reportDate: item.reportDate,
+          shiftLabel: this.tableShiftObj[0].label,
+        });
+      }
+
+      const nightShift = item.reportData?.nightShift;
+      if (nightShift) {
+        list.push({
+          ...nightShift,
+          reportDate: item.reportDate,
+          shiftLabel: this.tableShiftObj[1].label,
+        });
+      }
+      if (includeEntireDay && dayShift && nightShift) {
+        list.at(-1).fullDay = this.buildEntireDayTotal(item.reportDate, dayShift, nightShift);
+      }
+    });
+    return list;
+  }
+
+  private buildEntireDayTotal(reportDate: string, dayShift: any, nightShift: any): any {
+    const shiftCount = 2;
+    return {
+      reportDate,
+      shiftLabel: 'Full Day',
+      prodMeter: (dayShift.prodMeter || 0) + (nightShift.prodMeter || 0),
+      totalPicks: (dayShift.totalPicks || 0) + (nightShift.totalPicks || 0),
+      efficiency: Math.round(((dayShift.efficiency || 0) + (nightShift.efficiency || 0)) / shiftCount),
+      realEfficiency: Math.round((((dayShift.realEfficiency || 0) + (nightShift.realEfficiency || 0)) / shiftCount) * 10) / 10,
+      avgSpeed: Math.round(((dayShift.avgSpeed || 0) + (nightShift.avgSpeed || 0)) / shiftCount),
+      avgPicks: Math.round(((dayShift.avgPicks || 0) + (nightShift.avgPicks || 0)) / shiftCount),
+    };
+  }
+
+  protected syncReportTypeValidators(): void {
+    if (this.isQualityWiseReport) {
+      this.machineIds?.clearValidators();
+      this.quality?.setValidators([Validators.required]);
+    } else {
+      this.quality?.clearValidators();
+      this.machineIds?.setValidators([Validators.required]);
+    }
+    this.machineIds?.updateValueAndValidity({ emitEvent: false });
+    this.quality?.updateValueAndValidity({ emitEvent: false });
   }
 
   private getSelectedMinStopMinutes(): number | null {
@@ -256,7 +469,22 @@ export class Reports {
   }
 
 
-  private setSubscriptions(): void {
+  protected setSubscriptions(): void {
+    this.reportType?.valueChanges.pipe(
+      takeUntil(this.subscriptionHandler$)
+    ).subscribe(() => {
+      this.syncReportTypeValidators();
+      const now = moment();
+      if (this.isStoppageReport) {
+        this.startDate?.patchValue(now.clone().startOf('month').format('YYYY-MM-DD'), { emitEvent: false });
+      } else {
+        this.startDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
+        this.endDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
+      }
+      this.reportData = null;
+      this.reportStopColumns = [];
+      this.stoppageTableRows = [];
+    });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
       takeUntil(this.subscriptionHandler$)
@@ -269,6 +497,22 @@ export class Reports {
     ).subscribe(value => {
       this.onSelectAllChange(value);
     });
+    this.stopTimeFilter?.valueChanges.pipe(
+      takeUntil(this.subscriptionHandler$)
+    ).subscribe(() => {
+      this.syncCustomStopMinutesControl();
+    });
+  }
+
+  private syncCustomStopMinutesControl(): void {
+    const control = this.customStopMinutes;
+    if (!control) return;
+
+    if (this.isCustomStopTime) {
+      if (control.disabled) control.enable({ emitEvent: false });
+    } else if (control.enabled) {
+      control.disable({ emitEvent: false });
+    }
   }
 
   protected arrangeMachineList(flag: boolean): void {
@@ -276,7 +520,8 @@ export class Reports {
       // Group machines by their machine groups
       const groupedMachines: any = [];
       this.machineGroupList.forEach(mg => {
-        const list = this.rawMachineList.filter(m => m.machineGroupId === mg._id);
+        const mgId = String(mg._id ?? '');
+        const list = this.rawMachineList.filter(m => String(m.machineGroupId ?? '') === mgId);
         if (list.length > 0) {
           groupedMachines.push({
             _id: mg._id,
@@ -361,8 +606,12 @@ export class Reports {
   protected isReqAlive: boolean = false;
   protected onShowReport(): void {
     if (this.isReqAlive) return;
-    const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
-    this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+
+    if (!this.isQualityWiseReport) {
+      const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
+      this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
+    }
 
     if (this.isStoppageReport) {
       const minStopMinutes = this.getSelectedMinStopMinutes();
@@ -381,21 +630,33 @@ export class Reports {
     }
 
     const filter = this.filterForm.value;
-    const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
     const payload: any = {
       reportType: filter.reportType,
       startDate: filter.startDate,
       endDate: filter.endDate,
-      machineIds: machineIds,
-      shift: this.shiftOptions.filter(shiftCb).map(o => o.val)
     };
+
+    if (filter.reportType !== 'beamLeftReport') {
+      const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
+      payload.shift = this.shiftOptions.filter(shiftCb).map(o => o.val);
+    }
+
+    if (filter.reportType === 'qualityProductionReport') {
+      payload.quality = filter.quality;
+    } else {
+      payload.machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
+    }
 
     if (filter.reportType === 'stoppageReport') {
       payload.minStopMinutes = this.getSelectedMinStopMinutes();
     }
 
+    if (this.showFactoryFilter) {
+      payload.workspaceId = this.selectedWorkspaceId;
+    }
+
     this.isReqAlive = true;
-    this._apiFs.reports.generateReport(payload).subscribe({
+    this.fetchGenerateReport(payload).subscribe({
       next: (res: any) => {
         this.isReqAlive = false;
         if (res.code === 'OK') {
@@ -412,24 +673,14 @@ export class Reports {
             return;
           }
 
+          if (filter.reportType === 'beamLeftReport') {
+            this.reportStopColumns = [];
+            this.stoppageTableRows = [];
+            return;
+          }
+
           if (Array.isArray(this.reportData?.list)) {
-            const list: any[] = [];
-            this.reportData.list?.forEach((item: any) => {
-              if (item.reportData?.dayShift) {
-                list.push({
-                  ...item.reportData.dayShift,
-                  reportDate: item.reportDate,
-                  shiftLabel: this.tableShiftObj[0].label,
-                });
-              }
-              if (item.reportData?.nightShift) {
-                list.push({
-                  ...item.reportData.nightShift,
-                  reportDate: item.reportDate,
-                  shiftLabel: this.tableShiftObj[1].label,
-                });
-              }
-            });
+            const list = this.flattenProductionReportList(this.reportData.list, filter.shift === 'all');
             this.reportData.list = list;
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;
@@ -445,6 +696,10 @@ export class Reports {
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }
     });
+  }
+
+  protected fetchGenerateReport(payload: any) {
+    return this._apiFs.reports.generateReport(payload);
   }
 
   protected exportAsPDF(): void {

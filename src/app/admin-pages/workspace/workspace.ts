@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { EntriesPerPageSelector } from '@src/app/shared/components/entries-per-page-selector/entries-per-page-selector';
@@ -8,6 +9,7 @@ import { UpsertWorkspace } from './upsert-workspace/upsert-workspace';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 
 @Component({
@@ -26,6 +28,7 @@ export class Workspace {
   // Inject services
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _coreService = inject(CoreFacadeService);
+  private readonly _router = inject(Router);
 
 
   protected statusFilter: string = '';
@@ -151,6 +154,11 @@ export class Workspace {
   protected onOpenUpsertWorkspaceModal(workspace: any = null): void {
     this.upsertWorkspaceModalData = workspace;
     this.isUpsertWorkspaceModalOpen = true;
+  }
+
+  protected onOpenAlertConfig(workspace: any): void {
+    if (!workspace?._id) return;
+    this._router.navigate([ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.ALERT_CONFIG(workspace._id))]);
   }
 
   protected onCloseWorkspaceModal(): void {

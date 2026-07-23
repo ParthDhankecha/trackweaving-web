@@ -1,9 +1,8 @@
 <div class="login-shell">
-
     <!-- Left: Branding panel -->
     <div class="login-brand-panel">
         <div class="brand-logo-block">
-            <div class="logo-mark">TW</div>
+            <app-track-weaving-logo [size]="48" />
             <span class="logo-name">Pickwell</span>
         </div>
 
@@ -37,20 +36,17 @@
         <div class="form-header">
             <div class="form-eyebrow">Manufacturer Portal</div>
             <h2 class="form-title">Welcome back</h2>
-            <p class="form-desc">Sign in to view your production dashboard</p>
+            <p class="form-desc">
+                Sign in with your manufacturer account credentials to access your dashboard.
+            </p>
         </div>
 
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
             <div class="form-group">
                 <label for="mfr-email">Email address</label>
                 <div class="input-wrap">
-                    <input
-                        id="mfr-email"
-                        type="email"
-                        formControlName="email"
-                        placeholder="you@company.com"
-                        [class.is-invalid]="email?.invalid && email?.touched" />
+                    <input id="mfr-email" type="email" formControlName="email" placeholder="you@company.com"
+                        [class.is-invalid]="email && email.invalid && email.touched" />
                 </div>
                 @if(email?.hasError('required') && email?.touched) {
                 <div class="field-error">Email is required.</div>
@@ -62,23 +58,23 @@
             <div class="form-group">
                 <label for="mfr-password">Password</label>
                 <div class="input-wrap">
-                    <input
-                        id="mfr-password"
-                        [type]="isEyeOpen ? 'text' : 'password'"
-                        formControlName="password"
-                        placeholder="••••••••"
-                        class="has-toggle"
-                        [class.is-invalid]="password?.invalid && password?.touched" />
+                    <input id="mfr-password" [type]="isEyeOpen ? 'text' : 'password'"
+                        [class.is-invalid]="password && password.invalid && password.touched" formControlName="password"
+                        placeholder="••••••••" class="has-toggle" />
+
                     <button type="button" class="toggle-btn" (click)="isEyeOpen = !isEyeOpen">
                         @if(isEyeOpen) {
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
                         </svg>
                         } @else {
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
                         </svg>
                         }
                     </button>
@@ -91,8 +87,6 @@
             <button type="submit" class="btn-submit" [disabled]="isReqAlive">
                 {{ isReqAlive ? 'Signing in...' : 'Sign In' }}
             </button>
-
         </form>
     </div>
-
 </div>

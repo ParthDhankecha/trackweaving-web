@@ -1,6 +1,23 @@
 <div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column gap-3 position-relative">
-    <app-header loadFor="dashboard" class="position-sticky top-0">
+    <app-header [loadFor]="dashboardHeaderMode" class="position-sticky top-0"
+        [manufacturerWorkspaceId]="selectedWorkspaceId">
         <ng-container dashboard-content>
+            @if(showFactoryFilter) {
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <app-common-dropdown [optionsList]="workspaceOptions" [selectedOption]="selectedWorkspace"
+                    displayKey1="firmName" uniqueKey="_id" placeholder="Select factory" [filterKeys]="['firmName']"
+                    btnClass="btn-sm" (onSelect)="onWorkspaceSelect($event)" />
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <select class="form-select form-select-sm text-capitalize" name="machineType"
+                    [(ngModel)]="selectedMachineType" (ngModelChange)="onMachineTypeChange()">
+                    <option value="">All Types</option>
+                    @for(type of machineTypeOptions; track type) {
+                    <option [value]="type">{{ type }}</option>
+                    }
+                </select>
+            </div>
+            }
             <div class="d-none d-md-flex gap-4 align-items-center px-3">
                 <ng-container *ngTemplateOutlet="pickingEfficiency; context: {
                     $implicit: { liveMetrics: liveMetrics, machineStatus: machineStatus }
@@ -362,7 +379,7 @@
                             @for(stopColumn of getStopColumns(machineLog.machineType); track stopColumn.key) {
                             <td>{{machineLog.stopsData[stopColumn.key]?.count || 0}}</td>
                             }
-                            <td class="bg-secondary-subtle">
+                            <td class="bg-secondary-subtle" (click)="onTotalStopsClick(machineLog)">
                                 {{machineLog.stopsData.total?.count}}
                             </td>
                         </tr>
@@ -389,7 +406,7 @@
 
 
     <!-- Layout Selector -->
-    <app-footer class="position-sticky bottom-0">
+    <app-footer class="position-sticky bottom-0" [contentOnly]="footerContentOnly">
         <div dashboard-content class="col-auto mx-auto d-flex align-items-center gap-4">
             <div class="dropdown-center dropup">
                 <button type="button" class="btn btn-secondary btn-sm dropdown-toggle text-capitalize"

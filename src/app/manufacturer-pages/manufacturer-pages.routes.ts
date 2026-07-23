@@ -6,8 +6,9 @@ import { APP_PAGE_TITLE } from '@src/app/constants/app-config';
 import { ManufacturerLayout } from '../layouts/manufacturer-layout/manufacturer-layout';
 import { ManufacturerLogin } from './manufacturer-login/manufacturer-login';
 import { ManufacturerOverview } from './overview/overview';
-import { ManufacturerMachines } from './machines/machines';
+import { ManufacturerDashboard } from './dashboard/dashboard';
 import { ManufacturerAnalytics } from './analytics/analytics';
+import { ManufacturerReports } from './reports/reports';
 
 import { manufacturerAuthGuard, manufacturerLoginGuard } from '../core/guards/manufacturer-auth-guard';
 
@@ -30,14 +31,19 @@ export const routes: Routes = [
                 component: ManufacturerOverview
             },
             {
-                path: ROUTES.MANUFACTURER.MACHINES,
-                title: APP_PAGE_TITLE.MANUFACTURER.MACHINES,
-                component: ManufacturerMachines
+                path: ROUTES.MANUFACTURER.DASHBOARD,
+                title: APP_PAGE_TITLE.MANUFACTURER.DASHBOARD,
+                component: ManufacturerDashboard
             },
             {
                 path: ROUTES.MANUFACTURER.ANALYTICS,
                 title: APP_PAGE_TITLE.MANUFACTURER.ANALYTICS,
                 component: ManufacturerAnalytics
+            },
+            {
+                path: ROUTES.MANUFACTURER.REPORT,
+                title: APP_PAGE_TITLE.MANUFACTURER.REPORT,
+                component: ManufacturerReports
             }
         ]
     },

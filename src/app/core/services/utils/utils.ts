@@ -80,15 +80,15 @@ export class Utils {
       const decoded = jwtDecode<any>(token);
       const exp = decoded?.exp;
       if (exp) return new Date().getTime() < exp * 1000;
-      return !!decoded?.manufacturer?.id;
+      return !!decoded?.mfrUser?.manufacturerId;
     } catch {
       return false;
     }
   }
 
-  get manufacturerInfo(): any {
+  get mfrUserInfo(): any {
     try {
-      const raw = localStorage.getItem(StorageKeys.MANUFACTURER_INFO);
+      const raw = localStorage.getItem(StorageKeys.MFR_USER_INFO);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -97,7 +97,8 @@ export class Utils {
 
   logoutManufacturer(): void {
     localStorage.removeItem(StorageKeys.MANUFACTURER_TOKEN);
-    localStorage.removeItem(StorageKeys.MANUFACTURER_INFO);
+    localStorage.removeItem(StorageKeys.MANUFACTURER_TOKEN_EXPIRES_AT);
+    localStorage.removeItem(StorageKeys.MFR_USER_INFO);
     this._router.navigateByUrl(`/${ROUTES.MANUFACTURER.BASE}/${ROUTES.MANUFACTURER.LOGIN}`);
   }
 

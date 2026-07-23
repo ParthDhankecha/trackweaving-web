@@ -59,6 +59,11 @@ export class AdminLayout implements OnInit, OnDestroy {
       label: 'Manufacturer',
       link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.MANUFACTURER),
       icon: 'manufacturer'
+    },
+    {
+      label: 'Manufacturer Users',
+      link: ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.MANUFACTURER_USER),
+      icon: 'users'
     }
   ];
   isSidebarCollapsed: boolean = false;

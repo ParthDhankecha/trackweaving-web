@@ -1,0 +1,19 @@
+// Uses Bootstrap primary from custom.scss ($primary: #043A54 → --bs-primary)
+@mixin manufacturer-theme {
+    --mfr-primary: var(--bs-primary);
+    --mfr-primary-rgb: var(--bs-primary-rgb);
+    --mfr-primary-light: color-mix(in srgb, var(--bs-primary) 72%, white);
+    --mfr-primary-dark: color-mix(in srgb, var(--bs-primary) 88%, black);
+    --mfr-primary-darker: color-mix(in srgb, var(--bs-primary) 75%, black);
+    --mfr-primary-soft: color-mix(in srgb, var(--bs-primary) 12%, transparent);
+    --mfr-primary-soft-bg: color-mix(in srgb, var(--bs-primary) 8%, transparent);
+    --mfr-primary-border: color-mix(in srgb, var(--bs-primary) 25%, transparent);
+    --mfr-primary-text: color-mix(in srgb, var(--bs-primary) 42%, white);
+    --mfr-sidebar-bg: color-mix(in srgb, var(--bs-primary) 82%, black);
+    --mfr-nav-text: rgba(255, 255, 255, 0.58);
+    --mfr-nav-text-hover: rgba(255, 255, 255, 0.92);
+    --mfr-nav-hover-bg: rgba(255, 255, 255, 0.08);
+    --mfr-nav-active-bg: rgba(255, 255, 255, 0.14);
+    --mfr-nav-active-border: rgba(255, 255, 255, 0.18);
+    --mfr-nav-active-accent: color-mix(in srgb, var(--bs-primary) 35%, white);
+}

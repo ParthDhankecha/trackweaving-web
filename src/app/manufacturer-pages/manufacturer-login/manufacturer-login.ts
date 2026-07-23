@@ -7,11 +7,12 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { ROUTES } from '@src/app/constants/app.routes';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import { TrackWeavingLogo } from '@src/app/shared/components/track-weaving-logo/track-weaving-logo';
 
 
 @Component({
   selector: 'app-manufacturer-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TrackWeavingLogo],
   templateUrl: './manufacturer-login.html',
   styleUrl: './manufacturer-login.scss'
 })
@@ -29,13 +30,13 @@ export class ManufacturerLogin {
   }
 
   protected loginForm: FormGroup = this._fb.group({
-    email:    ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
   protected isEyeOpen = false;
   protected isReqAlive = false;
 
-  get email():    AbstractControl | null { return this.loginForm.get('email'); }
+  get email(): AbstractControl | null { return this.loginForm.get('email'); }
   get password(): AbstractControl | null { return this.loginForm.get('password'); }
 
 
@@ -52,7 +53,9 @@ export class ManufacturerLogin {
         this.isReqAlive = false;
         if (res.code === 'OK') {
           this._router.navigateByUrl(ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.OVERVIEW)).then(() => {
-            this._coreService.utils.showToaster(EToasterType.Success, 'Welcome!');
+            const user = this._coreService.utils.mfrUserInfo;
+            const name = user?.contactPerson || 'back';
+            this._coreService.utils.showToaster(EToasterType.Success, `Welcome, ${name}!`);
           });
         }
       },

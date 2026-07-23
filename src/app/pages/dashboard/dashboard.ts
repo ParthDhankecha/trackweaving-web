@@ -1,6 +1,7 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 
 import moment from 'moment';
@@ -8,6 +9,7 @@ import moment from 'moment';
 import { Header } from '@src/app/layouts/header/header';
 import { Footer } from '@src/app/layouts/footer/footer';
 import { ModalLayer } from '@src/app/shared/components/modal-layer/modal-layer';
+import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -17,6 +19,7 @@ import { IResponse } from '@src/app/models/http-response.model';
 import { EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS } from '@src/app/models/machine.model';
 import { IAppConfigData } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 
 @Component({
@@ -28,22 +31,32 @@ import StorageKeys from '@src/app/constants/storage-keys';
     Header,
     Footer,
     ModalLayer,
-    RegisterModalLayer
+    RegisterModalLayer,
+    CommonDropdown
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class Dashboard {
+export class Dashboard implements OnInit, OnDestroy {
 
   // Inject services
   constructor(
-    private _apiFs: ApiFacadeService,
+    protected _apiFs: ApiFacadeService,
+    protected _router: Router,
     protected _coreService: CoreFacadeService
   ) {
     this.config = this._coreService.appConfig.configData;
   }
 
   protected config: IAppConfigData;
+
+  protected dashboardHeaderMode: string = 'dashboard';
+  protected footerContentOnly: boolean = false;
+  protected showFactoryFilter: boolean = false;
+  protected workspaceOptions: { _id: string; firmName: string }[] = [];
+  protected selectedWorkspaceId: string = '';
+  protected readonly machineTypeOptions = ['rapier', 'airjet', 'waterjet', 'circular'];
+  protected selectedMachineType = '';
 
 
   // Component properties
@@ -69,8 +82,8 @@ export class Dashboard {
   protected metricDisplayMode: MetricDisplayMode = 'label';
 
   protected groupByOptions: { key: GroupByOption; label: string }[] = [
-    { key: 'default', label: 'All Machines' },
-    { key: 'machine', label: 'By Machine' },
+    { key: 'default', label: 'Default' },
+    { key: 'group', label: 'By Group' },
     { key: 'efficiency', label: 'By Efficiency' },
   ];
   protected selectedGroupBy: GroupByOption = this.readStoredGroupBy() ?? 'default';
@@ -92,7 +105,7 @@ export class Dashboard {
     ],
   } as const;
 
-  private refreshSub!: Subscription;
+  protected refreshSub!: Subscription;
 
 
 
@@ -179,6 +192,7 @@ export class Dashboard {
   // protected totalPages: number = 0;
   protected getMachineLogs(filter: any = {}): void {
     if (!this.selectedMachineStatus) return;
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
 
     const payload: any = {
       status: this.selectedMachineStatus.key,
@@ -188,7 +202,7 @@ export class Dashboard {
     // Pagination disabled for now — restore for future use
     // if (!this.isDefaultLayout && !this.isDenseLayout) this.setPageAndLimit(payload);
 
-    this._apiFs.dashboard.getList(payload).subscribe({
+    this.fetchMachineLogs(payload).subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
           this.liveMetrics = res.data?.aggregateReport || {};
@@ -221,6 +235,31 @@ export class Dashboard {
         console.log('Error while fetching machine logs', err);
       }
     });
+  }
+
+  protected fetchMachineLogs(payload: any) {
+    return this._apiFs.dashboard.getList(payload);
+  }
+
+  protected get selectedWorkspace(): { _id: string; firmName: string } | null {
+    if (!this.selectedWorkspaceId) return null;
+    return this.workspaceOptions.find(ws => ws._id === this.selectedWorkspaceId) ?? null;
+  }
+
+  protected onWorkspaceSelect(workspace: { _id: string; firmName: string } | null): void {
+    if (!workspace?._id) return;
+
+    this.selectedWorkspaceId = workspace._id;
+    this.onWorkspaceChange();
+  }
+
+  protected onWorkspaceChange(): void {
+    this.loadMachineGroups();
+    this.getMachineLogs();
+  }
+
+  protected onMachineTypeChange(): void {
+    this.getMachineLogs();
   }
 
 
@@ -305,7 +344,7 @@ export class Dashboard {
     }
 
     let groups: IMachineLogGroup[] = [];
-    if (this.selectedGroupBy === 'machine') {
+    if (this.selectedGroupBy === 'group') {
       groups = this.groupByMachine(this.machineLogs);
     } else if (this.selectedGroupBy === 'efficiency') {
       groups = this.groupByEfficiency(this.machineLogs);
@@ -344,8 +383,8 @@ export class Dashboard {
     };
   }
 
-  private loadMachineGroups(): void {
-    this._apiFs.machineGroup.list().subscribe({
+  protected loadMachineGroups(): void {
+    this.fetchMachineGroups().subscribe({
       next: (res: IResponse) => {
         if (res.code !== 'OK') return;
 
@@ -357,7 +396,7 @@ export class Dashboard {
         }
 
         // Resolve labels if machine logs already arrived
-        if (this.selectedGroupBy === 'machine' && this.machineLogs.length) {
+        if (this.selectedGroupBy === 'group' && this.machineLogs.length) {
           this.applyGrouping();
         }
       },
@@ -365,6 +404,10 @@ export class Dashboard {
         console.log('Error while fetching machine groups', err);
       }
     });
+  }
+
+  protected fetchMachineGroups() {
+    return this._apiFs.machineGroup.list();
   }
 
   private resolveMachineGroupLabel(groupId: string): string {
@@ -407,8 +450,7 @@ export class Dashboard {
 
     for (const log of logs) {
       const efficiency = Number(log.efficiency) || 0;
-      const band = EFFICIENCY_BANDS.find(b => efficiency >= b.min && efficiency <= b.max)
-        ?? EFFICIENCY_BANDS[EFFICIENCY_BANDS.length - 1];
+      const band = EFFICIENCY_BANDS.find(b => efficiency >= b.min && efficiency < b.max) ?? EFFICIENCY_BANDS[EFFICIENCY_BANDS.length - 1];
       const group = groups.find(g => g.key === band.key);
       group?.machines.push(log);
     }
@@ -577,6 +619,18 @@ export class Dashboard {
     return buildStopColumns(machineType);
   }
 
+  protected onTotalStopsClick(machineLog: IMachineLog): void {
+    if (!machineLog?.machineCode) return;
+
+    this._router.navigate([`/${ROUTES.BASE}/${ROUTES.REPORT}`], {
+      state: {
+        reportType: 'stoppageReport',
+        machineCode: machineLog.machineCode,
+        machineGroupId: machineLog.machineGroupId || undefined,
+      },
+    });
+  }
+
   protected machineCardViewModelId: string = 'viewMachineDetails';
   protected selectedMachineLog: IMachineLog | null = null;
   protected doubleClickOnMachineCard(machine: IMachineLog): void {
@@ -605,7 +659,7 @@ export class Dashboard {
   }
 
 
-  private ngOnDestroy(): void {
+  ngOnDestroy(): void {
     // clean up to avoid memory leaks
     if (this.refreshSub) {
       this.refreshSub.unsubscribe();

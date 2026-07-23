@@ -117,7 +117,7 @@ export type LayoutOption = 'default' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3' | '
 
 export type MetricDisplayMode = 'icon' | 'label';
 
-export type GroupByOption = 'default' | 'machine' | 'efficiency';
+export type GroupByOption = 'default' | 'group' | 'efficiency';
 
 export interface IMachineLogGroup {
     key: string;
@@ -133,11 +133,11 @@ export interface IMachineLogGroup {
 }
 
 export const EFFICIENCY_BANDS: { key: string; label: string; min: number; max: number }[] = [
-    { key: '0-50', label: '0-50%', min: 0, max: 50 },
-    { key: '51-70', label: '51-70%', min: 51, max: 70 },
-    { key: '71-80', label: '71-80%', min: 71, max: 80 },
-    { key: '81-90', label: '81-90%', min: 81, max: 90 },
-    { key: '91-100', label: '91-100%', min: 91, max: 100 },
+    { key: '0-50', label: '0-49%', min: 0, max: 50 },
+    { key: '50-70', label: '50-69%', min: 50, max: 70 },
+    { key: '70-80', label: '70-79%', min: 70, max: 80 },
+    { key: '80-90', label: '80-89%', min: 80, max: 90 },
+    { key: '90-100', label: '90-100%', min: 90, max: 101 },
 ];
 
 export interface LayoutConfig {

@@ -33,14 +33,17 @@ export const ROUTES = {
         APK_VERSION: 'apk-version',
         LEAD: 'lead',
         MANUFACTURER: 'manufacturer',
+        MANUFACTURER_USER: 'manufacturer-user',
+        ALERT_CONFIG: (id: string = ':workspaceId') => `alert-config/${id}`,
         getFullRoute: (route: string) => `/${ROUTES.ADMIN.BASE}/${route}`
     },
     MANUFACTURER: {
         BASE: 'manufacturer',
         LOGIN: 'login',
         OVERVIEW: 'overview',
-        MACHINES: 'machines',
+        DASHBOARD: 'dashboard',
         ANALYTICS: 'analytics',
+        REPORT: 'report',
         getFullRoute: (route: string) => `/${ROUTES.MANUFACTURER.BASE}/${route}`
     },
     TERMS_AND_CONDITIONS: 'terms-and-condition',

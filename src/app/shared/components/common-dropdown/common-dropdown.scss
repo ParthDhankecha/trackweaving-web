@@ -8,6 +8,6 @@
 }
 
 .option-item {
-    @include custom-ellipses(1);
+    @include custom-ellipses(2);
     white-space: normal;
 }
