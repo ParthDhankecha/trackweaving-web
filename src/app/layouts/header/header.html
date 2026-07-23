@@ -1,3 +1,11 @@
+@if(loadFor === 'manufacturer-dashboard') {
+<div class="row py-1 shadow bg-white {{containerClass}}">
+    <div class="col d-flex flex-wrap align-items-center justify-content-center gap-4 row-gap-2">
+        <ng-content select="[dashboard-content]" />
+    </div>
+    <ng-content select="[dashboard-content-m-view]" />
+</div>
+} @else {
 <div class="row py-1 shadow bg-white {{containerClass}}">
     <div class="col d-flex gap-2">
         <div class="flex-grow-1 d-flex flex-wrap align-items-center gap-4 row-gap-2">
@@ -274,7 +282,6 @@
 </ng-template>
 
 
-
 <!-- Logout Confirmation Modal -->
 @if(isLogoutConfirmationModalOpen){
 <div class="modal-backdrop fade show"></div>
@@ -303,3 +310,4 @@
         </div>
     </div>
 </div>
+}

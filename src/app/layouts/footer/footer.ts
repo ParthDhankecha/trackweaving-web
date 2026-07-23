@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 
 
@@ -9,6 +9,8 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
   styleUrl: './footer.scss'
 })
 export class Footer {
+
+  @Input() contentOnly: boolean = false;
 
   // Inject services
   protected _coreService = inject(CoreFacadeService);

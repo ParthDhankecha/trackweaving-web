@@ -17,6 +17,7 @@ import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
 import { Reports } from './reports/reports';
 import { Lead } from './lead/lead';
 import { Manufacturer } from './manufacturer/manufacturer';
+import { ManufacturerUser } from './manufacturer-user/manufacturer-user';
 import { ManufacturerPortal } from './manufacturer-portal/manufacturer-portal';
 import { AlertConfig } from './alert-config/alert-config';
 
@@ -60,6 +61,8 @@ export class ApiFacadeService {
   public readonly lead: Lead = inject(Lead);
   // Inject Manufacturer (admin) service
   public readonly manufacturer: Manufacturer = inject(Manufacturer);
+  // Inject Manufacturer User (admin) service
+  public readonly manufacturerUser: ManufacturerUser = inject(ManufacturerUser);
   // Inject Manufacturer Portal service
   public readonly manufacturerPortal: ManufacturerPortal = inject(ManufacturerPortal);
   // Inject Alert Config (admin) service

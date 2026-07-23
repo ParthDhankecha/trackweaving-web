@@ -13,10 +13,6 @@ export class Manufacturer {
   private readonly _baseUrl: string = 'admin/manufacturer';
 
 
-  listWithPagination(payload: { companyName?: string; isActive?: boolean; page?: number; limit?: number }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/pagination`, payload);
-  }
-
   optionList(): Observable<IResponse> {
     return this._http.get(`${this._baseUrl}/option-list`);
   }
@@ -25,11 +21,15 @@ export class Manufacturer {
     return this._http.get(`${this._baseUrl}/${id}`);
   }
 
-  create(payload: any): Observable<IResponse> {
+  listWithPagination(payload: { companyName?: string; isActive?: boolean; page?: number; limit?: number }): Observable<IResponse> {
+    return this._http.post(`${this._baseUrl}/pagination`, payload);
+  }
+
+  create(payload: { companyName: string; isActive?: boolean }): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}/create`, payload);
   }
 
-  update(id: string, payload: any): Observable<IResponse> {
+  update(id: string, payload: { companyName?: string; isActive?: boolean }): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/update/${id}`, payload);
   }
 

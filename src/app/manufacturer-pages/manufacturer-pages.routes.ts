@@ -6,6 +6,7 @@ import { APP_PAGE_TITLE } from '@src/app/constants/app-config';
 import { ManufacturerLayout } from '../layouts/manufacturer-layout/manufacturer-layout';
 import { ManufacturerLogin } from './manufacturer-login/manufacturer-login';
 import { ManufacturerOverview } from './overview/overview';
+import { ManufacturerDashboard } from './dashboard/dashboard';
 import { ManufacturerMachines } from './machines/machines';
 import { ManufacturerAnalytics } from './analytics/analytics';
 
@@ -28,6 +29,11 @@ export const routes: Routes = [
                 path: ROUTES.MANUFACTURER.OVERVIEW,
                 title: APP_PAGE_TITLE.MANUFACTURER.OVERVIEW,
                 component: ManufacturerOverview
+            },
+            {
+                path: ROUTES.MANUFACTURER.DASHBOARD,
+                title: APP_PAGE_TITLE.MANUFACTURER.DASHBOARD,
+                component: ManufacturerDashboard
             },
             {
                 path: ROUTES.MANUFACTURER.MACHINES,

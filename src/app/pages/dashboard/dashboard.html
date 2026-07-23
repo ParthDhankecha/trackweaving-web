@@ -1,6 +1,26 @@
 <div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column gap-3 position-relative">
-    <app-header loadFor="dashboard" class="position-sticky top-0">
+    <app-header [loadFor]="dashboardHeaderMode" class="position-sticky top-0">
         <ng-container dashboard-content>
+            @if(showFactoryFilter) {
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <select class="form-select form-select-sm text-capitalize" name="factory"
+                    [(ngModel)]="selectedWorkspaceId" (ngModelChange)="onWorkspaceChange()">
+                    <option value="" disabled>Select factory</option>
+                    @for(ws of workspaceOptions; track ws._id) {
+                    <option [value]="ws._id">{{ ws.firmName }}</option>
+                    }
+                </select>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <select class="form-select form-select-sm text-capitalize" name="machineType"
+                    [(ngModel)]="selectedMachineType" (ngModelChange)="onMachineTypeChange()">
+                    <option value="">All Types</option>
+                    @for(type of machineTypeOptions; track type) {
+                    <option [value]="type">{{ type }}</option>
+                    }
+                </select>
+            </div>
+            }
             <div class="d-none d-md-flex gap-4 align-items-center px-3">
                 <ng-container *ngTemplateOutlet="pickingEfficiency; context: {
                     $implicit: { liveMetrics: liveMetrics, machineStatus: machineStatus }
@@ -389,7 +409,7 @@
 
 
     <!-- Layout Selector -->
-    <app-footer class="position-sticky bottom-0">
+    <app-footer class="position-sticky bottom-0" [contentOnly]="footerContentOnly">
         <div dashboard-content class="col-auto mx-auto d-flex align-items-center gap-4">
             <div class="dropdown-center dropup">
                 <button type="button" class="btn btn-secondary btn-sm dropdown-toggle text-capitalize"

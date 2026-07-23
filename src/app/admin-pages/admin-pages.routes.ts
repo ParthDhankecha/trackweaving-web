@@ -11,6 +11,7 @@ import { Machine } from './machine/machine';
 import { ApkVersion } from './apk-version/apk-version';
 import { Leads } from './leads/leads';
 import { ManufacturerPage } from './manufacturer/manufacturer';
+import { ManufacturerUserPage } from './manufacturer-user/manufacturer-user';
 import { AlertConfigPage } from './alert-config/alert-config';
 import { CommonOutlet } from '../layouts/common-outlet/common-outlet';
 
@@ -65,6 +66,11 @@ export const routes: Routes = [
                 path: ROUTES.ADMIN.MANUFACTURER,
                 title: APP_PAGE_TITLE.ADMIN.MANUFACTURER,
                 component: ManufacturerPage
+            },
+            {
+                path: ROUTES.ADMIN.MANUFACTURER_USER,
+                title: APP_PAGE_TITLE.ADMIN.MANUFACTURER_USER,
+                component: ManufacturerUserPage
             },
             {
                 path: `${ROUTES.ADMIN.ALERT_CONFIG()}`,

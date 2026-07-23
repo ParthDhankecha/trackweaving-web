@@ -293,7 +293,7 @@ export class Reports {
       totalPicks: (dayShift.totalPicks || 0) + (nightShift.totalPicks || 0),
       efficiency: Math.round(((dayShift.efficiency || 0) + (nightShift.efficiency || 0)) / shiftCount),
       realEfficiency: Math.round((((dayShift.realEfficiency || 0) + (nightShift.realEfficiency || 0)) / shiftCount) * 10) / 10,
-      avgSpeed: (dayShift.avgSpeed || 0) + (nightShift.avgSpeed || 0),
+      avgSpeed: Math.round(((dayShift.avgSpeed || 0) + (nightShift.avgSpeed || 0)) / shiftCount),
       avgPicks: Math.round(((dayShift.avgPicks || 0) + (nightShift.avgPicks || 0)) / shiftCount),
     };
   }

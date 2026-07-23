@@ -1,3 +1,10 @@
+@if(contentOnly) {
+<div class="row py-2 bg-white shadow-lg">
+    <div class="col d-flex align-items-center justify-content-center gap-4">
+        <ng-content select="[dashboard-content]" />
+    </div>
+</div>
+} @else {
 <div class="row py-2 bg-white shadow-lg">
     <div class="col col-md-3 d-flex align-items-center gap-4">
         <span>
@@ -17,3 +24,4 @@
         </span>
     </div>
 </div>
+}

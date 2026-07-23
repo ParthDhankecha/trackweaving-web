@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
@@ -35,18 +35,26 @@ import { ROUTES } from '@src/app/constants/app.routes';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class Dashboard {
+export class Dashboard implements OnInit, OnDestroy {
 
   // Inject services
   constructor(
-    private _apiFs: ApiFacadeService,
-    private _router: Router,
+    protected _apiFs: ApiFacadeService,
+    protected _router: Router,
     protected _coreService: CoreFacadeService
   ) {
     this.config = this._coreService.appConfig.configData;
   }
 
   protected config: IAppConfigData;
+
+  protected dashboardHeaderMode: string = 'dashboard';
+  protected footerContentOnly: boolean = false;
+  protected showFactoryFilter: boolean = false;
+  protected workspaceOptions: { _id: string; firmName: string }[] = [];
+  protected selectedWorkspaceId: string = '';
+  protected readonly machineTypeOptions = ['rapier', 'airjet', 'waterjet', 'circular'];
+  protected selectedMachineType = '';
 
 
   // Component properties
@@ -95,7 +103,7 @@ export class Dashboard {
     ],
   } as const;
 
-  private refreshSub!: Subscription;
+  protected refreshSub!: Subscription;
 
 
 
@@ -182,6 +190,7 @@ export class Dashboard {
   // protected totalPages: number = 0;
   protected getMachineLogs(filter: any = {}): void {
     if (!this.selectedMachineStatus) return;
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
 
     const payload: any = {
       status: this.selectedMachineStatus.key,
@@ -191,7 +200,7 @@ export class Dashboard {
     // Pagination disabled for now — restore for future use
     // if (!this.isDefaultLayout && !this.isDenseLayout) this.setPageAndLimit(payload);
 
-    this._apiFs.dashboard.getList(payload).subscribe({
+    this.fetchMachineLogs(payload).subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
           this.liveMetrics = res.data?.aggregateReport || {};
@@ -224,6 +233,19 @@ export class Dashboard {
         console.log('Error while fetching machine logs', err);
       }
     });
+  }
+
+  protected fetchMachineLogs(payload: any) {
+    return this._apiFs.dashboard.getList(payload);
+  }
+
+  protected onWorkspaceChange(): void {
+    this.loadMachineGroups();
+    this.getMachineLogs();
+  }
+
+  protected onMachineTypeChange(): void {
+    this.getMachineLogs();
   }
 
 
@@ -347,8 +369,8 @@ export class Dashboard {
     };
   }
 
-  private loadMachineGroups(): void {
-    this._apiFs.machineGroup.list().subscribe({
+  protected loadMachineGroups(): void {
+    this.fetchMachineGroups().subscribe({
       next: (res: IResponse) => {
         if (res.code !== 'OK') return;
 
@@ -368,6 +390,10 @@ export class Dashboard {
         console.log('Error while fetching machine groups', err);
       }
     });
+  }
+
+  protected fetchMachineGroups() {
+    return this._apiFs.machineGroup.list();
   }
 
   private resolveMachineGroupLabel(groupId: string): string {
@@ -410,8 +436,7 @@ export class Dashboard {
 
     for (const log of logs) {
       const efficiency = Number(log.efficiency) || 0;
-      const band = EFFICIENCY_BANDS.find(b => efficiency >= b.min && efficiency <= b.max)
-        ?? EFFICIENCY_BANDS[EFFICIENCY_BANDS.length - 1];
+      const band = EFFICIENCY_BANDS.find(b => efficiency >= b.min && efficiency < b.max) ?? EFFICIENCY_BANDS[EFFICIENCY_BANDS.length - 1];
       const group = groups.find(g => g.key === band.key);
       group?.machines.push(log);
     }
@@ -620,7 +645,7 @@ export class Dashboard {
   }
 
 
-  private ngOnDestroy(): void {
+  ngOnDestroy(): void {
     // clean up to avoid memory leaks
     if (this.refreshSub) {
       this.refreshSub.unsubscribe();

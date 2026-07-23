@@ -1,0 +1,98 @@
+<div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.4)">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ isEditMode ? 'Edit Manufacturer User' : 'New Manufacturer User' }}
+                </h5>
+                <button type="button" class="btn-close" (click)="onClose()"></button>
+            </div>
+
+            <div class="modal-body">
+                <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Manufacturer <span class="text-danger">*</span>
+                            </label>
+                            <app-common-dropdown [optionsList]="manufacturerList" [selectedOption]="manufacturer?.value"
+                                (onSelect)="onManufacturerChange($event)" [filterKeys]="['companyName']"
+                                displayKey1="companyName" uniqueKey="_id" placeholder="Select Manufacturer" />
+
+                            @if(manufacturer?.hasError('required') && manufacturer?.touched) {
+                            <div class="invalid-feedback d-block">Manufacturer is required.</div>
+                            }
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" formControlName="email"
+                                [class.is-invalid]="email && email.invalid && email.touched"
+                                placeholder="user@example.com" />
+
+                            @if(email?.hasError('required') && email?.touched) {
+                            <div class="invalid-feedback">Email is required.</div>
+                            }
+                            @if(email?.hasError('email') && email?.touched) {
+                            <div class="invalid-feedback">Enter a valid email address.</div>
+                            }
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Password @if(!isEditMode) { <span class="text-danger">*</span> }
+                                @else { <span class="text-muted small">(leave blank to keep current)</span> }
+                            </label>
+                            <input type="password" class="form-control" formControlName="password"
+                                placeholder="{{ isEditMode ? 'New password (optional)' : 'Enter password' }}"
+                                [class.is-invalid]="password && password.invalid && password.touched" />
+
+                            @if(password?.hasError('required') && password?.touched) {
+                            <div class="invalid-feedback">Password is required.</div>
+                            }
+                            @if((password?.hasError('minlength') || password?.hasError('maxlength')) &&
+                            password?.touched) {
+                            <div class="invalid-feedback">Password must be 6–50 characters.</div>
+                            }
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Contact Person <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" formControlName="contactPerson"
+                                placeholder="John Doe"
+                                [class.is-invalid]="contactPerson && contactPerson.invalid && contactPerson.touched" />
+
+                            @if(contactPerson?.hasError('required') && contactPerson?.touched) {
+                            <div class="invalid-feedback">Contact person is required.</div>
+                            }
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" formControlName="phone" placeholder="9876543210" />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" formControlName="isActive">
+                                <option [ngValue]="true">Active</option>
+                                <option [ngValue]="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="isReqAlive">
+                            {{ isReqAlive ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -29,13 +29,13 @@ export class ManufacturerLogin {
   }
 
   protected loginForm: FormGroup = this._fb.group({
-    email:    ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
   protected isEyeOpen = false;
   protected isReqAlive = false;
 
-  get email():    AbstractControl | null { return this.loginForm.get('email'); }
+  get email(): AbstractControl | null { return this.loginForm.get('email'); }
   get password(): AbstractControl | null { return this.loginForm.get('password'); }
 
 
@@ -52,7 +52,9 @@ export class ManufacturerLogin {
         this.isReqAlive = false;
         if (res.code === 'OK') {
           this._router.navigateByUrl(ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.OVERVIEW)).then(() => {
-            this._coreService.utils.showToaster(EToasterType.Success, 'Welcome!');
+            const user = this._coreService.utils.mfrUserInfo;
+            const name = user?.contactPerson || 'back';
+            this._coreService.utils.showToaster(EToasterType.Success, `Welcome, ${name}!`);
           });
         }
       },
