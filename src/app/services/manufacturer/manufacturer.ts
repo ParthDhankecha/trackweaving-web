@@ -36,8 +36,4 @@ export class Manufacturer {
   delete(id: string): Observable<IResponse> {
     return this._http.delete(`${this._baseUrl}/delete/${id}`);
   }
-
-  assignWorkspaces(id: string, workspaceIds: string[]): Observable<IResponse> {
-    return this._http.put(`${this._baseUrl}/assign-workspaces/${id}`, { workspaceIds });
-  }
 }

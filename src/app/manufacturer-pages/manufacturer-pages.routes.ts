@@ -7,7 +7,6 @@ import { ManufacturerLayout } from '../layouts/manufacturer-layout/manufacturer-
 import { ManufacturerLogin } from './manufacturer-login/manufacturer-login';
 import { ManufacturerOverview } from './overview/overview';
 import { ManufacturerDashboard } from './dashboard/dashboard';
-import { ManufacturerMachines } from './machines/machines';
 import { ManufacturerAnalytics } from './analytics/analytics';
 import { ManufacturerReports } from './reports/reports';
 
@@ -35,11 +34,6 @@ export const routes: Routes = [
                 path: ROUTES.MANUFACTURER.DASHBOARD,
                 title: APP_PAGE_TITLE.MANUFACTURER.DASHBOARD,
                 component: ManufacturerDashboard
-            },
-            {
-                path: ROUTES.MANUFACTURER.MACHINES,
-                title: APP_PAGE_TITLE.MANUFACTURER.MACHINES,
-                component: ManufacturerMachines
             },
             {
                 path: ROUTES.MANUFACTURER.ANALYTICS,

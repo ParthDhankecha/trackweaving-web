@@ -46,16 +46,6 @@ export class ManufacturerPortal {
     return this._http.get(`${this._baseUrl}/dashboard/overview`);
   }
 
-  getMachineList(payload: {
-    workspaceId?: string;
-    machineType?: string;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/dashboard/machine-list`, payload);
-  }
-
   getAnalytics(payload: { workspaceId?: string; machineType?: string }): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}/dashboard/analytics`, payload);
   }

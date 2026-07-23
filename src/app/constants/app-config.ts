@@ -57,7 +57,6 @@ export const APP_PAGE_TITLE = {
         LOGIN: `Manufacturer Login ${TITLE_POSTFIX}`,
         OVERVIEW: `Overview ${TITLE_POSTFIX}`,
         DASHBOARD: `Dashboard ${TITLE_POSTFIX}`,
-        MACHINES: `Machines ${TITLE_POSTFIX}`,
         ANALYTICS: `Analytics ${TITLE_POSTFIX}`,
         REPORT: `Reports ${TITLE_POSTFIX}`,
     },

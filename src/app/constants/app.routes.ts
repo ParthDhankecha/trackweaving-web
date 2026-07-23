@@ -42,7 +42,6 @@ export const ROUTES = {
         LOGIN: 'login',
         OVERVIEW: 'overview',
         DASHBOARD: 'dashboard',
-        MACHINES: 'machines',
         ANALYTICS: 'analytics',
         REPORT: 'report',
         getFullRoute: (route: string) => `/${ROUTES.MANUFACTURER.BASE}/${route}`
