@@ -1,11 +1,5 @@
-@if(contentOnly) {
 <div class="row py-2 bg-white shadow-lg">
-    <div class="col d-flex align-items-center justify-content-center gap-4">
-        <ng-content select="[dashboard-content]" />
-    </div>
-</div>
-} @else {
-<div class="row py-2 bg-white shadow-lg">
+    @if (!contentOnly) {
     <div class="col col-md-3 d-flex align-items-center gap-4">
         <span>
             <strong>Support:</strong>&nbsp;
@@ -14,14 +8,16 @@
             </a>
         </span>
     </div>
-    <div class="col d-flex align-items-center gap-4">
-        <ng-content select="[dashboard-content]"></ng-content>
+    }
+    <div class="col d-flex align-items-center gap-4" [class.justify-content-center]="contentOnly">
+        <ng-content select="[dashboard-content]" />
     </div>
+    @if (!contentOnly) {
     <div class="col col-md-3 d-flex align-items-center justify-content-end gap-4">
         <span>
             <strong>CID:</strong>
             {{customerId}}
         </span>
     </div>
+    }
 </div>
-}
