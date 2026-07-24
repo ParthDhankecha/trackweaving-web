@@ -67,7 +67,7 @@ export class Reports {
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' },
-    { id: 'beamLeftReport', label: 'Beam Left Report' }
+    { id: 'beamProductionReport', label: 'Beam Production Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
     { id: '5', label: '5 mins', value: 5 },
@@ -105,8 +105,8 @@ export class Reports {
     return this.reportType?.value === 'stoppageReport';
   }
 
-  protected get isBeamLeftReport(): boolean {
-    return this.reportType?.value === 'beamLeftReport';
+  protected get isBeamProductionReport(): boolean {
+    return this.reportType?.value === 'beamProductionReport';
   }
 
   protected get isQualityWiseReport(): boolean {
@@ -636,7 +636,7 @@ export class Reports {
       endDate: filter.endDate,
     };
 
-    if (filter.reportType !== 'beamLeftReport') {
+    if (filter.reportType !== 'beamProductionReport') {
       const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
       payload.shift = this.shiftOptions.filter(shiftCb).map(o => o.val);
     }
@@ -673,7 +673,7 @@ export class Reports {
             return;
           }
 
-          if (filter.reportType === 'beamLeftReport') {
+          if (filter.reportType === 'beamProductionReport') {
             this.reportStopColumns = [];
             this.stoppageTableRows = [];
             return;

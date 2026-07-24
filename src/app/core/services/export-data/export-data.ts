@@ -33,10 +33,10 @@ export class ExportData {
   exportTableToPDF(reportData: any): void {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
-    const isBeamLeftReport = reportData.reportType === 'beamLeftReport';
+    const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const isPortrait = isStoppageReport || isBeamLeftReport;
+    const isPortrait = isStoppageReport || isBeamProductionReport;
     const tableColspan = isPortrait ? 7 : 11 + stopColumns.length * 2 + 2;
     const content: any[] = [
       { text: title, style: 'header' },
@@ -68,7 +68,7 @@ export class ExportData {
       let bodyData;
       if (isStoppageReport) {
         bodyData = this.buildStoppageTableBody(reportData);
-      } else if (isBeamLeftReport) {
+      } else if (isBeamProductionReport) {
         bodyData = this.buildBeamLeftTableBody(reportData);
       } else {
         bodyData = this.buildTableBody(reportData, stopColumns, tableColspan);

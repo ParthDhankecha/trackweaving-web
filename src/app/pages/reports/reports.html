@@ -61,7 +61,7 @@
                     </div>
                     }
                 </div>
-                @if (!isBeamLeftReport) {
+                @if (!isBeamProductionReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                     <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
                     <select id="shift" class="form-select text-capitalize" formControlName="shift">
@@ -304,7 +304,7 @@
                     </tbody>
                 </table>
                 }
-                @case('beamLeftReport'){
+                @case('beamProductionReport'){
                 <table class="table table-bordered" #reportTable>
                     <thead class="table-dark text-center align-middle">
                         <tr>
