@@ -58,14 +58,16 @@
 .brand-logo-block {
     display: flex;
     align-items: center;
-    gap: 14px;
     margin-bottom: 64px;
 
-    .logo-name {
-        font-size: 22px;
-        font-weight: 700;
-        color: #f1f5f9;
-        letter-spacing: -0.5px;
+    .brand-logo {
+        padding: 4px 12px;
+        display: block;
+        height: 56px;
+        width: auto;
+        object-fit: contain;
+        background: white;
+        border-radius: 0.5rem;
     }
 }
 

@@ -7,12 +7,11 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { ROUTES } from '@src/app/constants/app.routes';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
-import { TrackWeavingLogo } from '@src/app/shared/components/track-weaving-logo/track-weaving-logo';
 
 
 @Component({
   selector: 'app-manufacturer-login',
-  imports: [ReactiveFormsModule, TrackWeavingLogo],
+  imports: [ReactiveFormsModule],
   templateUrl: './manufacturer-login.html',
   styleUrl: './manufacturer-login.scss'
 })

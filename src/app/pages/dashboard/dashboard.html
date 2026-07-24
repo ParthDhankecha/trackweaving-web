@@ -243,10 +243,10 @@
     <!-- Machine Card Template -->
     <ng-template #machineCardTemplate let-machineLog>
         <div class="d-grid rounded border border-2 border-opacity-75 user-select-none c-pointer"
-            [ngClass]="{ 'border-secondary': machineLog.currentStop, 'border-success': !machineLog.currentStop }">
+            [ngClass]="{ 'border-secondary': machineLog.currentStop, 'border-primary': !machineLog.currentStop }">
             <!-- Card Header -->
             <div class="d-flex align-items-center gap-3 text-white rounded-top-1 py-1 px-2"
-                [ngClass]="{ 'bg-secondary': machineLog.currentStop, 'bg-success': !machineLog.currentStop }">
+                [ngClass]="{ 'bg-secondary': machineLog.currentStop, 'bg-primary': !machineLog.currentStop }">
                 <small class="text-uppercase lh-1">
                     {{machineLog.machineCode}}
                 </small>

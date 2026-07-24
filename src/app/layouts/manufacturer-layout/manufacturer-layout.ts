@@ -5,12 +5,11 @@ import { filter, Subscription } from 'rxjs';
 import { ROUTES } from '@src/app/constants/app.routes';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
-import { TrackWeavingLogo } from '@src/app/shared/components/track-weaving-logo/track-weaving-logo';
 
 
 @Component({
   selector: 'app-manufacturer-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TrackWeavingLogo],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './manufacturer-layout.html',
   styleUrl: './manufacturer-layout.scss'
 })

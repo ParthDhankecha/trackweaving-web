@@ -3,13 +3,7 @@
     <aside class="mfr-sidebar" [class.collapsed]="isSidebarCollapsed">
         <!-- Header / Brand -->
         <div class="sidebar-header" (click)="isSidebarCollapsed = !isSidebarCollapsed">
-            <app-track-weaving-logo class="sidebar-logo-mark" [size]="36" />
-            @if (!isSidebarCollapsed) {
-            <div class="sidebar-brand-text">
-                <div class="brand-name">Pickwell</div>
-                <div class="brand-sub">Manufacturer Portal</div>
-            </div>
-            }
+            <img src="/{{isSidebarCollapsed ? 'favicon' : 'logo'}}.png" alt="Pickwell" class="sidebar-logo" />
         </div>
 
         <!-- Nav -->
