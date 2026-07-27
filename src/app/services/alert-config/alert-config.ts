@@ -10,6 +10,8 @@ export type AlertFlags = {
   maxSpeed?: boolean;
   lowSpeed?: boolean;
   beamLeft?: boolean;
+  machineStopped1?: boolean;
+  machineStopped2?: boolean;
 };
 
 @Injectable({

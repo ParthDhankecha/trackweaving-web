@@ -28,7 +28,9 @@ export class AlertConfigPage implements OnInit {
     { key: 'pickChange', label: 'Pick Change' },
     { key: 'maxSpeed', label: 'Max Speed' },
     { key: 'lowSpeed', label: 'Low Speed' },
-    { key: 'beamLeft', label: 'Beam Left' }
+    { key: 'beamLeft', label: 'Beam Left' },
+    { key: 'machineStopped1', label: 'Machine Stopped (10 min)' },
+    { key: 'machineStopped2', label: 'Machine Stopped (20 min)' }
   ];
 
   protected workspaceId: string | null = null;
@@ -38,7 +40,9 @@ export class AlertConfigPage implements OnInit {
     pickChange: true,
     maxSpeed: true,
     lowSpeed: true,
-    beamLeft: true
+    beamLeft: true,
+    machineStopped1: true,
+    machineStopped2: true
   };
   protected userConfigs: any[] = [];
 
@@ -77,6 +81,8 @@ export class AlertConfigPage implements OnInit {
             maxSpeed: true,
             lowSpeed: true,
             beamLeft: true,
+            machineStopped1: true,
+            machineStopped2: true,
             ...(res.data?.workspaceConfig?.alerts || {})
           };
           this.userConfigs = res.data?.userConfigs || [];
