@@ -615,6 +615,11 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
+  protected isLowBeamLeft(machineLog: IMachineLog): boolean {
+    const beamLeft = Number(machineLog?.beamLeft);
+    return Number.isFinite(beamLeft) && beamLeft < 1000;
+  }
+
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {
     return buildStopColumns(machineType);
   }

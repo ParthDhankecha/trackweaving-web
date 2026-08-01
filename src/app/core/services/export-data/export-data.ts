@@ -7,7 +7,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts['vfs'];
 import { saveAs } from 'file-saver';
-import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
+import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
 
 
 @Injectable({
@@ -34,22 +34,29 @@ export class ExportData {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
+    const isBeamCompletionDateReport = reportData.reportType === 'beamCompletionDateReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-    const isPortrait = isStoppageReport || isBeamProductionReport;
-    const tableColspan = isPortrait ? 7 : 11 + stopColumns.length * 2 + 2;
+    const showBeamCompletionDate = !!reportData.showBeamCompletionDateColumn || this.hasBeamCompletionDate(reportData);
+    const isPortrait = isStoppageReport || isBeamProductionReport || isBeamCompletionDateReport;
+    const productionFixedColCount = showBeamCompletionDate ? 12 : 11;
+    const tableColspan = isBeamCompletionDateReport ? 6 : (isPortrait ? 7 : productionFixedColCount + stopColumns.length * 2 + 2);
     const content: any[] = [
       { text: title, style: 'header' },
-      {
+    ];
+
+    if (reportData.fromDate && reportData.toDate) {
+      content.push({
         text: `Report Period: ${this.formatDate(reportData.fromDate)} to ${this.formatDate(reportData.toDate)}`,
         style: 'subHeader'
-      }
-    ];
+      });
+    }
 
     if (isQualityWiseReport) {
       content.push({ text: reportData.quality || 'Quality', style: 'sectionTitle' });
       const qualityStopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
-      const qualityColspan = 10 + qualityStopColumns.length * 2 + 2;
+      const qualityFixedColCount = showBeamCompletionDate ? 11 : 10;
+      const qualityColspan = qualityFixedColCount + qualityStopColumns.length * 2 + 2;
       content.push({
         table: {
           headerRows: 2,
@@ -70,6 +77,8 @@ export class ExportData {
         bodyData = this.buildStoppageTableBody(reportData);
       } else if (isBeamProductionReport) {
         bodyData = this.buildBeamLeftTableBody(reportData);
+      } else if (isBeamCompletionDateReport) {
+        bodyData = this.buildBeamCompletionDateTableBody(reportData);
       } else {
         bodyData = this.buildTableBody(reportData, stopColumns, tableColspan);
       }
@@ -77,7 +86,9 @@ export class ExportData {
       content.push({
         table: {
           headerRows: isPortrait ? 1 : 2,
-          widths: isPortrait ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto'),
+          widths: isBeamCompletionDateReport
+            ? ['auto', 'auto', 'auto', 'auto', 'auto', 'auto']
+            : (isPortrait ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto')),
           body: bodyData
         },
         width: 'auto',
@@ -119,6 +130,12 @@ export class ExportData {
   }
 
   // helper methods for PDF export
+  protected hasBeamCompletionDate(reportData: any): boolean {
+    return (reportData.list || []).some((item: any) =>
+      (item.list || []).some((data: any) => !!data.beamCompletionDate)
+    );
+  }
+
   protected resolveStopColumns(reportList: any[]) {
     const machineTypes = new Set<MachineType>();
     reportList.forEach(item => {
@@ -152,8 +169,10 @@ export class ExportData {
 
   protected buildTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
+    const showBeamCompletionDate = !!reportData.showBeamCompletionDateColumn || this.hasBeamCompletionDate(reportData);
     const stopSectionColspan = stopColumns.length * 2 + 2;
-    const fixedColCount = 11;
+    const fixedColCount = showBeamCompletionDate ? 12 : 11;
+    const avgColspan = showBeamCompletionDate ? 3 : 2;
 
     const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
@@ -168,6 +187,9 @@ export class ExportData {
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
     ];
+    if (showBeamCompletionDate) {
+      headerRow1.push({ text: 'Beam Completion Date', rowSpan: 2, style: 'tableHeader' });
+    }
     stopColumns.forEach(column => {
       headerRow1.push({ text: column.label, colSpan: 2, style: 'tableHeader' }, {});
     });
@@ -198,7 +220,7 @@ export class ExportData {
         const row: any[] = [
           ...cells,
           { text: data.machineCode, style: cellStyle },
-          { text: data.quality || '-', style: cellStyle },
+          { text: formatQualityReed(data.quality, data.reed), style: cellStyle },
           { text: data.pieceLengthM, style: cellStyle },
           { text: data.picksCurrentShift, style: cellStyle },
           { text: data.efficiencyPercent, style: cellStyle },
@@ -207,6 +229,12 @@ export class ExportData {
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
         ];
+        if (showBeamCompletionDate) {
+          row.push({
+            text: data.beamCompletionDate ? this.formatDate(data.beamCompletionDate) : '-',
+            style: cellStyle
+          });
+        }
         stopColumns.forEach(column => {
           row.push({ text: this.getStopValue(data, column.key, 'count'), style: cellStyle });
           row.push({ text: this.getStopValue(data, column.key, 'duration'), style: cellStyle });
@@ -228,7 +256,7 @@ export class ExportData {
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
         { text: this.num(item.realEfficiency, 1), style: subTtlCellStyle },
         { text: this.formatNum(item.avgSpeed), style: subTtlCellStyle },
-        { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+        { text: `Avg: ${item.avgPicks}`, colSpan: avgColspan, alignment: 'left', style: subTtlCellStyle }, ...Array(avgColspan - 1).fill({}),
         { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
       if (item?.fullDay) {
@@ -240,7 +268,7 @@ export class ExportData {
           { text: this.num(item.fullDay.efficiency, 1), style: subTtlCellStyle },
           { text: this.num(item.fullDay.realEfficiency, 1), style: subTtlCellStyle },
           { text: this.formatNum(item.fullDay.avgSpeed), style: subTtlCellStyle },
-          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: avgColspan, alignment: 'left', style: subTtlCellStyle }, ...Array(avgColspan - 1).fill({}),
           { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
         ]);
       }
@@ -259,7 +287,7 @@ export class ExportData {
       { text: reportData.totalEfficiency, ...this.grandTotalFill },
       { text: reportData.totalRealEfficiency, ...this.grandTotalFill },
       { text: reportData.avgSpeed || 0, ...this.grandTotalFill },
-      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, 2, this.grandTotalFill, { alignment: 'left' }),
+      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, avgColspan, this.grandTotalFill, { alignment: 'left' }),
       ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
     ]);
 
@@ -268,8 +296,10 @@ export class ExportData {
 
   protected buildQualityWiseTableBody(section: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
     const body: any[] = [];
+    const showBeamCompletionDate = !!section.showBeamCompletionDateColumn || this.hasBeamCompletionDate(section);
     const stopSectionColspan = stopColumns.length * 2 + 2;
-    const fixedColCount = 10;
+    const fixedColCount = showBeamCompletionDate ? 11 : 10;
+    const avgColspan = showBeamCompletionDate ? 3 : 2;
 
     const headerRow1: any[] = [
       { text: 'Date', rowSpan: 2, style: 'tableHeader' },
@@ -283,6 +313,9 @@ export class ExportData {
       { text: 'Run Time', rowSpan: 2, style: 'tableHeader' },
       { text: 'Beam Left', rowSpan: 2, style: 'tableHeader' },
     ];
+    if (showBeamCompletionDate) {
+      headerRow1.push({ text: 'Beam Completion Date', rowSpan: 2, style: 'tableHeader' });
+    }
     stopColumns.forEach(column => {
       headerRow1.push({ text: column.label, colSpan: 2, style: 'tableHeader' }, {});
     });
@@ -320,6 +353,12 @@ export class ExportData {
           { text: data.runTime || '-', style: cellStyle },
           { text: data.beamLeft, style: cellStyle },
         ];
+        if (showBeamCompletionDate) {
+          row.push({
+            text: data.beamCompletionDate ? this.formatDate(data.beamCompletionDate) : '-',
+            style: cellStyle
+          });
+        }
         stopColumns.forEach(column => {
           row.push({ text: this.getStopValue(data, column.key, 'count'), style: cellStyle });
           row.push({ text: this.getStopValue(data, column.key, 'duration'), style: cellStyle });
@@ -341,7 +380,7 @@ export class ExportData {
         { text: this.num(item.efficiency, 1), style: subTtlCellStyle },
         { text: this.num(item.realEfficiency, 1), style: subTtlCellStyle },
         { text: this.formatNum(item.avgSpeed), style: subTtlCellStyle },
-        { text: `Avg: ${item.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+        { text: `Avg: ${item.avgPicks}`, colSpan: avgColspan, alignment: 'left', style: subTtlCellStyle }, ...Array(avgColspan - 1).fill({}),
         { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
       ]);
       if (item?.fullDay) {
@@ -353,7 +392,7 @@ export class ExportData {
           { text: this.num(item.fullDay.efficiency, 1), style: subTtlCellStyle },
           { text: this.num(item.fullDay.realEfficiency, 1), style: subTtlCellStyle },
           { text: this.formatNum(item.fullDay.avgSpeed), style: subTtlCellStyle },
-          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: 2, alignment: 'left', style: subTtlCellStyle }, {},
+          { text: `Avg: ${item.fullDay.avgPicks}`, colSpan: avgColspan, alignment: 'left', style: subTtlCellStyle }, ...Array(avgColspan - 1).fill({}),
           { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
         ]);
       }
@@ -372,7 +411,7 @@ export class ExportData {
       { text: section.totalEfficiency, ...this.grandTotalFill },
       { text: section.totalRealEfficiency, ...this.grandTotalFill },
       { text: section.avgSpeed, ...this.grandTotalFill },
-      ...this.colSpanCells(`Total Avg: ${section.avgPicks}`, 2, this.grandTotalFill, { alignment: 'left' }),
+      ...this.colSpanCells(`Total Avg: ${section.avgPicks}`, avgColspan, this.grandTotalFill, { alignment: 'left' }),
       ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
     ]);
 
@@ -460,7 +499,7 @@ export class ExportData {
         { text: this.formatDate(row.startDate), style: cellStyle },
         { text: row.shift || '-', style: cellStyle },
         { text: row.endDate ? this.formatDate(row.endDate) : '-', style: cellStyle },
-        { text: row.quality || '-', style: cellStyle },
+        { text: formatQualityReed(row.quality, row.reed), style: cellStyle },
         { text: row.beamLength != null ? row.beamLength : '-', style: cellStyle },
         { text: row.productionMtr != null ? row.productionMtr : '-', style: cellStyle }
       ]);
@@ -474,6 +513,41 @@ export class ExportData {
     }
 
     return body;
+  }
+
+  protected buildBeamCompletionDateTableBody(reportData: any) {
+    const body: any[] = [[
+      { text: 'Machine', style: 'tableHeader' },
+      { text: 'Beam Left (Mtrs)', style: 'tableHeader' },
+      { text: 'Completion Date', style: 'tableHeader' },
+      { text: 'Source', style: 'tableHeader' },
+      { text: 'Avg Daily Prod. (Mtrs)', style: 'tableHeader' },
+      { text: 'Est. Days Remaining', style: 'tableHeader' }
+    ]];
+
+    const rows = reportData.list || [];
+    rows.forEach((row: any, index: number) => {
+      const cellStyle = index % 2 === 0 ? 'contentCell' : 'contentCellBg';
+      body.push([
+        { text: row.machineCode || row.machineName || '-', style: cellStyle },
+        { text: this.num(row.beamLeft), style: cellStyle },
+        { text: row.beamCompletionDate ? this.formatDate(row.beamCompletionDate) : '-', style: cellStyle },
+        { text: this.formatCompletionSource(row.completionSource), style: cellStyle },
+        { text: row.avgDailyProduction != null ? this.num(row.avgDailyProduction) : '-', style: cellStyle },
+        { text: row.estimatedDaysRemaining ?? '-', style: cellStyle }
+      ]);
+    });
+
+    return body;
+  }
+
+  protected formatCompletionSource(source?: string | null): string {
+    switch (source) {
+      case 'device': return 'Device';
+      case 'estimated': return 'Estimated';
+      case 'completed': return 'Completed';
+      default: return '-';
+    }
   }
 
   protected formatDateTime(dateStr: string): string {

@@ -33,6 +33,7 @@ export class MachineConfigure {
     machineGroupId: ['', []],
     maxSpeedLimit: [null, [Validators.min(0)]],
     quality: ['', []],
+    reed: ['', []],
     isAlertActive: [false, []]
   });
 
@@ -87,6 +88,9 @@ export class MachineConfigure {
   get quality(): AbstractControl | null {
     return this.mcForm.get('quality');
   }
+  get reed(): AbstractControl | null {
+    return this.mcForm.get('reed');
+  }
   get isAlertActive(): AbstractControl | null {
     return this.mcForm.get('isAlertActive');
   }
@@ -106,6 +110,7 @@ export class MachineConfigure {
       machineGroupId: machineConfigure?.machineGroupId?._id ?? '',
       maxSpeedLimit: machineConfigure?.maxSpeedLimit ?? null,
       quality: machineConfigure?.quality ?? '',
+      reed: machineConfigure?.reed ?? '',
       isAlertActive: machineConfigure?.isAlertActive ?? false
     });
     this.machineName?.disable();
@@ -121,6 +126,7 @@ export class MachineConfigure {
       machineGroupId: '',
       maxSpeedLimit: null,
       quality: '',
+      reed: '',
       isAlertActive: false
     });
   }

@@ -39,7 +39,7 @@
                                 <option value="">Select machine name</option>
                                 @for(mItem of machineList; track mItem._id;){
                                 <option [value]="mItem._id">
-                                    {{mItem?.machineName}} ({{mItem?.machineCode}})
+                                    {{mItem?.machineCode}}
                                 </option>
                                 }
                             </select>
@@ -71,23 +71,10 @@
                         <!-- Changed By name -->
                         <div class="col-12 col-md-6 mb-3">
                             <span class="form-label d-block">
-                                Changed By(Name)<span class="text-danger">*</span>
+                                Changed By(Name)
                             </span>
                             <input type="text" formControlName="changedBy" class="form-control"
                                 placeholder="Enter name">
-
-                            @if(changedBy?.touched && changedBy?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(changedBy?.errors?.['required']){
-                                <span>Name is required.</span>
-                                }
-                                @if(changedBy?.errors?.['pattern']){
-                                <span>
-                                    Input cannot be empty or only spaces
-                                </span>
-                                }
-                            </div>
-                            }
                         </div>
                         <!-- Changed By contact -->
                         <div class="col-12 col-md-6 mb-3">

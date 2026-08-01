@@ -175,7 +175,7 @@
             [class.dense-card--running]="!machineLog.currentStop">
             <header class="dense-card__header">
                 <span class="dense-card__code">{{ machineLog.machineCode }}</span>
-                <span class="dense-card__quality">{{ machineLog.quality || '' }}</span>
+                <span class="dense-card__quality">{{ machineLog.quality || '' }}{{machineLog.reed ? (' ' + machineLog.reed + ')') : ''}}</span>
             </header>
 
             <div class="dense-card__stop" [class.blink-bg]="machineLog.currentStop">
@@ -203,7 +203,7 @@
 
                 <div class="dense-card__col">
                     @for (item of denseMetricKeys.rightKeys; track item.key) {
-                    <div class="dense-card__row">
+                    <div class="dense-card__row" [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                         @if (metricDisplayMode === 'icon') {
                         <span class="dense-card__icon" aria-hidden="true">
                             <ng-container *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
@@ -243,10 +243,10 @@
     <!-- Machine Card Template -->
     <ng-template #machineCardTemplate let-machineLog>
         <div class="d-grid rounded border border-2 border-opacity-75 user-select-none c-pointer"
-            [ngClass]="{ 'border-secondary': machineLog.currentStop, 'border-success': !machineLog.currentStop }">
+            [ngClass]="{ 'border-secondary': machineLog.currentStop, 'border-primary': !machineLog.currentStop }">
             <!-- Card Header -->
             <div class="d-flex align-items-center gap-3 text-white rounded-top-1 py-1 px-2"
-                [ngClass]="{ 'bg-secondary': machineLog.currentStop, 'bg-success': !machineLog.currentStop }">
+                [ngClass]="{ 'bg-secondary': machineLog.currentStop, 'bg-primary': !machineLog.currentStop }">
                 <small class="text-uppercase lh-1">
                     {{machineLog.machineCode}}
                 </small>
@@ -293,7 +293,8 @@
                         <div class="col-6 p-0 pe-1 d-flex flex-column gap-1">
                             @for(item of machineCardKeyObj.leftKeys; track item){
                             <div
-                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content">
+                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
+                                [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                                 <div class="rounded-1 w-auto flex-shrink-0" style="padding: 0.125em;">
                                     <ng-container
                                         *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
@@ -314,7 +315,8 @@
                         <div class="col-6 p-0 ps-1 d-flex flex-column gap-1">
                             @for(item of machineCardKeyObj.rightKeys; track item){
                             <div
-                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content">
+                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
+                                [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                                 <div class="rounded-1 w-auto " style="padding: 0.125em;">
                                     <ng-container
                                         *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
