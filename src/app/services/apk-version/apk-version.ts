@@ -17,21 +17,16 @@ export class ApkVersion {
   /* Admin side APIs */
   private readonly _adminBaseUrl: string = 'admin/app-version';
 
-  list(listType: 'android' | 'ios'): Observable<IResponse> {
-    return this._http.post(`${this._adminBaseUrl}/list`, {
-      type: listType
-    });
+
+  get(): Observable<IResponse> {
+    return this._http.get(`${this._adminBaseUrl}`);
   }
 
   create(payload: any): Observable<IResponse> {
     return this._http.post(`${this._adminBaseUrl}`, payload);
   }
 
-  update(apkVersionId: string, payload: any): Observable<IResponse> {
-    return this._http.put(`${this._adminBaseUrl}/${apkVersionId}`, payload);
-  }
-
-  delete(apkVersionId: string): Observable<IResponse> {
-    return this._http.delete(`${this._adminBaseUrl}/${apkVersionId}`);
+  update(payload: any): Observable<IResponse> {
+    return this._http.put(`${this._adminBaseUrl}`, payload);
   }
 }

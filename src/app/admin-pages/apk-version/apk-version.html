@@ -1,10 +1,6 @@
 <!-- inner header -->
 <div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
-    <!-- left side -->
-    <div class="d-flex flex-grow-1 gap-2">
-
-    </div>
-    <!-- right side -->
+    <div class="d-flex flex-grow-1 gap-2"></div>
     <div></div>
 </div>
 
@@ -12,167 +8,170 @@
 <div class="p-4">
     <div class="card">
         <div class="card-body">
-            <!-- Show dropdown to select number of entries per page -->
-            <div class="d-flex align-items-center flex-wrap mb-3 gap-4">
-                <div class="flex-grow-1">
-                    <ul class="nav nav-tabs nav-fill">
-                        @for(appType of appTypeList; track appType;) {
-                        <li class="nav-item cursor-pointer" (click)="onTabChange(appType)">
-                            <span class="nav-link text-capitalize"
-                                [class]="appType === selectedAppType ? 'bg-primary text-white': ''">
-                                {{ appType }}
-                            </span>
-                        </li>
-                        }
-                    </ul>
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h5 class="mb-0">
+                        App Version Config
+                    </h5>
+                    @if (!isLoading && !appVersionId) {
+                    <span class="badge bg-warning text-dark">
+                        Save required
+                    </span>
+                    }
                 </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-primary d-flex align-items-center gap-2"
-                        (click)="onOpenUpsertUserModal()">
-                        <svg height="20" width="20" viewBox="0 0 48 48" class="flex-shrink-0">
-                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
-                                stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
-                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
-                                stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
-                        </svg>
-                        <span class="text-nowrap">
-                            New Version
-                        </span>
-                    </button>
-                </div>
+                <p class="text-muted mb-0 small">
+                    Single config for Android and iOS. Changes are saved to history.
+                </p>
             </div>
 
+            @if (isLoading) {
+            <div class="text-center py-5">
+                <span class="spinner-border spinner-border-sm"></span>
+                <span class="ms-2">Loading...</span>
+            </div>
+            } @else {
+            <form [formGroup]="versionForm" (ngSubmit)="onSubmit()">
+                <div class="row g-4">
+                    <!-- Android -->
+                    <div class="col-12 col-lg-6" formGroupName="android">
+                        <h6 class="mb-3">
+                            Android
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label" for="androidMin">
+                                Min Version <span class="text-danger">*</span>
+                            </label>
+                            <input id="androidMin" type="number" min="1" class="form-control" formControlName="min" />
+
+                            @if (getAndroidControl('min')?.touched && getAndroidControl('min')?.errors) {
+                            <span class="invalid-feedback d-block">
+                                Min version is required and must be at least 1.
+                            </span>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="androidLatest">
+                                Latest Version <span class="text-danger">*</span>
+                            </label>
+                            <input id="androidLatest" type="number" min="1" class="form-control"
+                                formControlName="latest" />
+
+                            @if (getAndroidControl('latest')?.touched && getAndroidControl('latest')?.errors) {
+                            <span class="invalid-feedback d-block">
+                                Latest version is required and must be at least 1.
+                            </span>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="androidUpdateNote">
+                                Update Note
+                            </label>
+                            <textarea id="androidUpdateNote" class="form-control" rows="3" formControlName="updateNote"
+                                placeholder="Enter Android update note"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- iOS -->
+                    <div class="col-12 col-lg-6" formGroupName="ios">
+                        <h6 class="mb-3">
+                            iOS
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label" for="iosMin">
+                                Min Version <span class="text-danger">*</span>
+                            </label>
+                            <input id="iosMin" type="number" min="1" class="form-control" formControlName="min" />
+
+                            @if (getIosControl('min')?.touched && getIosControl('min')?.errors) {
+                            <span class="invalid-feedback d-block">
+                                Min version is required and must be at least 1.
+                            </span>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="iosLatest">
+                                Latest Version <span class="text-danger">*</span>
+                            </label>
+                            <input id="iosLatest" type="number" min="1" class="form-control" formControlName="latest" />
+
+                            @if (getIosControl('latest')?.touched && getIosControl('latest')?.errors) {
+                            <span class="invalid-feedback d-block">
+                                Latest version is required and must be at least 1.
+                            </span>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="iosUpdateNote">
+                                Update Note
+                            </label>
+                            <textarea id="iosUpdateNote" class="form-control" rows="3" formControlName="updateNote"
+                                placeholder="Enter iOS update note"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-primary d-flex align-items-center" [disabled]="isReqAlive">
+                        @if (!isReqAlive) {
+                        <span>{{ appVersionId ? 'Update' : 'Create' }}</span>
+                        } @else {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span class="ms-2">Please wait...</span>
+                        }
+                    </button>
+                </div>
+            </form>
+
+
+            <!-- Change History(Show if history is available) -->
+            @if (history && history.length) {
+            <hr class="my-4" />
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="mb-0">
+                    Change History
+                    <span class="badge text-bg-secondary ms-1">
+                        {{ history.length }}
+                    </span>
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="showHistory = !showHistory">
+                    {{ showHistory ? 'Hide' : 'Show' }}
+                </button>
+            </div>
+            @if (showHistory) {
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-sm table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">App Type</th>
-                            <th scope="col">Version</th>
-                            <th scope="col" class="text-center">Show Popup</th>
-                            <th scope="col" class="text-center">Hard Update</th>
-                            <th scope="col" class="w-1-percent text-center">
-                                Actions
-                            </th>
+                            <th>#</th>
+                            <th>Changed At</th>
+                            <th>Android (min / latest)</th>
+                            <th>iOS (min / latest)</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for(apkV of apkVersionList; track apkV._id; let i = $index){
+                        @for (item of history; track $index; let i = $index) {
                         <tr>
-                            <th scope="row">
-                                {{ i + 1 }}
-                            </th>
-                            <td class="text-capitalize">{{ apkV?.appType }}</td>
-                            <td>{{ apkV?.version }}</td>
-                            <td class="text-center">
-                                <div class="form-check form-switch d-flex p-0">
-                                    <input class="form-check-input mx-auto fs-5" type="checkbox"
-                                        [checked]="apkV?.showPopup" (click)="onStatusChange($event, apkV, 'showPopup')">
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ item?.changedAt | date:'medium' }}</td>
+                            <td>{{ item?.android?.min }} / {{ item?.android?.latest }}</td>
+                            <td>{{ item?.ios?.min }} / {{ item?.ios?.latest }}</td>
+                            <td>
+                                <div class="small">
+                                    A: {{ item?.android?.updateNote || '-' }}
                                 </div>
-                            </td>
-                            <td class="text-center">
-                                <div class="form-check form-switch d-flex p-0">
-                                    <input class="form-check-input mx-auto fs-5" type="checkbox"
-                                        [checked]="apkV?.hardUpdate"
-                                        (click)="onStatusChange($event, apkV, 'hardUpdate')">
+                                <div class="small">
+                                    i: {{ item?.ios?.updateNote || '-' }}
                                 </div>
-                            </td>
-                            <td class="text-nowrap text-end">
-                                <button class="btn btn-sm btn-outline-primary" (click)="onOpenUpsertUserModal(apkV)">
-                                    Edit
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger ms-2"
-                                    (click)="onOpenDeleteConfirmModal(apkV)">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                        }@empty {
-                        <tr>
-                            <td colspan="6" class="text-center">
-                                No records found.
                             </td>
                         </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            }
+            }
+            }
         </div>
     </div>
 </div>
-
-
-<!-- Create/Upsert APK Version Modal -->
-@if(isUpsertModalOpen){
-<app-upsert-apk-version [apkVersionData]="upsertModalData" (closeOrCancel)="onCloseOrCancelModal()"
-    (upsert)="upsertModalEvent($event)"></app-upsert-apk-version>
-}
-
-<!-- Status Change Confirmation Modal -->
-@if (isStatusChangeConfirmationModalOpen) {
-<div class="modal fade show d-block">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Status Change</h5>
-                <button type="button" class="btn-close" (click)="closeStatusChangeConfirmationModal()"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-center">
-                    Are you sure you want to
-                    <strong>{{userStatusChangeData?.[userStatusChangeData?.keyToChange] ? 'Disable' :
-                        'Enable'}}</strong>
-                    {{userStatusChangeData?.keyToChange === 'showPopup' ? 'Show Popup' : 'Hard Update'}}
-                    for <strong class="text-capitalize text-nowrap">
-                        {{userStatusChangeData?.appType}} ({{ userStatusChangeData?.version}})
-                    </strong>?
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="closeStatusChangeConfirmationModal()">
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-primary" (click)="confirmStatusChange()">
-                    Confirm
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-}
-
-<!-- Delete Confirmation Modal -->
-@if (deleteConfirmModalConfig.isOpen) {
-<div class="modal fade show d-block">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <p class="m-0">
-                        Are you sure you want to delete this APK version?
-                    </p>
-                    <strong class="text-capitalize">
-                        {{deleteConfirmModalConfig.data?.appType}}
-                    </strong>
-                    <strong class="text-capitalize">
-                        ({{ deleteConfirmModalConfig.data?.version}})
-                    </strong>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="closeDeleteConfirmModal()">
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-danger" (click)="confirmDelete()">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-}

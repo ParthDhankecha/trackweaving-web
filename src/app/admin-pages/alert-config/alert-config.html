@@ -36,7 +36,7 @@
                     </p>
                 </div>
                 @if (workspaceName) {
-                <span class="badge text-bg-light border text-dark">
+                <span class="badge text-bg-light border text-dark text-capitalize">
                     {{ workspaceName }}
                 </span>
                 }
@@ -44,14 +44,38 @@
 
             <div class="row g-3">
                 @for (item of alertKeys; track item.key) {
-                <div class="col-12 col-sm-6 col-md-4 col-xxl-auto text-nowrap">
-                    <div class="border rounded p-3 h-100 d-flex align-items-center justify-content-between gap-2">
-                        <span class="fw-medium text-wrap">{{ item.label }}</span>
-                        <div class="form-check form-switch m-0 ms-2">
-                            <input class="form-check-input fs-5" type="checkbox" role="switch"
-                                [checked]="workspaceAlerts[item.key]"
-                                (click)="onWorkspaceAlertToggle($event, item.key)">
+                <div class="col-12 col-lg-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="fw-medium mb-2">
+                            {{ item.label }}
                         </div>
+                        <div class="d-flex flex-wrap gap-3 mb-2">
+                            @for (channel of channelKeys; track channel.key) {
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="small text-muted">
+                                    {{ channel.label }}
+                                </span>
+                                <div class="form-check form-switch m-0 p-0 mh-unset">
+                                    <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
+                                        [checked]="workspaceAlerts[item.key]?.[channel.key]"
+                                        (click)="onWorkspaceChannelToggle($event, item.key, channel.key)">
+                                </div>
+                            </div>
+                            }
+                        </div>
+
+                        @if (item.configField) {
+                        <div class="mt-2">
+                            <label class="form-label small mb-1">
+                                {{ item.configLabel }}
+                            </label>
+                            <input type="text" class="form-control form-control-sm"
+                                [placeholder]="getConfigPlaceholder(item)"
+                                [ngModel]="getWorkspaceConfigValue(item.key, item.configField!)"
+                                (ngModelChange)="setWorkspaceConfigValue(item.key, item.configField!, $event)"
+                                (keydown.enter)="onWorkspaceConfigEnter(item.key, item.configField!)">
+                        </div>
+                        }
                     </div>
                 </div>
                 }
@@ -65,80 +89,82 @@
             <div class="mb-3">
                 <h5 class="mb-1">User Alerts</h5>
                 <p class="text-muted small mb-0">
-                    Per-user settings under workspace rules. Users can only turn off alerts that are enabled at
-                    workspace level. Reset restores workspace defaults.
+                    Per-user settings under workspace rules. App and WhatsApp can be turned off independently,
+                    including both for the same alert. Users cannot re-enable channels disabled at workspace level.
                 </p>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">User</th>
-                            <th scope="col">Username</th>
-                            @for (item of alertKeys; track item.key) {
-                            <th scope="col" class="text-center">
-                                {{ item.label }}
-                            </th>
-                            }
-                            <th scope="col" class="text-center">
-                                Override
-                            </th>
-                            <th scope="col" class="w-1-percent text-center">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (row of userConfigs; track row.user?._id; let i = $index) {
-                        <tr>
-                            <th scope="row">{{ i + 1 }}</th>
-                            <td>
-                                <div class="fw-medium">{{ row.user?.fullname || '—' }}</div>
-                                @if (!row.user?.isActive) {
-                                <span class="badge text-bg-secondary">
-                                    Inactive
+            <div class="d-flex flex-column gap-3">
+                @for (row of userConfigs; track row.user?._id; let i = $index) {
+                <div class="border rounded p-3">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                        <div>
+                            <div class="fw-medium text-capitalize">
+                                User Name: <span class="text-muted">
+                                    {{ row.user?.userName || '—' }}
                                 </span>
-                                }
-                            </td>
-                            <td>{{ row.user?.userName || '—' }}</td>
-                            @for (item of alertKeys; track item.key) {
-                            <td class="text-center">
-                                <div class="form-check form-switch d-flex p-0 justify-content-center m-0">
-                                    <input class="form-check-input fs-5" type="checkbox"
-                                        [checked]="row.alerts?.[item.key]" role="switch"
-                                        (click)="onUserAlertToggle($event, row, item.key)">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (!row.user?.isActive) {
+                            <span class="badge text-bg-secondary">Inactive</span>
+                            }
+                            @if (row.hasOverride) {
+                            <span class="badge text-bg-warning">Custom</span>
+                            } @else {
+                            <span class="badge text-bg-light border text-muted">Default</span>
+                            }
+                            <button class="btn btn-sm btn-outline-secondary" [disabled]="!row.hasOverride"
+                                (click)="onOpenResetConfirm(row)">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        @for (item of alertKeys; track item.key) {
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="bg-light rounded p-3 h-100">
+                                <div class="fw-medium small mb-2">
+                                    {{ item.label }}
                                 </div>
-                            </td>
-                            }
-                            <td class="text-center">
-                                @if (row.hasOverride) {
-                                <span class="badge text-bg-warning">
-                                    Custom
-                                </span>
-                                } @else {
-                                <span class="badge text-bg-light border text-muted">
-                                    Default
-                                </span>
+                                <div class="d-flex flex-wrap gap-3 mb-2">
+                                    @for (channel of channelKeys; track channel.key) {
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="small text-muted">
+                                            {{ channel.label }}
+                                        </span>
+                                        <div class="form-check form-switch m-0 p-0 mh-unset">
+                                            <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
+                                                [checked]="row.alerts?.[item.key]?.[channel.key]"
+                                                (click)="onUserChannelToggle($event, row, item.key, channel.key)">
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+
+                                @if (item.configField) {
+                                <div class="mt-2">
+                                    <label class="form-label small mb-1">
+                                        {{ item.configLabel }}
+                                    </label>
+                                    <input type="text" class="form-control form-control-sm"
+                                        [placeholder]="getConfigPlaceholder(item)"
+                                        [ngModel]="getUserConfigValue(row, item.key, item.configField!)"
+                                        (ngModelChange)="setUserConfigValue(row, item.key, item.configField!, $event)"
+                                        (keydown.enter)="onUserConfigEnter(row, item.key, item.configField!)">
+                                </div>
                                 }
-                            </td>
-                            <td class="text-nowrap text-end">
-                                <button class="btn btn-sm btn-outline-secondary" [disabled]="!row.hasOverride"
-                                    (click)="onOpenResetConfirm(row)">
-                                    Reset
-                                </button>
-                            </td>
-                        </tr>
-                        } @empty {
-                        <tr>
-                            <td [attr.colspan]="alertKeys.length + 5" class="text-center text-muted py-4">
-                                No users found in this workspace.
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+                } @empty {
+                <div class="text-center text-muted py-4">
+                    No users found in this workspace.
+                </div>
+                }
             </div>
         </div>
     </div>

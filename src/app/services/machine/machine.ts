@@ -18,7 +18,14 @@ export class Machine {
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
-  listWithPagination(payload: { page?: number, limit?: number }): Observable<IResponse> {
+  listWithPagination(payload: {
+    page?: number,
+    limit?: number,
+    machineName?: string,
+    workspaceId?: string[],
+    machineCode?: string,
+    ip?: string
+  }): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}`, payload);
   }
 
