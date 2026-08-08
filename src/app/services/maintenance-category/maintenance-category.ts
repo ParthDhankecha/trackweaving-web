@@ -21,7 +21,15 @@ export class MaintenanceCategory {
     return this._http.get(`${this._baseUrl}`);
   }
 
+  create(payload: any): Observable<IResponse> {
+    return this._http.post(`${this._baseUrl}`, payload);
+  }
+
   update(mcId: string, payload: any): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/${mcId}`, payload);
+  }
+
+  delete(mcId: string): Observable<IResponse> {
+    return this._http.delete(`${this._baseUrl}/${mcId}`);
   }
 }

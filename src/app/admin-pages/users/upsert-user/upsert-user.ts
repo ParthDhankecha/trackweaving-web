@@ -44,9 +44,23 @@ export class UpsertUser {
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, [Validators.required]],
-    receiveWhatsappReport: [false]
+    receiveWhatsappReport: [{ value: false, disabled: true }],
+    shift: [[], []],
+    machineIds: [[], []],
   });
   protected isEyeOpen: boolean = false;
+  protected machineList: any[] = [];
+  protected readonly shiftOptions: { value: number, label: string }[] = [
+    { value: 0, label: 'Day Shift' },
+    { value: 1, label: 'Night Shift' },
+  ];
+
+
+  protected get showMasterFields(): boolean {
+    if (!this.isEditMode) return true;
+    const masterRole = this._coreService.appConfig.roles?.MASTER;
+    return masterRole !== undefined && this.userData?.userType === masterRole;
+  }
 
 
 
@@ -63,6 +77,8 @@ export class UpsertUser {
         isActive: this.userData?.isActive ?? true,
         receiveWhatsappReport: this.userData?.receiveWhatsappReport ?? false,
         workspace: this.workspaceList.find((ws: any) => ws._id === this.userData.workspaceId?._id) || null,
+        shift: this.normalizeShiftValue(this.userData?.shift),
+        machineIds: this.userData?.machineIds ?? [],
       });
       if (this.userData?.isOwner) {
         const userPlan = this.userData?.plan || {};
@@ -79,7 +95,91 @@ export class UpsertUser {
       }
       this.workspace?.disable();
       this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
+      if (this.showMasterFields && this.userData.workspaceId?._id) {
+        this.loadMachines(this.userData.workspaceId._id);
+      }
+      this.syncWhatsappReportControl();
     }
+    this.syncMasterFieldValidators();
+  }
+
+
+  protected ngOnInit(): void {
+    this.syncMasterFieldValidators();
+    this.syncWhatsappReportControl();
+    this.mobile?.valueChanges.subscribe(() => this.syncWhatsappReportControl());
+  }
+
+
+  private loadMachines(workspaceId: string): void {
+    if (!workspaceId) {
+      this.machineList = [];
+      return;
+    }
+
+    this._apiFs.machine.optionList(workspaceId).subscribe({
+      next: (res: IResponse) => {
+        if (res.code === 'OK') {
+          this.machineList = res.data?.list ?? [];
+        }
+      },
+      error: () => {
+        this.machineList = [];
+      }
+    });
+  }
+
+
+  private syncMasterFieldValidators(): void {
+    if (this.showMasterFields) {
+      this.shift?.setValidators([this.atLeastOneShiftValidator]);
+      this.machineIds?.setValidators([Validators.required, this.atLeastOneMachineValidator]);
+    } else {
+      this.shift?.clearValidators();
+      this.machineIds?.clearValidators();
+      this.shift?.setValue([], { emitEvent: false });
+      this.machineIds?.setValue([], { emitEvent: false });
+    }
+    this.shift?.updateValueAndValidity({ emitEvent: false });
+    this.machineIds?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private syncWhatsappReportControl(): void {
+    if (this.mobile?.value) {
+      this.receiveWhatsappReport?.enable({ emitEvent: false });
+    } else {
+      this.receiveWhatsappReport?.setValue(false, { emitEvent: false });
+      this.receiveWhatsappReport?.disable({ emitEvent: false });
+    }
+  }
+
+
+  private atLeastOneMachineValidator(control: AbstractControl) {
+    const value = control.value;
+    if (!Array.isArray(value) || value.length === 0) {
+      return { required: true };
+    }
+    return null;
+  }
+
+
+  private atLeastOneShiftValidator(control: AbstractControl) {
+    const value = control.value;
+    if (!Array.isArray(value) || value.length === 0) {
+      return { required: true };
+    }
+    return null;
+  }
+
+
+  private normalizeShiftValue(shift: unknown): number[] {
+    if (Array.isArray(shift)) {
+      return [
+        ...new Set(shift.map(Number)
+          .filter(Number.isFinite))
+      ].sort();
+    }
+    return [];
   }
 
 
@@ -155,6 +255,12 @@ export class UpsertUser {
   get planSubUserLimit(): AbstractControl | null {
     return this.userForm?.get('plan.subUserLimit');
   }
+  get shift(): AbstractControl | null {
+    return this.userForm.get('shift');
+  }
+  get machineIds(): AbstractControl | null {
+    return this.userForm.get('machineIds');
+  }
 
 
   protected onlyDigits(event: KeyboardEvent, inputLength: number = 10): void {
@@ -173,7 +279,68 @@ export class UpsertUser {
   protected onWorkspaceChange(workspace: any): void {
     if (!workspace || workspace?._id === this.workspace?.value?._id) return;
 
-    this.userForm.patchValue({ workspace: workspace });
+    this.userForm.patchValue({ workspace: workspace, machineIds: [] });
+    if (this.showMasterFields) {
+      this.loadMachines(workspace._id);
+    }
+  }
+
+
+  protected isShiftSelected(shiftValue: number): boolean {
+    return (this.shift?.value || []).includes(shiftValue);
+  }
+
+
+  protected onToggleShift(shiftValue: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current: number[] = [...(this.shift?.value || [])];
+    if (checked && !current.includes(shiftValue)) {
+      current.push(shiftValue);
+    } else if (!checked) {
+      const idx = current.indexOf(shiftValue);
+      if (idx !== -1) current.splice(idx, 1);
+    }
+    this.shift?.setValue(current.sort());
+    this.shift?.markAsTouched();
+  }
+
+
+  protected isMachineSelected(machineId: string): boolean {
+    return (this.machineIds?.value || []).includes(machineId);
+  }
+
+
+  protected get isAllMachinesSelected(): boolean {
+    return this.machineList.length > 0 && this.machineList.every((m) => this.isMachineSelected(m._id));
+  }
+
+
+  protected get isSomeMachinesSelected(): boolean {
+    if (!this.machineList.length) return false;
+    const selectedCount = this.machineList.filter((m) => this.isMachineSelected(m._id)).length;
+    return selectedCount > 0 && selectedCount < this.machineList.length;
+  }
+
+
+  protected onToggleMachine(machineId: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current: string[] = [...(this.machineIds?.value || [])];
+    if (checked && !current.includes(machineId)) {
+      current.push(machineId);
+    } else if (!checked) {
+      const idx = current.indexOf(machineId);
+      if (idx !== -1) current.splice(idx, 1);
+    }
+    this.machineIds?.setValue(current);
+    this.machineIds?.markAsTouched();
+  }
+
+
+  protected onToggleSelectAllMachines(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const allIds = this.machineList.map((m) => m._id);
+    this.machineIds?.setValue(checked ? allIds : []);
+    this.machineIds?.markAsTouched();
   }
 
 
@@ -187,7 +354,7 @@ export class UpsertUser {
       return;
     }
 
-    const { workspace, ...restFields } = this.userForm.value;
+    const { workspace, ...restFields } = this.userForm.getRawValue();
     const body: any = {
       ...restFields,
     };
@@ -199,6 +366,13 @@ export class UpsertUser {
     }
     if (body.plan?.subUserLimit) {
       body.plan.subUserLimit = Number(body.plan.subUserLimit);
+    }
+    if (this.showMasterFields) {
+      body.shift = this.normalizeShiftValue(body.shift);
+      body.machineIds = body.machineIds || [];
+    } else {
+      delete body.shift;
+      delete body.machineIds;
     }
 
     this.isReqAlive = true;

@@ -42,7 +42,7 @@ export class UpsertPartsChangeEntry {
     partName: ['', [Validators.required, Validators.maxLength(180)]],
     machineId: ['', [Validators.required, Validators.maxLength(24)]],
     changeDate: ['', [Validators.required]],
-    changedBy: ['', [Validators.required, Validators.pattern('^(?!\s*$).+')]],// Input cannot be empty or only spaces
+    changedBy: ['', []],
     changedByContact: ['', [Validators.pattern('^(?:\\+91[-\\s]?|91[-\\s]?|0)?[6-9]\\d{9}$')]],
     notes: ['', [Validators.maxLength(500)]],
   });

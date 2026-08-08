@@ -1,8 +1,24 @@
 <div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
     <div class="table-responsive">
         <table class="table caption-top table-striped table-hover">
-            <caption class="text-capitalize fs-5 fw-bold pt-0">
-                Maintenance Category
+            <caption>
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <strong class="text-capitialise fs-5">
+                        Maintenance Category
+                    </strong>
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+                        (click)="onOpenUpsertModal()">
+                        <svg height="18" width="18" viewBox="0 0 48 48" class="flex-shrink-0">
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                        </svg>
+                        <span class="text-nowrap">
+                            New Category
+                        </span>
+                    </button>
+                </div>
             </caption>
             <thead class="table-dark bg-opacity-50">
                 <tr>
@@ -25,6 +41,9 @@
                     <th scope="col">
                         Status
                     </th>
+                    <th scope="col" class="w-1-percent">
+                        Action
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -37,16 +56,16 @@
                     <td class="text-capitalize">
                         {{mgItem?.categoryType}}
                     </td>
-                    <td class="text-capitalize">
+                    <td>
                         {{mgItem?.scheduleDays}}
                     </td>
-                    <td class="text-capitalize">
+                    <td>
                         {{mgItem?.alertDays}}
                     </td>
-                    <td class="text-capitalize text-danger">
-                        {{mgItem?.alertMessage}}
+                    <td class="text-danger">
+                        {{mgItem?.alertMessage || '-'}}
                     </td>
-                    <td class="text-capitalize">
+                    <td>
                         <div class="custom-switch" [class.on]="mgItem.isActive" (click)="onToggleAlert(mgItem)">
                             <span class="switch-track shadow-sm">
                                 <span class="switch-thumb">
@@ -55,10 +74,23 @@
                             </span>
                         </div>
                     </td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-outline-secondary btn-sm me-1"
+                            [routerLink]="maintenanceEntryRoute"
+                            [queryParams]="{ categoryId: mgItem._id }">
+                            History
+                        </a>
+                        <button class="btn btn-outline-primary btn-sm me-1" (click)="onOpenUpsertModal(mgItem)">
+                            Edit
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" (click)="onOpenDeleteModal(mgItem)">
+                            Delete
+                        </button>
+                    </td>
                 </tr>
                 }@empty {
                 <tr>
-                    <td colspan="7" class="text-muted small text-center">
+                    <td colspan="8" class="text-muted small text-center">
                         No records found.
                     </td>
                 </tr>
@@ -67,3 +99,33 @@
         </table>
     </div>
 </div>
+
+@if (isUpsertMaintenanceCategoryModalOpen) {
+<app-upsert-maintenance-category [maintenanceCategoryData]="upsertMaintenanceCategoryModalData"
+    (close)="onCloseUpsertModal()" (upsert)="upsertMaintenanceCategoryModalEvent($event)" />
+}
+
+@if (isDeleteModalOpen) {
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Delete Maintenance Category</h1>
+                <button type="button" class="btn-close" (click)="onCloseDeleteModal()"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete
+                <strong>{{ deleteMaintenanceCategoryData?.name }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseDeleteModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" [disabled]="isReqAlive" (click)="onConfirmDelete()">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

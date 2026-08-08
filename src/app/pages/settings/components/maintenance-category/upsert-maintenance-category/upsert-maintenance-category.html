@@ -1,0 +1,104 @@
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg">
+            <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">
+                        {{ isEditMode ? 'Edit' : 'Create' }} Maintenance Category
+                    </h1>
+                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="categoryName" class="form-label">
+                                Category Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="categoryName" formControlName="name" class="form-control"
+                                placeholder="Enter category name">
+
+                            @if (name?.touched && name?.errors) {
+                            <div class="invalid-feedback d-block">
+                                @if (name?.errors?.['required']) {
+                                <span>Category name is required.</span>
+                                }
+                                @if (name?.errors?.['maxlength']) {
+                                <span>
+                                    Category name cannot exceed
+                                    {{ name?.errors?.['maxlength']?.requiredLength }} characters.
+                                </span>
+                                }
+                            </div>
+                            }
+                        </div>
+
+                        <div class="col-sm-6 mb-3">
+                            <label for="scheduleDays" class="form-label">
+                                Schedule Days <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="scheduleDays" formControlName="scheduleDays" class="form-control"
+                                min="1" placeholder="Days between maintenance">
+
+                            @if (scheduleDays?.touched && scheduleDays?.errors) {
+                            <div class="invalid-feedback d-block">
+                                @if (scheduleDays?.errors?.['required']) {
+                                <span>Schedule days is required.</span>
+                                }
+                                @if (scheduleDays?.errors?.['min']) {
+                                <span>Schedule days must be at least 1.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+
+                        <div class="col-sm-6 mb-3">
+                            <label for="alertDays" class="form-label">
+                                Alert Days <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="alertDays" formControlName="alertDays" class="form-control"
+                                min="0" placeholder="Days before due date to alert">
+
+                            @if (alertDays?.touched && alertDays?.errors) {
+                            <div class="invalid-feedback d-block">
+                                @if (alertDays?.errors?.['required']) {
+                                <span>Alert days is required.</span>
+                                }
+                                @if (alertDays?.errors?.['min']) {
+                                <span>Alert days cannot be negative.</span>
+                                }
+                            </div>
+                            }
+                        </div>
+
+                        <div class="col-12 mb-1">
+                            <label for="alertMessage" class="form-label">
+                                Alert Message
+                            </label>
+                            <textarea id="alertMessage" formControlName="alertMessage" class="form-control" rows="3"
+                                placeholder="Message shown when maintenance is due"></textarea>
+
+                            @if (alertMessage?.touched && alertMessage?.errors?.['maxlength']) {
+                            <div class="invalid-feedback d-block">
+                                <span>
+                                    Alert message cannot exceed
+                                    {{ alertMessage?.errors?.['maxlength']?.requiredLength }} characters.
+                                </span>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="isReqAlive">
+                        {{ isEditMode ? 'Update' : 'Create' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

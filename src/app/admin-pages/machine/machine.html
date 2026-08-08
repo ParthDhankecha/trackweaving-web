@@ -17,16 +17,21 @@
                         (pageSizeChange)="onEntriesPerPageChange($event)" />
 
                     <div class="d-flex align-items-center gap-3">
-                        <label for="machineCompanyName" class="form-label m-0">Filter</label>
-                        <select id="machineCompanyName" class="form-select d-inline-block w-auto"
-                            [(ngModel)]="statusFilter" (ngModelChange)="onApplyFilter()">
-                            <option value="" selected>All</option>
+                        <select class="form-select d-inline-block w-auto" [(ngModel)]="statusFilter"
+                            (ngModelChange)="onApplyFilter()">
+                            <option value="" selected>All Machines</option>
                             <option value="taitan">Taitan</option>
                             <option value="signature">Signature</option>
                             <option value="rifa">Rifa</option>
                             <option value="pickwell">Pickwell</option>
                             <option value="redflag">Redflag</option>
                         </select>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <app-common-dropdown [optionsList]="workspaceOptions" placeholder="All Workspaces"
+                            [selectedOption]="workspaceFilter" [filterKeys]="['firmName']" displayKey1="firmName"
+                            uniqueKey="_id" btnClass="btn-sm" (onSelect)="onWorkspaceSelect($event)" />
                     </div>
 
                     <div>
@@ -114,7 +119,7 @@
 <!-- Create/Upsert Machine Modal -->
 @if (isUpsertMachineModalOpen){
 <app-upsert-machine [workspaceList]="workspaceList" [machineData]="upsertMachineModalData"
-    (close)="onCloseMachineModal()" (upsert)="upsertMAchineModalEvent($event)"></app-upsert-machine>
+    (close)="onCloseMachineModal()" (upsert)="upsertMachineModalEvent($event)" />
 }
 
 <!-- Delete Confirmation Modal -->

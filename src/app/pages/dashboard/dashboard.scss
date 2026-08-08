@@ -166,9 +166,11 @@
         // add animation to the background
         animation: blinkBgCard 1.2s infinite;
 
-        // stop blink effect
+        // stop blink effect on stop row while card background blinks
         .blink-bg {
-            animation: none;
+            &::before {
+                animation: none;
+            }
 
             .dense-card__stop-value {
                 color: #000000;
@@ -410,7 +412,23 @@
 }
 
 .blink-bg {
-    animation: blinkBg 1.5s infinite;
+    position: relative;
+    isolation: isolate;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        animation: blinkBg 1.5s infinite;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    > * {
+        position: relative;
+        z-index: 1;
+    }
 }
 
 

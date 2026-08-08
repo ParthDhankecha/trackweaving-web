@@ -1,29 +1,39 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { UpsertMaintenanceCategory } from './upsert-maintenance-category/upsert-maintenance-category';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import { ROUTES } from '@src/app/constants/app.routes';
 
 
 @Component({
   selector: 'app-maintenance-category',
-  imports: [],
+  imports: [
+    UpsertMaintenanceCategory,
+    RouterLink
+  ],
   templateUrl: './maintenance-category.html',
   styleUrl: './maintenance-category.scss'
 })
 export class MaintenanceCategory {
-  // Inject Services
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
+  protected readonly maintenanceEntryRoute = ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_ENTRY);
 
+  protected maintenanceCategoryList: any[] = [];
+  protected upsertMaintenanceCategoryModalData: any = null;
+  protected isUpsertMaintenanceCategoryModalOpen = false;
+  protected deleteMaintenanceCategoryData: any = null;
+  protected isDeleteModalOpen = false;
 
   ngOnInit(): void {
     this.loadList();
   }
 
-
-  protected maintenanceCategoryList: any[] = [];
   private loadList(): void {
     this._apiFs.maintenanceCategory.list().subscribe({
       next: (res: IResponse) => {
@@ -31,12 +41,32 @@ export class MaintenanceCategory {
           this.maintenanceCategoryList = res.data || [];
         }
       },
-      error: (err: any) => { }
+      error: () => { }
     });
   }
 
+  protected onOpenUpsertModal(maintenanceCategory: any = null): void {
+    this.upsertMaintenanceCategoryModalData = maintenanceCategory;
+    this.isUpsertMaintenanceCategoryModalOpen = true;
+  }
 
-  protected isReqAlive: boolean = false;
+  protected onCloseUpsertModal(): void {
+    this.isUpsertMaintenanceCategoryModalOpen = false;
+    this.upsertMaintenanceCategoryModalData = null;
+  }
+
+  protected upsertMaintenanceCategoryModalEvent(data: any): void {
+    const index = data ? this.maintenanceCategoryList.findIndex(item => item._id === data._id) : -1;
+    if (index > -1) {
+      this.maintenanceCategoryList[index] = data;
+    } else {
+      this.loadList();
+    }
+    this.onCloseUpsertModal();
+  }
+
+  protected isReqAlive = false;
+
   protected onToggleAlert(maintenanceCategory: any): void {
     if (this.isReqAlive || !maintenanceCategory?._id) return;
 
@@ -53,7 +83,39 @@ export class MaintenanceCategory {
           if (index > -1 && res.data?._id) {
             this.maintenanceCategoryList[index] = res.data;
           }
-          this._coreService.utils.showToaster(EToasterType.Success, 'Alert updated successfully.');
+          this._coreService.utils.showToaster(EToasterType.Success, 'Status updated successfully.');
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+  protected onOpenDeleteModal(maintenanceCategory: any): void {
+    this.deleteMaintenanceCategoryData = maintenanceCategory;
+    this.isDeleteModalOpen = true;
+  }
+
+  protected onCloseDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.deleteMaintenanceCategoryData = null;
+  }
+
+  protected onConfirmDelete(): void {
+    const categoryId = this.deleteMaintenanceCategoryData?._id;
+    if (this.isReqAlive || !categoryId) return;
+
+    this.isReqAlive = true;
+    this._apiFs.maintenanceCategory.delete(categoryId).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this.maintenanceCategoryList = this.maintenanceCategoryList.filter(item => item._id !== categoryId);
+          this._coreService.utils.showToaster(EToasterType.Success, 'Maintenance category deleted successfully.');
+          this.onCloseDeleteModal();
         }
       },
       error: (err: any) => {

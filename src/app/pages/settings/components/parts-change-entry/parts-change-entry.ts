@@ -37,14 +37,18 @@ export class PartsChangeEntry {
 
   protected partsNameList: any[] = [];
   protected partChangeList: any[] = [];
-  protected filteredPartChangeList: any[] = [];
   protected machineList: any[] = [];
+  protected selectedMachineIds: string[] = [];
 
   protected upsertPartsChangeEntryModalData: any;
   protected isUpsertPartsChangeEntryModalOpen: boolean = false;
 
   protected toggleFilterPopup: boolean = false;
   protected cacheSearchTerm: string = '';
+  protected filterMachineList: any[] = [];
+  protected filteredFilterMachineList: any[] = [];
+  protected cacheFilterMachineList: any[] = [];
+  protected isAllFilterSelected: boolean = false;
 
 
   ngOnInit(): void {
@@ -99,27 +103,22 @@ export class PartsChangeEntry {
 
 
   private loadList(): void {
-    const payload = {};
+    const payload: { page?: number; limit?: number; machineIds?: string[] } = {};
     if (this.pageSize && this.pageSize > 0) {
-      Object.assign(payload, { limit: this.pageSize });
+      payload.limit = this.pageSize;
     }
     if (this.currentPage && this.currentPage > 0) {
-      Object.assign(payload, { page: this.currentPage });
+      payload.page = this.currentPage;
+    }
+    if (this.selectedMachineIds.length) {
+      payload.machineIds = this.selectedMachineIds;
     }
 
     this._apiFs.partsChangeEntry.listPagination(payload).subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
-          this.partChangeList = res.data.partChangeLogs;
-          this.filteredPartChangeList = [...this.partChangeList];
+          this.partChangeList = res.data.partChangeLogs || [];
           this.totalEntries = res.data.totalCount ?? 0;
-
-          // Reset filter states
-          this.filterPartChangeList = [];
-          this.filteredFilterPartChangeList = [];
-          this.cacheFilterPartChangeList = [];
-          this.isAllFilterSelected = false;
-          this.cacheSearchTerm = '';
         }
       },
       error: (err) => { }
@@ -142,14 +141,14 @@ export class PartsChangeEntry {
   }
 
 
-  protected filterPartChangeList: any[] = [];
-  protected filteredFilterPartChangeList: any[] = [];
-  protected cacheFilterPartChangeList: any[] = [];
-  protected isAllFilterSelected: boolean = false;
+  protected get hasActiveFilters(): boolean {
+    return this.selectedMachineIds.length > 0;
+  }
+
   protected onSearchTerms(event: string): void {
     this.cacheSearchTerm = event;
     event = event?.trim()?.toLowerCase() || '';
-    this.filteredFilterPartChangeList = this.filterPartChangeList.filter((item: any) => {
+    this.filteredFilterMachineList = this.filterMachineList.filter((item: any) => {
       const machineName = item.machineName?.trim()?.toLowerCase() || '';
       const machineCode = item.machineCode?.trim()?.toLowerCase() || '';
       return machineCode.includes(event) || machineName.includes(event);
@@ -158,45 +157,66 @@ export class PartsChangeEntry {
   }
 
   protected onOpenFilterPopup(): void {
-    const filterPartChangeList = new Map<string, any>();
-    this.partChangeList.forEach(({ machineId }: any) => {
-      if (machineId) {
-        const key = `${machineId.machineName}-${machineId.machineCode}`;
-        if (key !== '-' && !filterPartChangeList.has(key)) filterPartChangeList.set(key, machineId);
-      }
-    });
-    if (!this.filterPartChangeList.length && this.filterPartChangeList.length !== filterPartChangeList.size) {
-      this.filterPartChangeList = Array.from(filterPartChangeList.values());
-      this.filteredFilterPartChangeList = this.filterPartChangeList;
-    }
-    this.cacheFilterPartChangeList = JSON.parse(JSON.stringify(this.filterPartChangeList));
+    const selectedIds = new Set(this.selectedMachineIds);
+    this.filterMachineList = this.machineList.map((machine: any) => ({
+      ...machine,
+      selected: selectedIds.has(machine._id)
+    }));
+    this.filteredFilterMachineList = [...this.filterMachineList];
+    this.cacheFilterMachineList = JSON.parse(JSON.stringify(this.filterMachineList));
+    this.cacheSearchTerm = '';
+    this.updateAllSelectedFlag();
     this.toggleFilterPopup = true;
   }
 
   protected onToggleSelectAllFilters(): void {
     this.isAllFilterSelected = !this.isAllFilterSelected;
-    this.filteredFilterPartChangeList.forEach((item: any) => {
+    const visibleIds = new Set(this.filteredFilterMachineList.map((item: any) => item._id));
+    this.filterMachineList.forEach((item: any) => {
+      if (visibleIds.has(item._id)) {
+        item.selected = this.isAllFilterSelected;
+      }
+    });
+    this.filteredFilterMachineList.forEach((item: any) => {
       item.selected = this.isAllFilterSelected;
     });
   }
 
   protected updateAllSelectedFlag(): void {
-    this.isAllFilterSelected = this.filteredFilterPartChangeList.length > 0 && this.filteredFilterPartChangeList.every((item: any) => item.selected);
+    this.isAllFilterSelected = this.filteredFilterMachineList.length > 0
+      && this.filteredFilterMachineList.every((item: any) => item.selected);
   }
 
-  protected onFilterSelectionChange(): void {
+  protected onFilterSelectionChange(changedMachine: any): void {
+    const sourceMachine = this.filterMachineList.find((item: any) => item._id === changedMachine._id);
+    if (sourceMachine) {
+      sourceMachine.selected = changedMachine.selected;
+    }
     this.updateAllSelectedFlag();
   }
 
   protected onApplyFilterPopup(): void {
     this.toggleFilterPopup = false;
-    const selectedIds = new Set(this.filterPartChangeList.filter(i => i.selected).map(i => i._id));
-    this.filteredPartChangeList = selectedIds.size ? this.partChangeList.filter((item: any) => selectedIds.has(item?.machineId?._id)) : [...this.partChangeList];
+    this.selectedMachineIds = this.filterMachineList
+      .filter((item: any) => item.selected)
+      .map((item: any) => item._id);
+    this.currentPage = 1;
+    this.loadList();
+  }
+
+  protected onClearFilters(): void {
+    this.selectedMachineIds = [];
+    this.filterMachineList.forEach((item: any) => item.selected = false);
+    this.filteredFilterMachineList.forEach((item: any) => item.selected = false);
+    this.isAllFilterSelected = false;
+    this.currentPage = 1;
+    this.loadList();
   }
 
   protected onCloseOrCancelFilterPopup(): void {
     this.toggleFilterPopup = false;
-    this.filterPartChangeList = JSON.parse(JSON.stringify(this.cacheFilterPartChangeList));
+    this.filterMachineList = JSON.parse(JSON.stringify(this.cacheFilterMachineList));
+    this.filteredFilterMachineList = [...this.filterMachineList];
     this.onSearchTerms('');
   }
 }

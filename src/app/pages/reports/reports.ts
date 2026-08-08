@@ -11,7 +11,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 
 import { EToasterType } from '@src/app/models/utils.model';
-import { getStopColumnsForTypes, hasStopKey, MachineType } from '@src/app/models/machine.model';
+import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
 import { ROUTES } from '@src/app/constants/app.routes';
 
 interface IReportNavState {
@@ -67,7 +67,8 @@ export class Reports {
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' },
-    { id: 'beamProductionReport', label: 'Beam Production Report' }
+    { id: 'beamProductionReport', label: 'Beam Production Report' },
+    { id: 'beamCompletionDateReport', label: 'Beam Completion Date Report' }
   ];
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
     { id: '5', label: '5 mins', value: 5 },
@@ -98,8 +99,18 @@ export class Reports {
 
   protected reportData: any;
   protected reportStopColumns: { key: string; label: string }[] = [];
+  protected showBeamCompletionDateColumn = false;
   protected stoppageTableRows: any[] = [];
   protected stopTimeSelectionError: boolean = false;
+  protected stoppageViewMode: 'machineWise' | 'timeWise' = 'machineWise';
+  protected readonly stoppageViewOptions: { id: 'machineWise' | 'timeWise'; label: string }[] = [
+    { id: 'machineWise', label: 'Machine Wise' },
+    { id: 'timeWise', label: 'Time Wise (Descending)' }
+  ];
+
+  protected get isTimeWiseStoppageView(): boolean {
+    return this.stoppageViewMode === 'timeWise';
+  }
 
   protected get isStoppageReport(): boolean {
     return this.reportType?.value === 'stoppageReport';
@@ -107,6 +118,14 @@ export class Reports {
 
   protected get isBeamProductionReport(): boolean {
     return this.reportType?.value === 'beamProductionReport';
+  }
+
+  protected get isBeamCompletionDateReport(): boolean {
+    return this.reportType?.value === 'beamCompletionDateReport';
+  }
+
+  protected get isDateRangeReport(): boolean {
+    return !this.isBeamCompletionDateReport;
   }
 
   protected get isQualityWiseReport(): boolean {
@@ -126,12 +145,18 @@ export class Reports {
   }
 
   get reportTableColspan(): number {
-    return 10 + this.stopSectionColspan;
+    return (this.showBeamCompletionDateColumn ? 11 : 10) + this.stopSectionColspan;
   }
 
   get qualityWiseTableColspan(): number {
-    return 9 + this.stopSectionColspan;
+    return (this.showBeamCompletionDateColumn ? 10 : 9) + this.stopSectionColspan;
   }
+
+  get shiftTotalAvgColspan(): number {
+    return this.showBeamCompletionDateColumn ? 3 : 2;
+  }
+
+  protected formatQualityReed = formatQualityReed;
 
   protected getStopValue(data: any, key: string, field: 'count' | 'duration'): string | number {
     if (!hasStopKey((data?.machineType || 'rapier') as MachineType, key)) {
@@ -149,6 +174,9 @@ export class Reports {
       });
     });
     this.reportStopColumns = getStopColumnsForTypes([...machineTypes]);
+    this.showBeamCompletionDateColumn = reportList.some(item =>
+      (item.list || []).some((data: any) => !!data.beamCompletionDate)
+    );
   }
 
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
@@ -249,6 +277,7 @@ export class Reports {
     this.reportData = null;
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
+    this.stoppageViewMode = 'machineWise';
     this.machineIds?.patchValue(null, { emitEvent: false });
     this.selectAll?.patchValue(false, { emitEvent: false });
     this.loadMachineList();
@@ -271,7 +300,6 @@ export class Reports {
 
     const reportType = this.navState?.reportType;
     const machineCode = this.navState?.machineCode;
-    const machineGroupId = this.navState?.machineGroupId;
 
     if (!reportType && !machineCode) return;
 
@@ -286,7 +314,7 @@ export class Reports {
     }
 
     if (machineCode) {
-      const machine = this.machineList.find(m => m.machineCode === machineCode && m.machineGroupId === machineGroupId);
+      const machine = this.machineList.find(m => m.machineCode === machineCode);
 
       if (machine) {
         machine.selected = true;
@@ -381,8 +409,19 @@ export class Reports {
       this.quality?.clearValidators();
       this.machineIds?.setValidators([Validators.required]);
     }
+
+    if (this.isBeamCompletionDateReport) {
+      this.startDate?.clearValidators();
+      this.endDate?.clearValidators();
+    } else {
+      this.startDate?.setValidators([Validators.required, this.startDateValidator.bind(this)]);
+      this.endDate?.setValidators([Validators.required, this.endDateValidator.bind(this)]);
+    }
+
     this.machineIds?.updateValueAndValidity({ emitEvent: false });
     this.quality?.updateValueAndValidity({ emitEvent: false });
+    this.startDate?.updateValueAndValidity({ emitEvent: false });
+    this.endDate?.updateValueAndValidity({ emitEvent: false });
   }
 
   private getSelectedMinStopMinutes(): number | null {
@@ -417,7 +456,17 @@ export class Reports {
     return count;
   }
 
+  private getStopDurationSeconds(row: any): number {
+    if (!row?.from || !row?.to) return 0;
+    return Math.max(0, new Date(row.to).getTime() - new Date(row.from).getTime()) / 1000;
+  }
+
   private prepareStoppageTableRows(list: any[] = []): void {
+    if (this.isTimeWiseStoppageView) {
+      this.prepareTimeWiseStoppageTableRows(list);
+      return;
+    }
+
     const rows: any[] = [];
     let shiftGroupIndex = 0;
 
@@ -442,6 +491,36 @@ export class Reports {
     });
 
     this.stoppageTableRows = rows;
+  }
+
+  private prepareTimeWiseStoppageTableRows(list: any[] = []): void {
+    const sorted = [...list].sort((a, b) => {
+      const durationDiff = this.getStopDurationSeconds(b) - this.getStopDurationSeconds(a);
+      if (durationDiff !== 0) return durationDiff;
+      return new Date(b.from || 0).getTime() - new Date(a.from || 0).getTime();
+    });
+
+    this.stoppageTableRows = sorted.map((row, index) => ({
+      ...row,
+      groupEven: index % 2 === 0
+    }));
+  }
+
+  protected onStoppageViewModeChange(mode: 'machineWise' | 'timeWise'): void {
+    this.stoppageViewMode = mode;
+    if (!this.reportData?.list) return;
+
+    this.prepareStoppageTableRows(this.reportData.list);
+    this.reportData.stoppageViewMode = mode;
+    this.reportData.stoppageTableRows = this.stoppageTableRows;
+  }
+
+  private syncStoppageReportRows(): void {
+    if (!this.reportData?.list) return;
+
+    this.prepareStoppageTableRows(this.reportData.list);
+    this.reportData.stoppageViewMode = this.stoppageViewMode;
+    this.reportData.stoppageTableRows = this.stoppageTableRows;
   }
 
 
@@ -484,6 +563,7 @@ export class Reports {
       this.reportData = null;
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
+      this.stoppageViewMode = 'machineWise';
     });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
@@ -632,11 +712,14 @@ export class Reports {
     const filter = this.filterForm.value;
     const payload: any = {
       reportType: filter.reportType,
-      startDate: filter.startDate,
-      endDate: filter.endDate,
     };
 
-    if (filter.reportType !== 'beamProductionReport') {
+    if (this.isDateRangeReport) {
+      payload.startDate = filter.startDate;
+      payload.endDate = filter.endDate;
+    }
+
+    if (filter.reportType !== 'beamProductionReport' && filter.reportType !== 'beamCompletionDateReport') {
       const shiftCb = filter.shift === 'all' ? (val: any) => val.id !== 'all' : (val: any) => val.id === filter.shift;
       payload.shift = this.shiftOptions.filter(shiftCb).map(o => o.val);
     }
@@ -668,8 +751,8 @@ export class Reports {
 
           if (filter.reportType === 'stoppageReport') {
             this.reportStopColumns = [];
-            this.prepareStoppageTableRows(this.reportData.list || []);
-            this.reportData.stoppageTableRows = this.stoppageTableRows;
+            this.stoppageViewMode = 'machineWise';
+            this.syncStoppageReportRows();
             return;
           }
 
@@ -679,11 +762,19 @@ export class Reports {
             return;
           }
 
+          if (filter.reportType === 'beamCompletionDateReport') {
+            this.reportStopColumns = [];
+            this.stoppageTableRows = [];
+            this.showBeamCompletionDateColumn = false;
+            return;
+          }
+
           if (Array.isArray(this.reportData?.list)) {
             const list = this.flattenProductionReportList(this.reportData.list, filter.shift === 'all');
             this.reportData.list = list;
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;
+            this.reportData.showBeamCompletionDateColumn = this.showBeamCompletionDateColumn;
           }
         }
       },
@@ -691,6 +782,7 @@ export class Reports {
         this.isReqAlive = false;
         this.reportData = null;
         this.reportStopColumns = [];
+        this.showBeamCompletionDateColumn = false;
         this.stoppageTableRows = [];
         const msg = err?.error.message || 'An error occurred while generating the report';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
@@ -700,6 +792,15 @@ export class Reports {
 
   protected fetchGenerateReport(payload: any) {
     return this._apiFs.reports.generateReport(payload);
+  }
+
+  protected formatCompletionSource(source?: string | null): string {
+    switch (source) {
+      case 'device': return 'Device';
+      case 'estimated': return 'Estimated';
+      case 'completed': return 'Completed';
+      default: return '-';
+    }
   }
 
   protected exportAsPDF(): void {

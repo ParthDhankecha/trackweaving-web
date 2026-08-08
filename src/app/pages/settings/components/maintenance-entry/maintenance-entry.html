@@ -1,4 +1,91 @@
 <div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <h3 class="text-capitalize text-muted fs-5 fw-bold pt-0 border-bottom pb-2 mb-3">
+        Maintenance History
+    </h3>
+
+    <div class="row g-2 align-items-end mb-3">
+        <div class="col-sm-6 col-md-4">
+            <label for="historyCategory" class="form-label small fw-semibold mb-1">
+                Maintenance Category <span class="text-danger">*</span>
+            </label>
+            <select id="historyCategory" class="form-select form-select-sm" [(ngModel)]="selectedCategoryId"
+                (ngModelChange)="onCategoryFilterChange()">
+                <option value="">Select category</option>
+                @for (category of maintenanceCategoryList; track category._id) {
+                <option [value]="category._id">{{ category.name }}</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-6 col-md-4">
+            <label for="historyMachine" class="form-label small fw-semibold mb-1">
+                Machine
+            </label>
+            <select id="historyMachine" class="form-select form-select-sm" [(ngModel)]="selectedMachineId"
+                (ngModelChange)="onMachineFilterChange()" [disabled]="!selectedCategoryId">
+                <option value="">All Machines</option>
+                @for (machine of machineFilterList; track machine._id) {
+                <option [value]="machine._id">{{ machine.machineCode }}</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if (showHistorySection) {
+    <div class="table-responsive mb-4">
+        <table class="table table-sm table-striped table-bordered caption-top mb-0">
+            <caption class="text-capitalize fw-semibold pt-0 pb-2">
+                History{{ selectedCategoryName ? ' - ' + selectedCategoryName : '' }}
+            </caption>
+            <thead class="table-dark bg-opacity-50">
+                <tr>
+                    <th>Machine</th>
+                    <th class="text-nowrap">Complete Date</th>
+                    <th class="text-nowrap">Next Date</th>
+                    <th>Completed By</th>
+                    <th class="text-nowrap">Contact</th>
+                    <th>Remarks</th>
+                    <th class="text-nowrap">Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (isHistoryLoading) {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-3">Loading history...</td>
+                </tr>
+                } @else {
+                @for (row of maintenanceHistoryList; track $index) {
+                <tr [class.table-success]="row.isCurrent">
+                    <td class="text-capitalize">
+                        {{ row.machineCode || '-' }}
+                        @if (row.machineName) {
+                        <small class="text-muted d-block">{{ row.machineName }}</small>
+                        }
+                    </td>
+                    <td class="text-nowrap">{{ row.lastMaintenanceDate | date:'dd-MM-yyyy' }}</td>
+                    <td class="text-nowrap">{{ row.nextMaintenanceDate | date:'dd-MM-yyyy' }}</td>
+                    <td>{{ row.completedBy || '-' }}</td>
+                    <td class="text-nowrap">{{ row.completedByMobile || '-' }}</td>
+                    <td>{{ row.remarks || '-' }}</td>
+                    <td class="text-nowrap">
+                        {{ row.updatedAt ? (row.updatedAt | date:'dd-MM-yyyy hh:mm a') : '-' }}
+                        @if (row.isCurrent) {
+                        <small class="text-success d-block">Current</small>
+                        }
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-3">No maintenance history found.</td>
+                </tr>
+                }
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+</div>
+
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
     <h3 class="text-capitalize text-muted fs-5 fw-bold pt-0 border-bottom">
         Maintenance Entry
     </h3>
@@ -121,23 +208,10 @@
                         <!-- Completed By(name, phone) -->
                         <div class="col-12 mb-3">
                             <span class="form-label d-block">
-                                Completed By <span class="text-danger">*</span>
+                                Completed By
                             </span>
                             <input type="text" formControlName="completedBy" class="form-control"
                                 placeholder="Enter name">
-
-                            @if(completedBy?.touched && completedBy?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(completedBy?.errors?.['required']){
-                                <span>Name is required.</span>
-                                }
-                                @if(completedBy?.errors?.['pattern']){
-                                <span>
-                                    Input cannot be empty or only spaces
-                                </span>
-                                }
-                            </div>
-                            }
                             <input type="text" formControlName="phone" class="form-control mt-2"
                                 placeholder="Enter phone">
 

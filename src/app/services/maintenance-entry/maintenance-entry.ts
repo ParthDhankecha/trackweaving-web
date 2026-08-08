@@ -21,6 +21,16 @@ export class MaintenanceEntry {
     return this._http.get(`${this._baseUrl}`);
   }
 
+  history(params: { maintenanceCategoryId: string; machineId?: string }): Observable<IResponse> {
+    const query: Record<string, string> = {
+      maintenanceCategoryId: params.maintenanceCategoryId
+    };
+    if (params.machineId) {
+      query['machineId'] = params.machineId;
+    }
+    return this._http.get(`${this._baseUrl}/history`, query);
+  }
+
   update(meId: string, payload: any): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/${meId}`, payload);
   }

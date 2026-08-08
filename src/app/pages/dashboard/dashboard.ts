@@ -371,7 +371,7 @@ export class Dashboard implements OnInit, OnDestroy {
       efficiencySum += Number(m.efficiency) || 0;
       pickSum += Number(m.picks) || 0;
       speedSum += Number(m.speed) || 0;
-      if (!m.currentStop) running++;
+      if (Number(m.speed) > 0) running++;
     }
 
     return {
@@ -613,6 +613,11 @@ export class Dashboard implements OnInit, OnDestroy {
     } else {
       return 'bg-danger bg-opacity-75';
     }
+  }
+
+  protected isLowBeamLeft(machineLog: IMachineLog): boolean {
+    const beamLeft = Number(machineLog?.beamLeft);
+    return Number.isFinite(beamLeft) && beamLeft < 1000;
   }
 
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {

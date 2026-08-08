@@ -36,6 +36,7 @@
                         }
                     </select>
                 </div>
+                @if (isDateRangeReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                     <label for="startDate" class="form-label small fw-semibold mb-1">From Date:</label>
                     <input type="date" id="startDate" class="form-control" formControlName="startDate">
@@ -61,7 +62,8 @@
                     </div>
                     }
                 </div>
-                @if (!isBeamProductionReport) {
+                }
+                @if (!isBeamProductionReport && !isBeamCompletionDateReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                     <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
                     <select id="shift" class="form-select text-capitalize" formControlName="shift">
@@ -216,12 +218,29 @@
                     <h2 class="d-inline-block font-semibold fs-5 m-0">
                         {{reportData?.reportTitle}}
                     </h2>
+                    @if (isDateRangeReport) {
                     <span class="small">
                         (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
                         <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
                     </span>
+                    }
                 </div>
                 <div>
+                    @if (isStoppageReport) {
+                    <div class="d-inline-flex flex-wrap align-items-center gap-2 me-2 user-select-none">
+                        <span class="small fw-semibold">View:</span>
+                        @for (option of stoppageViewOptions; track option.id) {
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <input type="radio" [id]="'stoppage-view-' + option.id" name="stoppageViewMode"
+                                class="form-check-input m-0" [value]="option.id" [checked]="stoppageViewMode === option.id"
+                                (change)="onStoppageViewModeChange(option.id)">
+                            <label [for]="'stoppage-view-' + option.id" class="form-check-label small mb-0">
+                                {{ option.label }}
+                            </label>
+                        </div>
+                        }
+                    </div>
+                    }
                     <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
                         Export to PDF
                     </button>
@@ -243,7 +262,7 @@
                     <td>{{ row.efficiency | number:'1.1-2' }}</td>
                     <td>{{ row.realEfficiency | number:'1.1-2' }}</td>
                     <td>{{ row?.avgSpeed ?? '0' }}</td>
-                    <td colspan="2" class="text-start text-capitalize">
+                    <td [attr.colspan]="shiftTotalAvgColspan" class="text-start text-capitalize">
                         Avg: {{ row.avgPicks }}
                     </td>
                     <td [attr.colspan]="stopSectionColspan"></td>
@@ -268,6 +287,11 @@
                     <tbody class="align-middle text-center">
                         @for (row of stoppageTableRows; track $index) {
                         <tr class="small" [class.custom-tr-bg]="row.groupEven">
+                            @if (isTimeWiseStoppageView) {
+                            <td>{{ row.reportDate | date:'dd-MMM-yyyy' }}</td>
+                            <td>{{ row.shiftLabel }}</td>
+                            <td>{{ row.machineCode }}</td>
+                            } @else {
                             @if (row.showDate) {
                             <td [attr.rowspan]="row.dateRowspan">
                                 {{ row.reportDate | date:'dd-MMM-yyyy' }}
@@ -282,6 +306,7 @@
                             <td [attr.rowspan]="row.machineRowspan">
                                 {{ row.machineCode }}
                             </td>
+                            }
                             }
                             <td>{{ row.stopReason }}</td>
                             <td class="text-nowrap">{{ row.from | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
@@ -330,7 +355,7 @@
                                 -
                                 }
                             </td>
-                            <td>{{ row.quality || '-' }}</td>
+                            <td>{{ formatQualityReed(row.quality, row.reed) }}</td>
                             <td>{{ row.beamLength != null ? (row.beamLength | number:'1.0-2') : '-' }}</td>
                             <td>{{ row.productionMtr != null ? (row.productionMtr | number:'1.0-2') : '-' }}</td>
                         </tr>
@@ -346,6 +371,45 @@
                         <tr class="custom-tr-bg fw-semibold">
                             <td colspan="6" class="text-end text-uppercase">Total Production Mtr</td>
                             <td>{{ reportData?.totalProductionMtr | number:'1.0-2' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                }
+                @case('beamCompletionDateReport'){
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th>Machine</th>
+                            <th>Beam Left (Mtrs)</th>
+                            <th>Completion Date</th>
+                            <th>Source</th>
+                            <th>Avg Daily Prod. (Mtrs)</th>
+                            <th>Est. Days Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (row of reportData?.list; track $index; let even = $even) {
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            <td>{{ row.machineCode || row.machineName || '-' }}</td>
+                            <td>{{ row.beamLeft | number:'1.0-2' }}</td>
+                            <td class="text-nowrap">
+                                @if (row.beamCompletionDate) {
+                                {{ row.beamCompletionDate | date:'dd-MMM-yyyy' }}
+                                } @else {
+                                -
+                                }
+                            </td>
+                            <td>{{ formatCompletionSource(row.completionSource) }}</td>
+                            <td>{{ row.avgDailyProduction != null ? (row.avgDailyProduction | number:'1.0-2') : '-' }}</td>
+                            <td>{{ row.estimatedDaysRemaining ?? '-' }}</td>
+                        </tr>
+                        }
+                        @if (!reportData?.list?.length) {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">
+                                No beam completion data found for the selected machines.
+                            </td>
                         </tr>
                         }
                     </tbody>
@@ -367,7 +431,14 @@
                             <th rowspan="2" class="text-nowrap">Real Eff. %</th>
                             <th rowspan="2">Speed</th>
                             <th rowspan="2" class="text-nowrap">Run Time</th>
-                            <th rowspan="2" class="text-nowrap">Beam Left</th>
+                            <th rowspan="2" class="text-nowrap">
+                                Beam Left
+                            </th>
+                            @if (showBeamCompletionDateColumn) {
+                            <th rowspan="2" class="text-nowrap">
+                                Beam Completion Date
+                            </th>
+                            }
                             @for (stopColumn of reportStopColumns; track stopColumn.key) {
                             <th colspan="2" class="text-nowrap">{{stopColumn.label}}</th>
                             }
@@ -400,6 +471,15 @@
                             <td>{{data?.speedRpm||'-'}}</td>
                             <td class="text-nowrap">{{data.runTime}}</td>
                             <td>{{data.beamLeft}}</td>
+                            @if (showBeamCompletionDateColumn) {
+                            <td class="text-nowrap">
+                                @if (data.beamCompletionDate) {
+                                {{ data.beamCompletionDate | date:'dd-MMM-yyyy' }}
+                                } @else {
+                                -
+                                }
+                            </td>
+                            }
                             @for (stopColumn of reportStopColumns; track stopColumn.key) {
                             <td>{{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}</td>
                             <td class="text-nowrap">{{getStopValue(data, stopColumn.key, 'duration')}}</td>
@@ -432,7 +512,7 @@
                             <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
                             <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
                             <td>{{reportData?.avgSpeed||'0'}}</td>
-                            <td colspan="2" class="text-start text-capitalize">
+                            <td [attr.colspan]="shiftTotalAvgColspan" class="text-start text-capitalize">
                                 Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
                             </td>
                             <td [attr.colspan]="stopSectionColspan"></td>
@@ -465,6 +545,11 @@
                             <th rowspan="2" class="text-nowrap">
                                 Beam Left
                             </th>
+                            @if (showBeamCompletionDateColumn) {
+                            <th rowspan="2" class="text-nowrap">
+                                Beam Completion Date
+                            </th>
+                            }
                             @for (stopColumn of reportStopColumns; track stopColumn.key) {
                             <th colspan="2" class="text-nowrap">
                                 {{stopColumn.label}}
@@ -497,7 +582,7 @@
                                 {{data.machineCode}}
                             </td>
                             <td>
-                                {{data.quality || ''}}
+                                {{ formatQualityReed(data.quality, data.reed) }}
                             </td>
                             <td>
                                 {{data.pieceLengthM|number:'1.0-2'}}
@@ -520,6 +605,15 @@
                             <td>
                                 {{data.beamLeft}}
                             </td>
+                            @if (showBeamCompletionDateColumn) {
+                            <td class="text-nowrap">
+                                @if (data.beamCompletionDate) {
+                                {{ data.beamCompletionDate | date:'dd-MMM-yyyy' }}
+                                } @else {
+                                -
+                                }
+                            </td>
+                            }
                             @for (stopColumn of reportStopColumns; track stopColumn.key) {
                             <td>
                                 {{getStopValue(data, stopColumn.key, 'count') | number:'1.0-2'}}
@@ -553,7 +647,7 @@
                             <td>{{reportData?.totalEfficiency|number:'1.0-2'}}</td>
                             <td>{{reportData?.totalRealEfficiency|number:'1.0-2'}}</td>
                             <td>{{reportData?.avgSpeed||'0'}}</td>
-                            <td colspan="2" class="text-start text-capitalize">
+                            <td [attr.colspan]="shiftTotalAvgColspan" class="text-start text-capitalize">
                                 Total Avg: {{(reportData?.avgPicks|number:'1.0-2')?.replace(',','')}}
                             </td>
                             <td [attr.colspan]="stopSectionColspan"></td>

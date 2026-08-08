@@ -1,6 +1,6 @@
+import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-
-import { UpsertApkVersion } from './upsert-apk-version/upsert-apk-version';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -11,166 +11,144 @@ import { EToasterType } from '@src/app/models/utils.model';
 @Component({
   selector: 'app-apk-version',
   imports: [
-    UpsertApkVersion
+    ReactiveFormsModule,
+    DatePipe
   ],
   templateUrl: './apk-version.html',
   styleUrl: './apk-version.scss'
 })
 export class ApkVersion {
 
-  // Inject services
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _coreService = inject(CoreFacadeService);
+  protected readonly _fb = inject(FormBuilder);
+
+  protected appVersionId: string | null = null;
+  protected history: any[] = [];
+  protected showHistory: boolean = false;
+  protected isReqAlive: boolean = false;
+  protected isLoading: boolean = false;
 
 
-  protected readonly appTypeList: ('android' | 'ios')[] = ['android', 'ios'];
-  protected selectedAppType: 'android' | 'ios' = 'android';
-
-  protected apkVersionList: any[] = [];
-  protected isUpsertModalOpen: boolean = false;
-  protected upsertModalData: any = null; // Data for edit, null for create
+  protected versionForm: FormGroup = this._fb.group({
+    android: this._fb.group({
+      min: [1, [Validators.required, Validators.min(1)]],
+      latest: [1, [Validators.required, Validators.min(1)]],
+      updateNote: ['']
+    }),
+    ios: this._fb.group({
+      min: [1, [Validators.required, Validators.min(1)]],
+      latest: [1, [Validators.required, Validators.min(1)]],
+      updateNote: ['']
+    })
+  });
 
 
   ngOnInit(): void {
-    this.loadList();
+    this.loadConfig();
   }
 
-  private loadList(): void {
-    this._apiFs.apkVersion.list(this.selectedAppType).subscribe({
+
+  get ff_android(): FormGroup {
+    return this.versionForm.get('android') as FormGroup;
+  }
+
+  get ff_ios(): FormGroup {
+    return this.versionForm.get('ios') as FormGroup;
+  }
+
+
+  private loadConfig(): void {
+    this.isLoading = true;
+    this._apiFs.apkVersion.get().subscribe({
       next: (res: IResponse) => {
-        if (res.code === 'OK') {
-          this.apkVersionList = res.data;
+        this.isLoading = false;
+        if (res.code === 'OK' && res.data) {
+          this.appVersionId = res.data?._id || null;
+          this.history = res.data?.history || [];
+          const android = res.data?.android || {};
+          const ios = res.data?.ios || {};
+          this.versionForm.patchValue({
+            android: {
+              min: android?.min ?? 1,
+              latest: android?.latest ?? 1,
+              updateNote: android?.updateNote ?? ''
+            },
+            ios: {
+              min: ios?.min ?? 1,
+              latest: ios?.latest ?? 1,
+              updateNote: ios?.updateNote ?? ''
+            }
+          });
         }
       },
-      error: (err) => { }
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
-  protected onTabChange(appType: 'android' | 'ios'): void {
-    if (this.selectedAppType !== appType) {
-      this.selectedAppType = appType;
-      this.loadList();
-    }
+
+  private platformControl(platform: 'android' | 'ios', field: string): AbstractControl | null {
+    return this.versionForm.get(`${platform}.${field}`);
+  }
+
+  protected getAndroidControl(field: string): AbstractControl | null {
+    return this.platformControl('android', field);
+  }
+
+  protected getIosControl(field: string): AbstractControl | null {
+    return this.platformControl('ios', field);
   }
 
 
-  protected isStatusChangeConfirmationModalOpen: boolean = false;
-  protected userStatusChangeData: any = null;
-  protected onStatusChange(event: any, user: any, key: string): void {
-    this.userStatusChangeData = { ...user, keyToChange: key };
-    event?.stopPropagation();
-    event?.preventDefault();
-    this.isStatusChangeConfirmationModalOpen = true;
-  }
-
-  protected closeStatusChangeConfirmationModal(): void {
-    this.isStatusChangeConfirmationModalOpen = false;
-    this.userStatusChangeData = null;
-  }
-
-  protected isReqAlive: boolean = false;
-  protected confirmStatusChange(): void {
+  protected onSubmit(): void {
     if (this.isReqAlive) return;
-    const userId = this.userStatusChangeData?._id;
-    if (!userId || !this.userStatusChangeData?.keyToChange) return;
 
-    const index = this.apkVersionList.findIndex(w => w._id === userId);
-    if (index === -1) return;
+    if (this.versionForm.invalid) {
+      this.versionForm.markAllAsTouched();
+      return;
+    }
 
-    const keyToChange = this.userStatusChangeData?.keyToChange;
-    this.apkVersionList[index][keyToChange] = !this.apkVersionList[index][keyToChange];
-    this.closeStatusChangeConfirmationModal();
+    const android = this.ff_android.value;
+    const ios = this.ff_ios.value;
+    if (android.min > android.latest || ios.min > ios.latest) {
+      this._coreService.utils.showToaster(EToasterType.Danger, 'Min version cannot be greater than latest version.');
+      return;
+    }
 
     this.isReqAlive = true;
-    this._apiFs.apkVersion.update(
-      userId,
-      { [keyToChange]: this.apkVersionList[index][keyToChange] }
-    ).subscribe({
+    const body = {
+      android: {
+        min: Number(android.min),
+        latest: Number(android.latest),
+        updateNote: android.updateNote?.trim?.() ?? ''
+      },
+      ios: {
+        min: Number(ios.min),
+        latest: Number(ios.latest),
+        updateNote: ios.updateNote?.trim?.() ?? ''
+      }
+    };
+
+    const funNm = this.appVersionId ? 'update' : 'create';
+    this._apiFs.apkVersion[funNm](body).subscribe({
       next: (res: IResponse) => {
         this.isReqAlive = false;
-        if (res.code === 'OK') {
-          this.apkVersionList[index] = res.data;
-          this._coreService.utils.showToaster(EToasterType.Success, 'APK Version updated successfully.');
+        if (res.code === 'OK' || res.code === 'CREATED') {
+          this.appVersionId = res.data?._id || this.appVersionId;
+          this.history = res.data?.history || [];
+          this._coreService.utils.showToaster(
+            EToasterType.Success,
+            res.code === 'CREATED' ? 'App version created successfully.' : 'App version updated successfully.'
+          );
         }
       },
       error: (err: any) => {
         this.isReqAlive = false;
-        this.apkVersionList[index][keyToChange] = !this.apkVersionList[index][keyToChange];
-        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        const msg = err?.error?.message || 'Failed to save app version.';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }
     });
   }
-
-
-  protected onOpenUpsertUserModal(user: any = null): void {
-    this.upsertModalData = user;
-    this.isUpsertModalOpen = true;
-  }
-
-  protected onCloseOrCancelModal(): void {
-    this.isUpsertModalOpen = false;
-    this.upsertModalData = null;
-  }
-
-  protected upsertModalEvent(data: any): void {
-    if (data) {
-      if (!data?._id) {
-        this.loadList();
-      } else {
-        const index = this.apkVersionList.findIndex(u => u._id === data._id);
-        if (index !== -1) {
-          this.apkVersionList[index] = data;
-        }
-      }
-    }
-    this.onCloseOrCancelModal();
-  }
-
-
-  protected deleteConfirmModalConfig: { isOpen: boolean, data: any } = {
-    isOpen: false,
-    data: null
-  };
-
-  protected onOpenDeleteConfirmModal(user: any): void {
-    this.deleteConfirmModalConfig = {
-      isOpen: true,
-      data: user
-    };
-  }
-
-  protected closeDeleteConfirmModal(): void {
-    this.deleteConfirmModalConfig = {
-      isOpen: false,
-      data: null
-    };
-  }
-
-  protected confirmDelete(): void {
-    if (this.isReqAlive) return;
-    const apkId = this.deleteConfirmModalConfig.data?._id;
-    if (!apkId) return;
-
-    const index = this.apkVersionList.findIndex(apk => apk._id === apkId);
-    if (index === -1) return;
-
-    this.isReqAlive = true;
-    this._apiFs.apkVersion.delete(apkId).subscribe({
-      next: (res: IResponse) => {
-        this.isReqAlive = false;
-        if (res.code === 'OK') {
-          this._coreService.utils.showToaster(EToasterType.Success, 'APK Version deleted successfully.');
-          this.closeDeleteConfirmModal();
-          this.loadList();
-        }
-      },
-      error: (err: any) => {
-        this.isReqAlive = false;
-        const msg = err?.error?.message || 'Failed to delete APK Version';
-        this._coreService.utils.showToaster(EToasterType.Danger, msg);
-      }
-    });
-  }
-
 }

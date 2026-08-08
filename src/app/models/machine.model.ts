@@ -59,10 +59,19 @@ export function hasStopKey(machineType: MachineType = 'rapier', key: string): bo
     return keys.includes(key);
 }
 
+export function formatQualityReed(quality?: string, reed?: string): string {
+    const q = (quality ?? '').trim();
+    const r = (reed ?? '').trim();
+    if (!q && !r) return '-';
+    if (!r) return q || '-';
+    return q ? `${q} (${r})` : `(${r})`;
+}
+
 export interface IMachineLog {
     machineCode: string;
     machineName: string;
     quality?: string;
+    reed?: string;
     machineType?: MachineType;
     machineGroupId?: string | null;
     efficiency: number;

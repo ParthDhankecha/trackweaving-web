@@ -5,12 +5,21 @@ import { HttpClient } from '../http-client/http-client';
 import { IResponse } from '@src/app/models/http-response.model';
 
 
-export type AlertFlags = {
-  pickChange?: boolean;
-  maxSpeed?: boolean;
-  lowSpeed?: boolean;
-  beamLeft?: boolean;
+export type AlertChannelFlags = {
+  notification?: boolean;
+  whatsapp?: boolean;
 };
+
+export type AlertFlags = {
+  pickChange?: AlertChannelFlags;
+  maxSpeed?: AlertChannelFlags;
+  lowSpeed?: AlertChannelFlags;
+  beamLeft?: AlertChannelFlags & { thresholds?: string };
+  machineStopped?: AlertChannelFlags & { minutes?: string };
+};
+
+export type AlertChannelKey = keyof AlertChannelFlags;
+export type AlertKey = keyof Required<AlertFlags>;
 
 @Injectable({
   providedIn: 'root'
@@ -25,11 +34,11 @@ export class AlertConfig {
     return this._http.get(`${this._baseUrl}/workspace/${workspaceId}`);
   }
 
-  upsertWorkspace(workspaceId: string, alerts: AlertFlags): Observable<IResponse> {
+  upsertWorkspace(workspaceId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/workspace/${workspaceId}`, { alerts });
   }
 
-  upsertUser(userId: string, alerts: AlertFlags): Observable<IResponse> {
+  upsertUser(userId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/user/${userId}`, { alerts });
   }
 

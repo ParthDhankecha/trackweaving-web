@@ -40,10 +40,12 @@ export class UpsertMachine {
     deviceType: ['', [Validators.required]],
     displayType: ['', [Validators.required]],
     machineType: ['', [Validators.required]],
+    quality: ['', []],
+    reed: ['', []],
   });
   protected isEyeOpen: boolean = false;
   protected readonly deviceTypeList: string[] = ['lan', 'rs485'];
-  protected readonly displayTypeList: string[] = ['nazon', 'chitic', 'pickwell', 'biana'];
+  protected readonly displayTypeList: string[] = ['nazon', 'chitic', 'pickwell', 'biana', 'haiwell'];
   protected readonly machineTypeList: string[] = ['rapier', 'airjet', 'waterjet', 'circular'];
 
 
@@ -71,6 +73,8 @@ export class UpsertMachine {
         deviceType: this.machineData?.deviceType || '',
         displayType: this.machineData?.displayType || '',
         machineType: this.machineData?.machineType || '',
+        quality: this.machineData?.quality || '',
+        reed: this.machineData?.reed || '',
       });
     }
   }
