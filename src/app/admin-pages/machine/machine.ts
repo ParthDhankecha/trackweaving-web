@@ -8,6 +8,7 @@ import { Pagination } from '@src/app/shared/components/pagination/pagination';
 import { UpsertMachine } from './upsert-machine/upsert-machine';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
+import { EToasterType } from '@src/app/models/utils.model';
 
 
 @Component({
@@ -42,6 +43,7 @@ export class Machine {
     isOpen: false,
     data: null
   };
+  protected isDeleteInProgress: boolean = false;
 
   protected workspaceList: { _id: string, firmName: string }[] = [];
   protected workspaceOptions: { _id: string, firmName: string }[] = [];
@@ -138,7 +140,7 @@ export class Machine {
     this.isUpsertMachineModalOpen = false;
   }
 
-  protected upsertMAchineModalEvent(data: any): void {
+  protected upsertMachineModalEvent(data: any): void {
     if (data) {
       if (data._id) {
         const index = this.machineList.findIndex(w => w._id === data._id);
@@ -170,8 +172,24 @@ export class Machine {
   }
 
   protected confirmDeleteMachine(): void {
-    if (!this.deleteConfirmModalConfig.data?._id) return;
+    const machineId = this.deleteConfirmModalConfig.data?._id;
+    if (!machineId || this.isDeleteInProgress) return;
 
-    this.closeDeleteConfirmModal();
+    this.isDeleteInProgress = true;
+    this._apiFs.machine.delete(machineId).subscribe({
+      next: (res: IResponse) => {
+        this.isDeleteInProgress = false;
+        if (res.code === 'OK') {
+          this._coreService.utils.showToaster(EToasterType.Success, 'Machine deleted successfully.');
+          this.closeDeleteConfirmModal();
+          this.loadList();
+        }
+      },
+      error: (err: any) => {
+        this.isDeleteInProgress = false;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
   }
 }

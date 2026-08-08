@@ -119,7 +119,7 @@
 <!-- Create/Upsert Machine Modal -->
 @if (isUpsertMachineModalOpen){
 <app-upsert-machine [workspaceList]="workspaceList" [machineData]="upsertMachineModalData"
-    (close)="onCloseMachineModal()" (upsert)="upsertMAchineModalEvent($event)" />
+    (close)="onCloseMachineModal()" (upsert)="upsertMachineModalEvent($event)" />
 }
 
 <!-- Delete Confirmation Modal -->

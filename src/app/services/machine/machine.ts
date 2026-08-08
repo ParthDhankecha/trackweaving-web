@@ -33,6 +33,10 @@ export class Machine {
     return this._http.get(`${this._baseUrl}/code/${workspaceId}`);
   }
 
+  optionList(workspaceId: string): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}/option-list/${workspaceId}`);
+  }
+
   create(payload: { machineCode: string, machineName: string, ip: string, workspaceId: string }): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}/create`, payload);
   }

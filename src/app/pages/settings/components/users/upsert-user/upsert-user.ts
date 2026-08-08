@@ -18,7 +18,6 @@ import { EToasterType } from '@src/app/models/utils.model';
 })
 export class UpsertUser {
 
-
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _fb = inject(FormBuilder);
@@ -37,9 +36,24 @@ export class UpsertUser {
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, []],
+    shift: [[], []],
+    machineIds: [[], []],
   });
   protected isEyeOpen: boolean = false;
+  protected machineList: any[] = [];
+  protected readonly shiftOptions: { value: number, label: string }[] = [
+    { value: 0, label: 'Day Shift' },
+    { value: 1, label: 'Night Shift' },
+  ];
 
+
+  protected get showMasterFields(): boolean {
+    if (!this.isEditMode) return true;
+    // Admin can edit master user's shift/machines only
+    if (!this._coreService.utils.isAdmin) return false;
+    const masterRole = this._coreService.appConfig.roles?.MASTER;
+    return masterRole !== undefined && this.userData?.userType === masterRole;
+  }
 
 
   protected ngOnChanges(changes: SimpleChanges) {
@@ -55,11 +69,76 @@ export class UpsertUser {
         userName: this.userData.userName || '',
         mobile: this.userData.mobile || '',
         email: this.userData.email || '',
-        isActive: this.userData.isActive ?? true
+        isActive: this.userData.isActive ?? true,
+        shift: this.normalizeShiftValue(this.userData.shift),
+        machineIds: this.userData?.machineIds ?? []
       });
     }
+    this.syncMasterFieldValidators();
   }
 
+
+  protected ngOnInit(): void {
+    this.loadMachines();
+    this.syncMasterFieldValidators();
+  }
+
+
+  private loadMachines(): void {
+    this._apiFs.machineConfigure.optionList().subscribe({
+      next: (res: IResponse) => {
+        if (res.code === 'OK') {
+          this.machineList = res.data || [];
+        }
+      },
+      error: () => {
+        this.machineList = [];
+      }
+    });
+  }
+
+
+  private syncMasterFieldValidators(): void {
+    if (this.showMasterFields) {
+      this.shift?.setValidators([this.atLeastOneShiftValidator]);
+      this.machineIds?.setValidators([Validators.required, this.atLeastOneMachineValidator]);
+    } else {
+      this.shift?.clearValidators();
+      this.machineIds?.clearValidators();
+      this.shift?.setValue([], { emitEvent: false });
+      this.machineIds?.setValue([], { emitEvent: false });
+    }
+    this.shift?.updateValueAndValidity({ emitEvent: false });
+    this.machineIds?.updateValueAndValidity({ emitEvent: false });
+  }
+
+
+  private atLeastOneMachineValidator(control: AbstractControl) {
+    const value = control.value;
+    if (!Array.isArray(value) || value.length === 0) {
+      return { required: true };
+    }
+    return null;
+  }
+
+
+  private atLeastOneShiftValidator(control: AbstractControl) {
+    const value = control.value;
+    if (!Array.isArray(value) || value.length === 0) {
+      return { required: true };
+    }
+    return null;
+  }
+
+  private normalizeShiftValue(shift: unknown): number[] {
+    if (Array.isArray(shift)) {
+      return [
+        ...new Set(shift.map(Number)
+          .filter(Number.isFinite))
+      ].sort();
+    }
+    return [];
+  }
 
 
   get fullname(): AbstractControl | null {
@@ -80,6 +159,12 @@ export class UpsertUser {
   get isActive(): AbstractControl | null {
     return this.userForm.get('isActive');
   }
+  get shift(): AbstractControl | null {
+    return this.userForm.get('shift')
+  }
+  get machineIds(): AbstractControl | null {
+    return this.userForm.get('machineIds');
+  }
 
 
   protected onlyDigits(event: KeyboardEvent, inputLength: number = 10): void {
@@ -92,6 +177,55 @@ export class UpsertUser {
     if (!/^\d$/.test(event.key) || input.value.length >= inputLength) {
       event.preventDefault();
     }
+  }
+
+
+  protected isShiftSelected(shiftValue: number): boolean {
+    return (this.shift?.value || []).includes(shiftValue);
+  }
+
+  protected onToggleShift(shiftValue: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current: number[] = [...(this.shift?.value || [])];
+    if (checked && !current.includes(shiftValue)) {
+      current.push(shiftValue);
+    } else if (!checked) {
+      const idx = current.indexOf(shiftValue);
+      if (idx !== -1) current.splice(idx, 1);
+    }
+    this.shift?.setValue(current.sort());
+    this.shift?.markAsTouched();
+  }
+
+
+  protected isMachineSelected(machineId: string): boolean {
+    return (this.machineIds?.value || []).includes(machineId);
+  }
+
+  protected get isAllMachinesSelected(): boolean {
+    return this.machineList.length === (this.machineIds?.value || []).length;
+  }
+
+  protected onToggleMachine(event: Event, machineId?: string): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (!machineId) {
+      this.machineIds?.setValue(
+        checked ? this.machineList.map((m) => m._id) : []
+      );
+      this.machineIds?.markAsTouched();
+      return;
+    }
+
+    // Single machine toggle
+    const current: string[] = [...(this.machineIds?.value || [])];
+    if (checked && !current.includes(machineId)) {
+      current.push(machineId);
+    } else if (!checked) {
+      const idx = current.indexOf(machineId);
+      if (idx !== -1) current.splice(idx, 1);
+    }
+    this.machineIds?.setValue(current);
+    this.machineIds?.markAsTouched();
   }
 
 
@@ -113,6 +247,10 @@ export class UpsertUser {
     };
     if (this.isActive) {
       body.isActive = this.isActive?.value;
+    }
+    if (this.showMasterFields) {
+      body.shift = this.normalizeShiftValue(this.shift?.value);
+      body.machineIds = this.machineIds?.value || [];
     }
 
     this.isReqAlive = true;

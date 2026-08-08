@@ -1,259 +1,337 @@
 <div class="modal modal-lg fade show d-block">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">
-                        {{isEditMode ? 'Edit User' : 'Create User'}}
-                    </h1>
-                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
-                </div>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">
+                    {{isEditMode ? 'Edit User' : 'Create User'}}
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+            </div>
 
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Workspace -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <span class="d-inline-block form-label">
-                                Workspace <span class="text-danger">*</span>
-                            </span>
-                            <app-common-dropdown [optionsList]="workspaceList" [selectedOption]="workspace?.value"
-                                (onSelect)="onWorkspaceChange($event)" [filterKeys]="['firmName']"
-                                [disabled]="!!workspace?.disabled" displayKey1="firmName" uniqueKey="_id"
-                                placeholder="Select Workspace">
-                            </app-common-dropdown>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Workspace -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <span class="d-inline-block form-label">
+                            Workspace <span class="text-danger">*</span>
+                        </span>
+                        <app-common-dropdown [optionsList]="workspaceList" [selectedOption]="workspace?.value"
+                            (onSelect)="onWorkspaceChange($event)" [filterKeys]="['firmName']"
+                            [disabled]="!!workspace?.disabled" displayKey1="firmName" uniqueKey="_id"
+                            placeholder="Select Workspace" />
 
-                            @if(workspace?.touched && workspace?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(workspace?.errors?.['required']){
-                                <span>Workspace is required.</span>
-                                }
-                            </div>
+                        @if(workspace && workspace.touched && workspace.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(workspace.errors['required']){
+                            <span>Workspace is required.</span>
                             }
                         </div>
-                        <!-- fullname -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="fullname" class="form-label">
-                                Name <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="fullname" formControlName="fullname" class="form-control"
-                                placeholder="Enter Name">
-
-                            @if(fullname?.touched && fullname?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(fullname?.errors?.['required']){
-                                <span>Name is required.</span>
-                                }
-                                @if(fullname?.errors?.['maxlength']){
-                                <span>
-                                    Name cannot exceed
-                                    {{fullname?.errors?.['maxlength']?.requiredLength}}
-                                    characters.
-                                </span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- User Name -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="userName" class="form-label">
-                                User Name <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="userName" formControlName="userName" class="form-control"
-                                placeholder="Enter User Name/Mobile">
-
-                            @if(userName?.touched && userName?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(userName?.errors?.['required']){
-                                <span>User Name is required.</span>
-                                }
-                                @if(userName?.errors?.['maxlength']){
-                                <span>
-                                    User Name cannot exceed
-                                    {{userName?.errors?.['maxlength']?.requiredLength}}
-                                    characters.
-                                </span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- password -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="password" class="form-label">
-                                Password <span class="text-danger" [class.d-none]="isEditMode">*</span>
-                            </label>
-                            <div class="input-group flex-nowrap">
-                                <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
-                                    formControlName="password" maxlength="20" placeholder="Enter your password"
-                                    aria-describedby="password">
-                                <span class="input-group-text user-select-none position-relative cursor-pointer"
-                                    (click)="isEyeOpen = !isEyeOpen">
-                                    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
-                                        fill="#737373">
-                                        <path
-                                            d='M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3' />
-                                        <path
-                                            d='M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5' />
-                                    </svg>
-                                    <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
-                                </span>
-                            </div>
-
-                            @if(password?.touched && password?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(password?.errors?.['required']){
-                                <span>Password is required.</span>
-                                }
-                                @if(password?.errors?.['minlength']){
-                                <span>
-                                    Password must be at least
-                                    {{password?.errors?.['minlength']?.requiredLength}}
-                                    characters long.
-                                </span>
-                                }
-                                @if (password?.errors?.['maxlength']){
-                                <span>
-                                    Password cannot exceed
-                                    {{password?.errors?.['maxlength']?.requiredLength}}
-                                    characters.
-                                </span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- mobile -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="mobile" class="form-label">
-                                Mobile Number
-                            </label>
-                            <input type="text" id="mobile" formControlName="mobile" class="form-control"
-                                placeholder="Enter Mobile Number" (keypress)="onlyDigits($event)">
-
-                            @if(mobile?.touched && mobile?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(mobile?.errors?.['required']){
-                                <span>Mobile Number is required.</span>
-                                }
-                                @if(mobile?.errors?.['pattern']){
-                                <span>Enter a valid 10-digit mobile number.</span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- email -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="email" class="form-label">
-                                Email
-                            </label>
-                            <input type="email" id="email" formControlName="email" class="form-control"
-                                placeholder="Enter Email">
-
-                            @if(email?.touched && email?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(email?.errors?.['required']){
-                                <span>Email is required.</span>
-                                }
-                                @if(email?.errors?.['email']){
-                                <span>Enter a valid email address.</span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- Is Active -->
-                        <div class="col-12 col-md-6 mb-3 d-flex">
-                            <div class="form-check form-switch my-auto">
-                                <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive"
-                                    [checked]="isActive?.value">
-                                <label class="form-check-label" for="isActive">
-                                    Is Active
-                                </label>
-                            </div>
-                        </div>
-                        <!-- WhatsApp Report -->
-                        <div class="col-12 col-md-6 mb-3 d-flex">
-                            <div class="form-check form-switch my-auto">
-                                <input class="form-check-input" type="checkbox" id="receiveWhatsappReport"
-                                    formControlName="receiveWhatsappReport"
-                                    [checked]="receiveWhatsappReport?.value"
-                                    [disabled]="!mobile?.value">
-                                <label class="form-check-label" for="receiveWhatsappReport">
-                                    WhatsApp Shift Report
-                                </label>
-                            </div>
-                            @if(!mobile?.value){
-                            <small class="text-muted ms-2 my-auto">Add mobile number to enable</small>
-                            }
-                        </div>
+                        }
                     </div>
-                    <!-- Plan -->
-                    @if(isEditMode && userForm.contains('plan')){
-                    <div formGroupName="plan" class="row">
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="startDate" class="form-label">
-                                Plan Start Date
-                            </label>
-                            <input type="date" id="startDate" formControlName="startDate" class="form-control">
+                    <!-- fullname -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <label for="fullname" class="form-label">
+                            Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="fullname" formControlName="fullname" class="form-control"
+                            placeholder="Enter Name">
 
-                            @if(planStartDate?.touched && planStartDate?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(planStartDate?.errors?.['required']){
-                                <span>Start Date is required.</span>
-                                }
-                                @if(planStartDate?.errors?.['invalidTimeRange']){
-                                <span>Start Date must be before End Date.</span>
-                                }
+                        @if(fullname && fullname.touched && fullname.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(fullname.errors['required']){
+                            <span>Name is required.</span>
+                            }
+                            @if(fullname.errors['maxlength']){
+                            <span>
+                                Name cannot exceed
+                                {{fullname.errors['maxlength'].requiredLength}}
+                                characters.
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- User Name -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <label for="userName" class="form-label">
+                            User Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="userName" formControlName="userName" class="form-control"
+                            placeholder="Enter User Name/Mobile">
+
+                        @if(userName && userName.touched && userName.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(userName.errors['required']){
+                            <span>User Name is required.</span>
+                            }
+                            @if(userName.errors['maxlength']){
+                            <span>
+                                User Name cannot exceed
+                                {{userName.errors['maxlength'].requiredLength}}
+                                characters.
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- password -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <label for="password" class="form-label">
+                            Password <span class="text-danger" [class.d-none]="isEditMode">*</span>
+                        </label>
+                        <div class="input-group flex-nowrap">
+                            <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
+                                formControlName="password" maxlength="20" placeholder="Enter your password"
+                                aria-describedby="password">
+                            <span class="input-group-text user-select-none position-relative cursor-pointer"
+                                (click)="isEyeOpen = !isEyeOpen">
+                                <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
+                                    fill="#737373">
+                                    <path d='M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3s3-1.358 3-3-1.359-3-3-3' />
+                                    <path
+                                        d='M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5m0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5' />
+                                </svg>
+                                <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
+                            </span>
+                        </div>
+
+                        @if(password && password.touched && password.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(password.errors['required']){
+                            <span>Password is required.</span>
+                            }
+                            @if(password.errors['minlength']){
+                            <span>
+                                Password must be at least
+                                {{password.errors['minlength'].requiredLength}}
+                                characters long.
+                            </span>
+                            }
+                            @if (password.errors['maxlength']){
+                            <span>
+                                Password cannot exceed
+                                {{password.errors['maxlength'].requiredLength}}
+                                characters.
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- email -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <label for="email" class="form-label">
+                            Email
+                        </label>
+                        <input type="email" id="email" formControlName="email" class="form-control"
+                            placeholder="Enter Email">
+
+                        @if(email && email.touched && email.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(email.errors['required']){
+                            <span>Email is required.</span>
+                            }
+                            @if(email.errors['email']){
+                            <span>Enter a valid email address.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- mobile -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <label for="mobile" class="form-label">
+                            Mobile Number
+                        </label>
+                        <input type="text" id="mobile" formControlName="mobile" class="form-control"
+                            placeholder="Enter Mobile Number" (keypress)="onlyDigits($event)">
+
+                        @if(mobile && mobile.touched && mobile.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(mobile.errors['required']){
+                            <span>Mobile Number is required.</span>
+                            }
+                            @if(mobile.errors['pattern']){
+                            <span>Enter a valid 10-digit mobile number.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- WhatsApp Report -->
+                    <div class="col-12 col-lg mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="receiveWhatsappReport"
+                                formControlName="receiveWhatsappReport">
+
+                            <label class="form-check-label" for="receiveWhatsappReport">
+                                WhatsApp Shift Report
+                            </label>
+                        </div>
+
+                        @if(!mobile?.value){
+                        <small class="text-muted ms-2">
+                            Add mobile number to enable
+                        </small>
+                        }
+                    </div>
+                    @if(showMasterFields){
+                    <!-- Shift -->
+                    <div class="col-12 col-lg mb-3">
+                        <span class="form-label d-block">
+                            Shift <span class="text-danger">*</span>
+                        </span>
+                        <div class="d-flex flex-wrap gap-3">
+                            @for (option of shiftOptions; track option.value) {
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="shift-{{option.value}}"
+                                    [checked]="isShiftSelected(option.value)"
+                                    (change)="onToggleShift(option.value, $event)">
+
+                                <label class="form-check-label" for="shift-{{option.value}}">
+                                    {{ option.label }}
+                                </label>
                             </div>
                             }
                         </div>
 
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="endDate" class="form-label">
-                                Plan End Date
-                            </label>
-                            <input type="date" id="endDate" formControlName="endDate" class="form-control">
-
-                            @if(planEndDate?.touched && planEndDate?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(planEndDate?.errors?.['required']){
-                                <span>End Date is required.</span>
-                                }
-                                @if(planEndDate?.errors?.['invalidTimeRange']){
-                                <span>End Date must be after Start Date.</span>
-                                }
+                        @if(shift && shift.touched && shift.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(shift.errors['required']){
+                            <span>Select at least one shift.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- Machines -->
+                    <div class="col-12 mb-3">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <span class="form-label mb-0">
+                                Machines <span class="text-danger">*</span>
+                            </span>
+                            @if(workspace?.value && machineList.length){
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="selectAllMachines"
+                                    [checked]="isAllMachinesSelected" [indeterminate]="isSomeMachinesSelected"
+                                    (change)="onToggleSelectAllMachines($event)">
+                                <label class="form-check-label" for="selectAllMachines">
+                                    Select all
+                                </label>
                             </div>
                             }
                         </div>
-                        <!-- subUserLimit -->
-                        <div class="col-12 col-md-6">
-                            <label for="subUserLimit" class="form-label">
-                                Plan Sub User Limit
-                            </label>
-                            <input type="text" id="subUserLimit" formControlName="subUserLimit" class="form-control"
-                                placeholder="Enter Sub User Limit" (keypress)="onlyDigits($event, 2)">
-
-                            @if(mobile?.touched && mobile?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(mobile?.errors?.['required']){
-                                <span>Mobile Number is required.</span>
-                                }
-                                @if(mobile?.errors?.['pattern']){
-                                <span>Enter a valid 10-digit mobile number.</span>
-                                }
+                        @if(!workspace?.value){
+                        <small class="text-muted">
+                            Select a workspace to load machines.
+                        </small>
+                        } @else {
+                        <div class="row gx-4 gy-2">
+                            @for (machine of machineList; track machine._id) {
+                            <div class="col-6 col-md-auto">
+                                <div class="form-check mb-0">
+                                    <input type="checkbox" id="machine-{{machine._id}}" class="form-check-input"
+                                        [checked]="isMachineSelected(machine._id)"
+                                        (change)="onToggleMachine(machine._id, $event)">
+                                    <label class="form-check-label text-truncate d-block" for="machine-{{machine._id}}"
+                                        [title]="machine.machineCode">
+                                        {{ machine.machineCode }}
+                                    </label>
+                                </div>
+                            </div>
+                            } @empty {
+                            <div class="col-12 text-muted small">
+                                No machines available for this workspace.
                             </div>
                             }
                         </div>
+                        }
+
+                        @if(machineIds && machineIds.touched && machineIds.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineIds.errors['required']){
+                            <span>Select at least one machine.</span>
+                            }
+                        </div>
+                        }
                     </div>
                     }
+                    <!-- Is Active -->
+                    <div class="col-12 col-lg-6 mb-3 d-flex">
+                        <div class="form-check form-switch my-auto">
+                            <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive"
+                                [checked]="isActive?.value">
+                            <label class="form-check-label" for="isActive">
+                                Is Active
+                            </label>
+                        </div>
+                    </div>
                 </div>
+                <!-- Plan -->
+                @if(isEditMode && userForm.contains('plan')){
+                <div formGroupName="plan" class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="startDate" class="form-label">
+                            Plan Start Date
+                        </label>
+                        <input type="date" id="startDate" formControlName="startDate" class="form-control">
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
-                        Cancel
-                    </button>
-                    <button class="btn btn-primary">
-                        {{isEditMode ? 'Update' : 'Create'}}
-                    </button>
+                        @if(planStartDate && planStartDate.touched && planStartDate.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(planStartDate.errors['required']){
+                            <span>Start Date is required.</span>
+                            }
+                            @if(planStartDate.errors['invalidTimeRange']){
+                            <span>Start Date must be before End Date.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="endDate" class="form-label">
+                            Plan End Date
+                        </label>
+                        <input type="date" id="endDate" formControlName="endDate" class="form-control">
+
+                        @if(planEndDate && planEndDate.touched && planEndDate.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(planEndDate.errors['required']){
+                            <span>End Date is required.</span>
+                            }
+                            @if(planEndDate.errors['invalidTimeRange']){
+                            <span>End Date must be after Start Date.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- subUserLimit -->
+                    <div class="col-12 col-md-6">
+                        <label for="subUserLimit" class="form-label">
+                            Plan Sub User Limit
+                        </label>
+                        <input type="text" id="subUserLimit" formControlName="subUserLimit" class="form-control"
+                            placeholder="Enter Sub User Limit" (keypress)="onlyDigits($event, 2)">
+
+                        @if(mobile && mobile.touched && mobile.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(mobile.errors['required']){
+                            <span>Mobile Number is required.</span>
+                            }
+                            @if(mobile.errors['pattern']){
+                            <span>Enter a valid 10-digit mobile number.</span>
+                            }
+                        </div>
+                        }
+                    </div>
                 </div>
-            </form>
-        </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary">
+                    {{isEditMode ? 'Update' : 'Create'}}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
