@@ -371,7 +371,7 @@ export class Dashboard implements OnInit, OnDestroy {
       efficiencySum += Number(m.efficiency) || 0;
       pickSum += Number(m.picks) || 0;
       speedSum += Number(m.speed) || 0;
-      if (!m.currentStop) running++;
+      if (Number(m.speed) > 0) running++;
     }
 
     return {
