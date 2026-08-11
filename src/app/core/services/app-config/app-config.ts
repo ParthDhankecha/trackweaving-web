@@ -71,6 +71,7 @@ export class AppConfig {
     roles: undefined,
     efficiencyAveragePer: 85,
     efficiencyGoodPer: 90,
+    beamLeftMin: 1000,
     refreshInterval: 10,
     currencySymbol: '₹'
   };

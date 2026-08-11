@@ -23,7 +23,6 @@ export class UpsertMachine {
   protected readonly _fb = inject(FormBuilder);
 
 
-  protected readonly _machineNames: string[] = ['taitan', 'signature', 'rifa', 'pickwell', 'redflag'];
   protected isEditMode: boolean = false;
   @Input('workspaceList') workspaceList: any = [];
   protected filteredWorkspaceList: any = [];
@@ -35,7 +34,9 @@ export class UpsertMachine {
   protected machineForm: FormGroup = this._fb.group({
     machineCode: ['', [Validators.required, Validators.pattern('^M[0-9]+$')]],
     machineName: ['', [Validators.required, Validators.maxLength(100)]],
-    ip: ['', [Validators.required, Validators.pattern(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/)]],
+    ip: ['', [Validators.required, Validators.pattern(
+      /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/
+    )]],
     workspace: ['', [Validators.required]],
     deviceType: ['', [Validators.required]],
     displayType: ['', [Validators.required]],
@@ -44,10 +45,31 @@ export class UpsertMachine {
     reed: ['', []],
   });
   protected isEyeOpen: boolean = false;
-  protected readonly deviceTypeList: string[] = ['lan', 'rs485'];
-  protected readonly displayTypeList: string[] = ['nazon', 'chitic', 'pickwell', 'biana', 'haiwell'];
-  protected readonly machineTypeList: string[] = ['rapier', 'airjet', 'waterjet', 'circular'];
 
+  protected machineNames: string[] = [];
+  protected deviceTypeList: string[] = [];
+  protected displayTypeList: string[] = [];
+  protected machineTypeList: string[] = [];
+
+
+  protected ngOnInit(): void {
+    this.loadMachineEnums();
+  }
+
+
+  private loadMachineEnums(): void {
+    this._apiFs.machine.getConfigurations().subscribe({
+      next: (res: any) => {
+        if (res.code !== 'OK' || !res.data) return;
+
+        this.machineNames = res.data.machineNames || [];
+        this.deviceTypeList = res.data.deviceTypes || [];
+        this.displayTypeList = res.data.displayTypes || [];
+        this.machineTypeList = res.data.machineTypes || [];
+      },
+      error: () => { }
+    });
+  }
 
 
   protected ngOnChanges(changes: SimpleChanges) {

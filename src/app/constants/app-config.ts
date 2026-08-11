@@ -60,6 +60,7 @@ export const APP_PAGE_TITLE = {
         ANALYTICS: `Analytics ${TITLE_POSTFIX}`,
         REPORT: `Reports ${TITLE_POSTFIX}`,
     },
+    DEVICE_REPORT: `Device Report ${TITLE_POSTFIX}`,
     TERMS_AND_CONDITIONS: `Terms and Conditions ${TITLE_POSTFIX}`,
     PRIVACY_POLICY: `Privacy Policy ${TITLE_POSTFIX}`,
     SUPPORT: `Support ${TITLE_POSTFIX}`,

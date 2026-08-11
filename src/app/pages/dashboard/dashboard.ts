@@ -46,6 +46,10 @@ export class Dashboard implements OnInit, OnDestroy {
     protected _coreService: CoreFacadeService
   ) {
     this.config = this._coreService.appConfig.configData;
+
+    if (Number.isFinite(this.config?.beamLeftMin)) {
+      this.beamLeftMin = this.config.beamLeftMin;
+    }
   }
 
   protected config: IAppConfigData;
@@ -104,6 +108,7 @@ export class Dashboard implements OnInit, OnDestroy {
       { key: 'setPicks', label: 'Set' },
     ],
   } as const;
+  protected beamLeftMin: number = 1000;
 
   protected refreshSub!: Subscription;
 
@@ -617,7 +622,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   protected isLowBeamLeft(machineLog: IMachineLog): boolean {
     const beamLeft = Number(machineLog?.beamLeft);
-    return Number.isFinite(beamLeft) && beamLeft < 1000;
+    return Number.isFinite(beamLeft) && beamLeft < this.beamLeftMin;
   }
 
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {

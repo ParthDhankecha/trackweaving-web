@@ -17,20 +17,26 @@ export class ExportData {
   /**
    * EXPORT TO EXCEL (.xlsx) (using SheetJS)
    */
-  exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx'): void {
+  exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx', isDevice: boolean = false): void {
     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(tableElement, {
       raw: true
     });
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    saveAs(new Blob([wbout], { type: 'application/octet-stream' }), filename);
+
+    if (isDevice) {
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+      (window as any).FlutterDownload?.postMessage(JSON.stringify({ base64: wbout, ext: 'xlsx' }));
+    } else {
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      saveAs(new Blob([wbout], { type: 'application/octet-stream' }), filename);
+    }
   }
 
   /**
    * EXPORT TO PDF (using pdfMake)
    */
-  exportTableToPDF(reportData: any): void {
+  exportTableToPDF(reportData: any, isDevice: boolean = false): void {
     const title = reportData.reportTitle || 'Shift Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
@@ -126,7 +132,14 @@ export class ExportData {
       }
     };
 
-    pdfMake.createPdf(docDefinition).open();
+    if (isDevice) {
+      // use save as pdf to save the pdf file
+      pdfMake.createPdf(docDefinition).getBase64((base64: string) => {
+        (window as any).FlutterDownload?.postMessage(JSON.stringify({ base64: base64, ext: 'pdf' }));
+      });
+    } else {
+      pdfMake.createPdf(docDefinition).open();
+    }
   }
 
   // helper methods for PDF export

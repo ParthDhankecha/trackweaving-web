@@ -1,6 +1,6 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, NgZone, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 
@@ -13,6 +13,7 @@ import { CommonDropdown } from '@src/app/shared/components/common-dropdown/commo
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
 import { ROUTES } from '@src/app/constants/app.routes';
+import StorageKeys from '@src/app/constants/storage-keys';
 
 interface IReportNavState {
   reportType?: string;
@@ -41,6 +42,8 @@ export class Reports {
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _router = inject(Router);
+  protected readonly _route = inject(ActivatedRoute);
+  private readonly _ngZone = inject(NgZone);
   /** Captured at construction — `getCurrentNavigation()` is only available then. */
   private readonly navState: IReportNavState | null =
     (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
@@ -49,6 +52,9 @@ export class Reports {
 
   protected readonly _fb = inject(FormBuilder);
 
+  /** From route data (`device-report` sets `{ isDevice: true }`). */
+  protected readonly isDevice = !!this._route.snapshot.data['isDevice'];
+  protected isOptionsLoading = false;
   protected showFactoryFilter = false;
   protected workspaceOptions: { _id: string; firmName: string }[] = [];
   protected selectedWorkspaceId = '';
@@ -188,25 +194,57 @@ export class Reports {
 
   ngOnInit(): void {
     this.syncReportTypeValidators();
-    this.loadMachineList();
-    this.loadMachineGroupList();
-    this.loadQualityList();
     this.setSubscriptions();
+
+    if (this.isDevice) {
+      // WebView injects the token via this bridge; run inside Angular zone for UI updates.
+      (window as any).setDeviceToken = (token: string) => {
+        this._ngZone.run(() => this.setDeviceToken(token));
+      };
+    } else {
+      this.initialize();
+    }
+  }
+
+  private async initialize(): Promise<void> {
+    this.isOptionsLoading = true;
+    try {
+      await Promise.allSettled([
+        this.loadMachineList(),
+        this.loadMachineGroupList(),
+        this.loadQualityList()
+      ]);
+    } finally {
+      this.isOptionsLoading = false;
+    }
+  }
+
+  setDeviceToken(token: string): void {
+    if (typeof token !== 'string' || !token?.trim()) return;
+
+    if (!localStorage.getItem(StorageKeys.ACCESS_TOKEN)) {
+      localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
+      this.initialize();
+    }
   }
 
 
-  protected loadMachineList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadMachineList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchMachineOptions().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
-          this.machineList = [...this.rawMachineList];
-          this.machinesLoaded = true;
-          this.applyNavStateAndLoadReport();
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchMachineOptions().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
+            this.machineList = [...this.rawMachineList];
+            this.machinesLoaded = true;
+            this.applyNavStateAndLoadReport();
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -214,15 +252,19 @@ export class Reports {
     return this._apiFs.machineConfigure.optionList();
   }
 
-  protected loadQualityList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadQualityList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchQualities().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.qualityList = res.data || [];
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchQualities().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.qualityList = res.data || [];
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -230,17 +272,21 @@ export class Reports {
     return this._apiFs.reports.getQualities();
   }
 
-  protected loadMachineGroupList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadMachineGroupList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchMachineGroups().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
-          this.machineGroupsLoaded = true;
-          this.applyNavStateAndLoadReport();
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchMachineGroups().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
+            this.machineGroupsLoaded = true;
+            this.applyNavStateAndLoadReport();
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -261,6 +307,8 @@ export class Reports {
   }
 
   protected goToManufacturerDashboard(): void {
+    if (!this.showFactoryFilter) return;
+
     this._router.navigate(
       [ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.DASHBOARD)],
       { state: this.selectedWorkspaceId ? { workspaceId: this.selectedWorkspaceId } : undefined }
@@ -805,17 +853,20 @@ export class Reports {
 
   protected exportAsPDF(): void {
     if (!this.reportTable?.nativeElement) return;
-    this._coreService.exportData.exportTableToPDF(this.reportData);
+    this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice);
   }
 
   protected exportAsExcel(): void {
     if (!this.reportTable?.nativeElement) return;
     const filename = `${String(this.reportData?.reportTitle || 'report').toLowerCase().replace(/ +/g, '_')}_${moment().format('YYYYMMDD_HHmmss')}.xlsx`;
-    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename);
+    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, this.isDevice);
   }
 
 
   ngOnDestroy(): void {
+    if (this.isDevice) {
+      delete (window as any).setDeviceToken;
+    }
     this.subscriptionHandler$.next();
     this.subscriptionHandler$.complete();
   }

@@ -21,6 +21,7 @@ export interface IAppConfigData {
     roles?: IUserRoles;
     efficiencyAveragePer: number;
     efficiencyGoodPer: number;
+    beamLeftMin: number;
     refreshInterval: number;
     currencySymbol?: string;
 }
