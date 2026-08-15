@@ -6,6 +6,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import APP_REGEXP from '@src/app/constants/app-regexp';
 
 
 @Component({
@@ -31,14 +32,15 @@ export class UpsertUser {
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required]],// username/mobile number
-    password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
+    userName: ["", [Validators.required, Validators.pattern(APP_REGEXP.USER_NAME.REGEXP)]],// username/mobile number
+    password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, []],
     shift: [[], []],
     machineIds: [[], []],
   });
+  protected userNameErrMsg: string = APP_REGEXP.USER_NAME.MESSAGE;
   protected isEyeOpen: boolean = false;
   protected machineList: any[] = [];
   protected readonly shiftOptions: { value: number, label: string }[] = [
@@ -63,7 +65,7 @@ export class UpsertUser {
       if (this.userData?.isCurrentUser) {
         this.userForm.removeControl('isActive');
       }
-      this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
+      this.password?.setValidators([Validators.minLength(6)]);
       this.userForm.patchValue({
         fullname: this.userData.fullname || '',
         userName: this.userData.userName || '',

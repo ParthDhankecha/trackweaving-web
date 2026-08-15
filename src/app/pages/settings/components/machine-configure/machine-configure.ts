@@ -34,12 +34,14 @@ export class MachineConfigure {
     maxSpeedLimit: [null, [Validators.min(0)]],
     quality: ['', []],
     reed: ['', []],
-    isAlertActive: [false, []]
   });
 
 
 
   ngOnInit(): void {
+    if (this.isAdmin) {
+      this.mcForm.addControl('isAlertActive', this._fb.control(false, []));
+    }
     this.loadList();
     this.loadMachineGroupList();
   }
@@ -71,6 +73,10 @@ export class MachineConfigure {
     });
   }
 
+
+  protected get isAdmin(): boolean {
+    return this._coreService.utils.isAdmin;
+  }
 
 
   get machineName(): AbstractControl | null {
@@ -104,15 +110,17 @@ export class MachineConfigure {
     if (!machineConfigure) return;
 
     this.upsertMachineConfigureModalData = machineConfigure;
-    this.mcForm.patchValue({
+    const obj: any = {
       machineName: machineConfigure?.machineName ?? '',
       machineCode: machineConfigure?.machineCode ?? '',
       machineGroupId: machineConfigure?.machineGroupId?._id ?? '',
       maxSpeedLimit: machineConfigure?.maxSpeedLimit ?? null,
       quality: machineConfigure?.quality ?? '',
       reed: machineConfigure?.reed ?? '',
-      isAlertActive: machineConfigure?.isAlertActive ?? false
-    });
+    };
+    if (this.isAdmin) obj.isAlertActive = machineConfigure?.isAlertActive ?? false;
+
+    this.mcForm.patchValue(obj);
     this.machineName?.disable();
     this.isUpsertMachineConfigureModalOpen = true;
   }
@@ -120,15 +128,17 @@ export class MachineConfigure {
   protected onCloseMachineConfigureModal(): void {
     this.isUpsertMachineConfigureModalOpen = false;
     this.upsertMachineConfigureModalData = null;
-    this.mcForm.reset({
+    const obj: any = {
       machineName: '',
       machineCode: '',
       machineGroupId: '',
       maxSpeedLimit: null,
       quality: '',
       reed: '',
-      isAlertActive: false
-    });
+    };
+    if (this.isAdmin) obj.isAlertActive = false;
+
+    this.mcForm.reset(obj);
   }
 
   protected isReqAlive: boolean = false;
@@ -166,7 +176,7 @@ export class MachineConfigure {
 
 
   protected onToggleAlert(machineConfigure: any): void {
-    if (this.isReqAlive || !machineConfigure?._id) return;
+    if (this.isReqAlive || !machineConfigure?._id || !this.isAdmin) return;
 
     this.isReqAlive = true;
     const body = {

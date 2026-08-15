@@ -245,7 +245,7 @@
                     </span>
                     }
                 </div>
-                <div>
+                <div class="d-flex flex-wrap align-items-center">
                     @if (isStoppageReport) {
                     <div class="d-inline-flex flex-wrap align-items-center gap-2 me-2 user-select-none">
                         <span class="small fw-semibold">View:</span>
@@ -260,6 +260,15 @@
                             </label>
                         </div>
                         }
+                    </div>
+                    }
+                    @if (showBy24HoursOption) {
+                    <div class="d-inline-flex align-items-center gap-1 me-2 user-select-none">
+                        <input type="checkbox" id="by24Hours" class="form-check-input m-0" [(ngModel)]="by24Hours"
+                            (ngModelChange)="onBy24HoursChange($event)">
+                        <label for="by24Hours" class="form-check-label small fw-semibold mb-0">
+                            By 24 Hours
+                        </label>
                     </div>
                     }
                     <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
@@ -546,6 +555,205 @@
                 }
                 @case ('productionShiftWise') {
                 <table class="table table-bordered" #reportTable>
+                    @if (by24Hours){
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th rowspan="3">Date</th>
+                            <th rowspan="3">Machine</th>
+                            <th rowspan="3">Quality</th>
+                            <th rowspan="3">Shift</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Picks</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Eff. %</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Real Eff. %</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Speed</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Run Time</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Beam Left</th>
+                            @if (showBeamCompletionDateColumn) {
+                            <th rowspan="3">Beam Completion Date</th>
+                            }
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <th colspan="4" class="text-nowrap">{{stopColumn.label}}</th>
+                            }
+                            <th colspan="4" rowspan="2" class="text-nowrap">Total Stops</th>
+                        </tr>
+                        <tr>
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <th colspan="2">Count</th>
+                            <th colspan="2">Duration</th>
+                            }
+                        </tr>
+                        <tr>
+                            @for (column of reportDataBy24Hours.shiftColumns; track column) {
+                            <th>Shift</th>
+                            <th>{{column.label}}</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center lh-1">
+                        @for (item of reportDataBy24Hours.list; track $index; let even = $even;) {
+                        @for (data of item?.list; track data.machineId || data.machineCode; let mFirst = $first){
+                        <!-- Day Shift row -->
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            @if (mFirst) {
+                            <td [attr.rowspan]="(item?.list?.length ?? 0) * 2">
+                                {{item.reportDate | date:'dd-MMM-yyyy'}}
+                            </td>
+                            }
+                            <td rowspan="2">{{data.machineCode}}</td>
+                            <td rowspan="2">{{data.qualityLabel}}</td>
+                            <td>Day</td>
+
+                            <td>{{(data?.day?.pieceLengthM|number:'1.0-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.pieceLengthM|number:'1.0-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.picksCurrentShift??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.picksCurrentShift??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.efficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.efficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.realEfficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.realEfficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.speedRpm??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.speedRpm??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.runTime??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.runTime??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.beamLeft??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.beamLeft??'-')}}
+                            </td>
+
+                            @if (showBeamCompletionDateColumn) {
+                            <td rowspan="2" class="text-nowrap">
+                                {{((data?.night?.beamCompletionDate||data?.day?.beamCompletionDate)|date:'dd-MMM-yyyy')??'-'}}
+                            </td>
+                            }
+
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <td>{{(data?.day?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td>{{(data?.day?.stopsData?.[stopColumn.key]?.duration??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.[stopColumn.key]?.duration??'-')}}
+                            </td>
+                            }
+
+                            <td class="fw-semibold">
+                                {{(data?.day?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td class="fw-semibold text-nowrap">
+                                {{(data?.day?.stopsData?.total?.duration??'-')}}
+                            </td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.total?.duration??'-')}}
+                            </td>
+                        </tr>
+                        <!-- Night shift row -->
+                        <tr class="small" [class.custom-tr-bg]="even">
+                            <td>Night</td>
+                            <td>{{(data?.night?.pieceLengthM|number:'1.0-2')??'-'}}</td>
+                            <td>{{data?.night?.picksCurrentShift??'-'}}</td>
+                            <td>{{(data?.night?.efficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{(data?.night?.realEfficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+                            <td>{{data?.night?.speedRpm??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{data?.night?.runTime??'-'}}
+                            </td>
+                            <td>{{data?.night?.beamLeft??'-'}}</td>
+
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <td>{{(data?.night?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{data?.night?.stopsData?.[stopColumn.key]?.duration??'-'}}
+                            </td>
+                            }
+
+                            <td class="fw-semibold">
+                                {{(data?.night?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td class="fw-semibold">
+                                {{(data?.night?.stopsData?.total?.duration??'-')}}
+                            </td>
+                        </tr>
+                        }
+                        <tr class="small fw-semibold table-secondary">
+                            <td></td>
+                            <td colspan="3">
+                                {{ item.reportDate|date:'dd-MMM-yyyy' }} - Full Day
+                            </td>
+                            <td colspan="2">
+                                {{ (item.prodMeter|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ item.totalPicks??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (item.efficiency|number:'1.1-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (item.realEfficiency|number:'1.1-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ item?.avgSpeed??'-' }}
+                            </td>
+                            <td [attr.colspan]="showBeamCompletionDateColumn ? 5 : 4"
+                                class="text-start text-capitalize">
+                                Avg: {{ item.avgPicks??'-' }}
+                            </td>
+                            <td [attr.colspan]="(reportDataBy24Hours.stopColumns.length * 4) + 4"></td>
+                        </tr>
+                        }
+                        <tr>
+                            <td [attr.colspan]="by24HoursTableColspan">&nbsp;</td>
+                        </tr>
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="4" class="text-uppercase">Total</td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.avgProdMeter|number:'1.0-2')?.replace(',','') }}
+                            </td>
+                            <td colspan="2">
+                                {{ reportDataBy24Hours.totalPicks??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.totalEfficiency|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.totalRealEfficiency|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ reportDataBy24Hours.avgSpeed??'-' }}
+                            </td>
+                            <td [attr.colspan]="showBeamCompletionDateColumn ? 5 : 4"
+                                class="text-start text-capitalize">
+                                Total Avg: {{ (reportDataBy24Hours.avgPicks|number:'1.0-2')?.replace(',','') }}
+                            </td>
+                            <td [attr.colspan]="(reportDataBy24Hours.stopColumns.length * 4) + 4"></td>
+                        </tr>
+                    </tbody>
+                    }@else {
                     <thead class="table-dark text-center align-middle">
                         <tr>
                             <th rowspan="2">Date</th>
@@ -677,6 +885,7 @@
                             <td [attr.colspan]="stopSectionColspan"></td>
                         </tr>
                     </tbody>
+                    }
                 </table>
                 }
                 }

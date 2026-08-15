@@ -46,12 +46,8 @@
                             @if(userName.errors['required']){
                             <span>User name is required.</span>
                             }
-                            @if(userName.errors['maxlength']){
-                            <span>
-                                User name cannot exceed
-                                {{userName.errors['maxlength'].requiredLength}}
-                                characters.
-                            </span>
+                            @if(userName.errors['pattern']){
+                            <span>{{userNameErrMsg}}</span>
                             }
                         </div>
                         }
@@ -87,13 +83,6 @@
                                 Password must be at least
                                 {{password.errors['minlength'].requiredLength}}
                                 characters long.
-                            </span>
-                            }
-                            @if (password.errors['maxlength']){
-                            <span>
-                                Password cannot exceed
-                                {{password.errors['maxlength'].requiredLength}}
-                                characters.
                             </span>
                             }
                         </div>

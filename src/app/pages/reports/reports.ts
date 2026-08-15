@@ -60,9 +60,9 @@ export class Reports {
   protected selectedWorkspaceId = '';
 
 
-  protected readonly tableShiftObj: any = {
-    0: { key: 'dayShift', label: 'Day Shift' },
-    1: { key: 'nightShift', label: 'Night Shift' }
+  protected readonly tableShiftObj: Record<string, string> = {
+    '0': 'Day Shift',
+    '1': 'Night Shift'
   };
   protected readonly shiftOptions: any[] = [
     { id: 'all', val: -1, label: 'All Shift' },
@@ -109,6 +109,7 @@ export class Reports {
   protected stoppageTableRows: any[] = [];
   protected stopTimeSelectionError: boolean = false;
   protected stoppageViewMode: 'machineWise' | 'timeWise' = 'machineWise';
+  protected by24Hours: boolean = false;
   protected readonly stoppageViewOptions: { id: 'machineWise' | 'timeWise'; label: string }[] = [
     { id: 'machineWise', label: 'Machine Wise' },
     { id: 'timeWise', label: 'Time Wise (Descending)' }
@@ -138,6 +139,14 @@ export class Reports {
     return this.reportType?.value === 'qualityProductionReport';
   }
 
+  protected get isProductionShiftWiseReport(): boolean {
+    return this.reportData?.reportType === 'productionShiftWise';
+  }
+
+  protected get showBy24HoursOption(): boolean {
+    return this.isProductionShiftWiseReport && this.shift?.value === 'all';
+  }
+
   protected get showMachineSelection(): boolean {
     return !this.isQualityWiseReport;
   }
@@ -160,6 +169,12 @@ export class Reports {
 
   get shiftTotalAvgColspan(): number {
     return this.showBeamCompletionDateColumn ? 3 : 2;
+  }
+
+  get by24HoursTableColspan(): number {
+    // // Date + Machine + Quality + Shift + (7 metrics * 2) + optional beam date (1)
+    // // + (stopColumns * 4) + Total Stops (4)
+    return 4 + ((this.reportDataBy24Hours?.shiftColumns?.length ?? 0) * 2) + (this.showBeamCompletionDateColumn ? 1 : 0);
   }
 
   protected formatQualityReed = formatQualityReed;
@@ -197,10 +212,8 @@ export class Reports {
     this.setSubscriptions();
 
     if (this.isDevice) {
-      // WebView injects the token via this bridge; run inside Angular zone for UI updates.
-      (window as any).setDeviceToken = (token: string) => {
-        this._ngZone.run(() => this.setDeviceToken(token));
-      };
+      // Inject the token into the WebView for device
+      (window as any).setDeviceToken = this.setDeviceToken.bind(this);
     } else {
       this.initialize();
     }
@@ -326,6 +339,8 @@ export class Reports {
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
     this.stoppageViewMode = 'machineWise';
+    this.by24Hours = false;
+    this.reportDataBy24Hours = null;
     this.machineIds?.patchValue(null, { emitEvent: false });
     this.selectAll?.patchValue(false, { emitEvent: false });
     this.loadMachineList();
@@ -416,7 +431,7 @@ export class Reports {
         list.push({
           ...dayShift,
           reportDate: item.reportDate,
-          shiftLabel: this.tableShiftObj[0].label,
+          shiftLabel: this.tableShiftObj['0'],
         });
       }
 
@@ -425,7 +440,7 @@ export class Reports {
         list.push({
           ...nightShift,
           reportDate: item.reportDate,
-          shiftLabel: this.tableShiftObj[1].label,
+          shiftLabel: this.tableShiftObj['1'],
         });
       }
       if (includeEntireDay && dayShift && nightShift) {
@@ -612,6 +627,8 @@ export class Reports {
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
       this.stoppageViewMode = 'machineWise';
+      this.by24Hours = false;
+      this.reportDataBy24Hours = null;
     });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
@@ -796,6 +813,8 @@ export class Reports {
           this.reportData.reportType = filter.reportType;
           this.reportData.fromDate = filter.startDate;
           this.reportData.toDate = filter.endDate;
+          this.by24Hours = false;
+          this.reportDataBy24Hours = null;
 
           if (filter.reportType === 'stoppageReport') {
             this.reportStopColumns = [];
@@ -832,6 +851,8 @@ export class Reports {
         this.reportStopColumns = [];
         this.showBeamCompletionDateColumn = false;
         this.stoppageTableRows = [];
+        this.by24Hours = false;
+        this.reportDataBy24Hours = null;
         const msg = err?.error.message || 'An error occurred while generating the report';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }
@@ -851,8 +872,174 @@ export class Reports {
     }
   }
 
+
+  protected reportDataBy24Hours: any = null;
+  protected onBy24HoursChange(enabled: boolean): void {
+    if (!this.reportData || this.reportData.reportType !== 'productionShiftWise') return;
+    if (this.reportDataBy24Hours !== null) return;
+
+    const { list, ...rest } = this.reportData;
+    this.reportDataBy24Hours = {
+      ...rest,
+      list: [],
+      shiftColumns: Array.from({ length: 7 + (rest.stopColumns.length * 2) + 2 }, (_, i) => ({
+        key: `cell_${i + 1}`,
+        label: (i == 2 || i == 3) ? 'Avg' : 'Total'
+      })),
+    };
+
+    const groupByDate: Map<string, Record<string, any>> = new Map();
+
+    const dayShiftLabel = this.tableShiftObj['0'];
+    const nightShiftLabel = this.tableShiftObj['1'];
+    for (const item of list) {
+      const key = item.reportDate;
+      if (!groupByDate.has(key)) groupByDate.set(key, {});
+
+      const val: any = groupByDate.get(key);
+      if (item.shiftLabel === dayShiftLabel) {
+        val.day = item;
+      } else if (item.shiftLabel === nightShiftLabel) {
+        val.night = item;
+        if (item.fullDay) {
+          val.fullDay = item.fullDay;
+        }
+      }
+    }
+
+    const result: any[] = [];
+    for (const [reportDate, { day, night, fullDay }] of groupByDate) {
+      const machineMap = new Map<string, Record<string, any>>();
+
+      for (const machine of day?.list ?? []) {
+        const id = String(machine.machineId ?? machine.machineCode);
+        machineMap.set(id, {
+          machineId: machine.machineId,
+          machineCode: machine.machineCode,
+          day: { ...machine },
+          night: null
+        });
+      }
+      for (const machine of night?.list ?? []) {
+        const id = String(machine.machineId ?? machine.machineCode);
+        const existing: any = machineMap.get(id);
+        if (existing) {
+          existing.night = { ...machine };
+        } else {
+          machineMap.set(id, {
+            machineId: machine.machineId,
+            machineCode: machine.machineCode,
+            day: null,
+            night: { ...machine },
+          });
+        }
+      }
+
+      const list = [...machineMap.values()].map(
+        entry => this.mergeMachineDayNight(entry)
+      ).sort((a, b) =>
+        String(a.machineCode || '').localeCompare(String(b.machineCode || ''))
+      );
+
+      const dateTotals = fullDay ?? {
+        reportDate,
+        prodMeter: (day ?? night)?.prodMeter ?? 0,
+        totalPicks: (day ?? night)?.totalPicks ?? 0,
+        efficiency: (day ?? night)?.efficiency ?? 0,
+        realEfficiency: (day ?? night)?.realEfficiency ?? 0,
+        avgSpeed: (day ?? night)?.avgSpeed ?? 0,
+        avgPicks: (day ?? night)?.avgPicks ?? 0
+      };
+
+      result.push({
+        ...dateTotals,
+        reportDate,
+        list
+      });
+    }
+
+    this.reportDataBy24Hours.list = result;
+  }
+
+  private mergeMachineDayNight(entry: Record<string, any>): any {
+    const { day, night } = entry;
+    const qualityParts: string[] = [];
+    if (day) qualityParts.push(formatQualityReed(day.quality, day.reed));
+    if (night) {
+      const nightQuality = formatQualityReed(night.quality, night.reed);
+      if (!qualityParts.includes(nightQuality)) qualityParts.push(nightQuality);
+    }
+
+    return {
+      machineId: entry['machineId'],
+      machineCode: entry['machineCode'],
+      qualityLabel: qualityParts.filter(Boolean).join(' / ') || '-',
+      day: day || null,
+      night: night || null,
+      total: {
+        pieceLengthM: (day?.pieceLengthM ?? 0) + (night?.pieceLengthM ?? 0),
+        picksCurrentShift: (day?.picksCurrentShift ?? 0) + (night?.picksCurrentShift ?? 0),
+        efficiencyPercent: this.avgDefined([day?.efficiencyPercent, night?.efficiencyPercent]),
+        realEfficiencyPercent: this.avgDefined([day?.realEfficiencyPercent, night?.realEfficiencyPercent]),
+        speedRpm: this.avgDefined([day?.speedRpm || null, night?.speedRpm || null]),
+        runTime: this.sumRunTime([day?.runTime, night?.runTime]),
+        beamLeft: night?.beamLeft ?? day?.beamLeft ?? 0,
+        stopsData: this.mergeStopsData(day?.stopsData, night?.stopsData),
+      }
+    };
+  }
+  private avgDefined(values: Array<number | null | undefined>): number | null {
+    const nums = values.filter((v): v is number => v != null && Number.isFinite(Number(v))).map(Number);
+    if (!nums.length) return null;
+    const avg = nums.reduce((sum, n) => sum + n, 0) / nums.length;
+    return Math.round(avg);
+  }
+  private sumRunTime(values: Array<string | null | undefined>): string | null {
+    const validValues = values.filter((value): value is string => !!value?.trim?.());
+    if (!validValues.length) { return null; }
+
+    const totalMinutes = validValues.reduce((total, value) => {
+      const [hours, minutes] = value.split(':').map(Number);
+      return total + moment.duration({ hours, minutes }).asMinutes();
+    }, 0);
+
+    const duration = moment.duration(totalMinutes, 'minutes');
+    return `${Math.floor(duration.asHours()).toString().padStart(2, '0')}:${duration.minutes().toString().padStart(2, '0')}`;
+  }
+  private mergeStopsData(dayStops: any = {}, nightStops: any = {}): any {
+    const keys = new Set<string>([
+      ...Object.keys(dayStops || {}),
+      ...Object.keys(nightStops || {})
+    ]);
+    const merged: any = {};
+
+    keys.forEach(key => {
+      const dayCount = Number(dayStops?.[key]?.count) || 0;
+      const nightCount = Number(nightStops?.[key]?.count) || 0;
+      merged[key] = {
+        count: dayCount + nightCount,
+        duration: this.sumRunTime([dayStops?.[key]?.duration, nightStops?.[key]?.duration]) || '00:00'
+      };
+    });
+
+    return merged;
+  }
+
+
   protected exportAsPDF(): void {
     if (!this.reportTable?.nativeElement) return;
+
+    if (this.by24Hours) {
+      if (!this.reportDataBy24Hours) return;
+
+      this._coreService.exportData.exportTableToPDF({
+        ...this.reportDataBy24Hours,
+        isBy24Hours: true,
+        reportTitle: `${this.reportData?.reportTitle || 'Report'} (By 24 Hours)`,
+      }, this.isDevice);
+      return;
+    }
+
     this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice);
   }
 

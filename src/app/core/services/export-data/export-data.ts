@@ -37,16 +37,19 @@ export class ExportData {
    * EXPORT TO PDF (using pdfMake)
    */
   exportTableToPDF(reportData: any, isDevice: boolean = false): void {
-    const title = reportData.reportTitle || 'Shift Report';
+    const title = reportData.reportTitle || 'Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
     const isBeamCompletionDateReport = reportData.reportType === 'beamCompletionDateReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
+    const isBy24Hours = !!reportData.isBy24Hours;
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
     const showBeamCompletionDate = !!reportData.showBeamCompletionDateColumn || this.hasBeamCompletionDate(reportData);
     const isPortrait = isStoppageReport || isBeamProductionReport || isBeamCompletionDateReport;
-    const productionFixedColCount = showBeamCompletionDate ? 12 : 11;
-    const tableColspan = isBeamCompletionDateReport ? 6 : (isPortrait ? 7 : productionFixedColCount + stopColumns.length * 2 + 2);
+
+    const tableColspan = isBy24Hours ? (4 + ((reportData.shiftColumns?.length ?? 0) * 2) + (showBeamCompletionDate ? 1 : 0))
+      : (isBeamCompletionDateReport ? 6 : (isPortrait ? 7 : (showBeamCompletionDate ? 12 : 11) + stopColumns.length * 2 + 2));
+
     const content: any[] = [
       { text: title, style: 'header' },
     ];
@@ -85,13 +88,15 @@ export class ExportData {
         bodyData = this.buildBeamLeftTableBody(reportData);
       } else if (isBeamCompletionDateReport) {
         bodyData = this.buildBeamCompletionDateTableBody(reportData);
+      } else if (isBy24Hours) {
+        bodyData = this.buildBy24HoursTableBody(reportData, stopColumns, tableColspan);
       } else {
         bodyData = this.buildTableBody(reportData, stopColumns, tableColspan);
       }
 
       content.push({
         table: {
-          headerRows: isPortrait ? 1 : 2,
+          headerRows: isBy24Hours ? 3 : (isPortrait ? 1 : 2),
           widths: isBeamCompletionDateReport
             ? ['auto', 'auto', 'auto', 'auto', 'auto', 'auto']
             : (isPortrait ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto')),
@@ -108,9 +113,23 @@ export class ExportData {
       });
     }
 
+    let fontSize = 8, subHeaderFontSize = 8;
+    if (isBy24Hours) {
+      if (showBeamCompletionDate && reportData.stopColumns?.length > 4) {
+        fontSize = 7;
+        subHeaderFontSize = 7.4;
+      } else if (showBeamCompletionDate) {
+        subHeaderFontSize = 8.75;
+      } else if (reportData.stopColumns?.length > 4) {
+        fontSize = 6.75;
+      } else {
+        fontSize = 8.75;
+        subHeaderFontSize = 9;
+      }
+    }
     const docDefinition: any = {
       pageOrientation: isPortrait ? 'portrait' : 'landscape',
-      pageSize: 'A4',
+      pageSize: isBy24Hours ? 'A3' : 'A4',
       pageMargins: [16, 16, 16, 16],
       content,
       styles: {
@@ -118,12 +137,12 @@ export class ExportData {
         subHeader: { alignment: 'center', margin: [0, 0, 0, 10] },
         sectionTitle: { bold: true, margin: [0, 6, 0, 4], fontSize: 12 },
         tableHeader: { bold: true, fillColor: '#343a40', color: 'white', alignment: 'center' },
-        tableSubHeader: { bold: true, fillColor: '#495057', color: 'white', alignment: 'center', fontSize: 8 },
+        tableSubHeader: { bold: true, fillColor: '#495057', color: 'white', alignment: 'center', fontSize: subHeaderFontSize },
         cellCenter: { alignment: 'center' },
-        contentCell: { alignment: 'center', fontSize: 8 },
-        contentCellBg: { alignment: 'center', fontSize: 8, fillColor: '#ededed' },
-        subTotalCell: { bold: true, fontSize: 8, alignment: 'center' },
-        subTotalCellBg: { bold: true, fontSize: 8, alignment: 'center', fillColor: '#ededed' },
+        contentCell: { alignment: 'center', fontSize: fontSize },
+        contentCellBg: { alignment: 'center', fontSize: fontSize, fillColor: '#ededed' },
+        subTotalCell: { bold: true, fontSize: fontSize, alignment: 'center' },
+        subTotalCellBg: { bold: true, fontSize: fontSize, alignment: 'center', fillColor: '#ededed' },
         cellBold: { bold: true },
         grandTotalCell: { bold: true, fillColor: '#495057', color: 'white', }
       },
@@ -302,6 +321,221 @@ export class ExportData {
       { text: reportData.avgSpeed || 0, ...this.grandTotalFill },
       ...this.colSpanCells(`Total Avg: ${reportData.avgPicks}`, avgColspan, this.grandTotalFill, { alignment: 'left' }),
       ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill)
+    ]);
+
+    return body;
+  }
+
+  protected buildBy24HoursTableBody(reportData: any, stopColumns: { key: string; label: string }[], tableColspan: number) {
+    const body: any[] = [];
+    const showBeamCompletionDate = !!reportData.showBeamCompletionDateColumn || this.hasBeamCompletionDate(reportData);
+    const stopSectionColspan = stopColumns.length * 4 + 4;
+    const avgColspan = showBeamCompletionDate ? 5 : 4;
+    const metricPairs = [
+      { key: 'pieceLengthM', avgLabel: false },
+      { key: 'picksCurrentShift', avgLabel: false },
+      { key: 'efficiencyPercent', avgLabel: true },
+      { key: 'realEfficiencyPercent', avgLabel: true },
+      { key: 'speedRpm', avgLabel: false },
+      { key: 'runTime', avgLabel: false },
+      { key: 'beamLeft', avgLabel: false },
+    ];
+
+    // Header row 1
+    const headerRow1: any[] = [
+      { text: 'Date', rowSpan: 3, style: 'tableHeader' },
+      { text: 'Machine', rowSpan: 3, style: 'tableHeader' },
+      { text: 'Quality', rowSpan: 3, style: 'tableHeader' },
+      { text: 'Shift', rowSpan: 3, style: 'tableHeader' },
+      { text: 'Prod. [Mtrs]', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Picks', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Eff. %', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Real Eff. %', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Speed', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Run Time', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+      { text: 'Beam Left', colSpan: 2, rowSpan: 2, style: 'tableHeader' }, {},
+    ];
+    if (showBeamCompletionDate) {
+      headerRow1.push({ text: 'Beam Completion Date', rowSpan: 3, style: 'tableHeader' });
+    }
+    stopColumns.forEach(column => {
+      headerRow1.push({ text: column.label, colSpan: 4, style: 'tableHeader' }, {}, {}, {});
+    });
+    headerRow1.push({ text: 'Total Stops', colSpan: 4, rowSpan: 2, style: 'tableHeader' }, {}, {}, {});
+    body.push(headerRow1);
+
+    // Header row 2 — Count / Duration under stop columns
+    const headerRow2: any[] = [{}, {}, {}, {}];
+    metricPairs.forEach(() => headerRow2.push({}, {}));
+    if (showBeamCompletionDate) headerRow2.push({});
+    stopColumns.forEach(() => {
+      headerRow2.push({ text: 'Count', colSpan: 2, style: 'tableSubHeader' }, {});
+      headerRow2.push({ text: 'Duration', colSpan: 2, style: 'tableSubHeader' }, {});
+    });
+    headerRow2.push({}, {}, {}, {});
+    body.push(headerRow2);
+
+    // Header row 3 — Shift | Total under each metric / stop pair
+    const headerRow3: any[] = [{}, {}, {}, {}];
+    const shiftTotalHeaders = (totalLabel: string) => ([
+      { text: 'Shift', style: 'tableSubHeader' },
+      { text: totalLabel, style: 'tableSubHeader' },
+    ]);
+    metricPairs.forEach(pair => {
+      headerRow3.push(...shiftTotalHeaders(pair.avgLabel ? 'Avg' : 'Total'));
+    });
+    if (showBeamCompletionDate) headerRow3.push({});
+    stopColumns.forEach(() => {
+      headerRow3.push(...shiftTotalHeaders('Total'));
+      headerRow3.push(...shiftTotalHeaders('Total'));
+    });
+    headerRow3.push(...shiftTotalHeaders('Total'));
+    headerRow3.push(...shiftTotalHeaders('Total'));
+    body.push(headerRow3);
+
+    const val = (value: any, digits?: number) => {
+      if (value == null || value === '') return '-';
+      if (digits != null && Number.isFinite(Number(value))) return this.num(value, digits);
+      return value;
+    };
+
+    let groupIndex = 0;
+    for (const item of reportData.list || []) {
+      const cellStyle = groupIndex % 2 === 0 ? 'contentCell' : 'contentCellBg';
+      const boldStyle = { style: cellStyle, bold: true };
+      const machines = item.list || [];
+
+      machines.forEach((data: any, machineIndex: number) => {
+        const day = data.day || {};
+        const night = data.night || {};
+        const total = data.total || {};
+        const dateCell = machineIndex === 0
+          ? [{ text: this.formatDate(item.reportDate), rowSpan: machines.length * 2, style: cellStyle }]
+          : [{}];
+
+        const dayRow: any[] = [
+          ...dateCell,
+          { text: data.machineCode || '-', rowSpan: 2, style: cellStyle },
+          { text: data.qualityLabel || '-', rowSpan: 2, style: cellStyle },
+          { text: 'Day', style: cellStyle },
+
+          { text: val(day.pieceLengthM, 2), style: cellStyle },
+          { text: val(total.pieceLengthM, 2), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.picksCurrentShift), style: cellStyle },
+          { text: val(total.picksCurrentShift), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.efficiencyPercent, 1), style: cellStyle },
+          { text: val(total.efficiencyPercent, 1), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.realEfficiencyPercent, 1), style: cellStyle },
+          { text: val(total.realEfficiencyPercent, 1), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.speedRpm), style: cellStyle },
+          { text: val(total.speedRpm), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.runTime), style: cellStyle },
+          { text: val(total.runTime), rowSpan: 2, ...boldStyle },
+
+          { text: val(day.beamLeft), style: cellStyle },
+          { text: val(total.beamLeft), rowSpan: 2, ...boldStyle },
+        ];
+
+        if (showBeamCompletionDate) {
+          const beamDate = night.beamCompletionDate || day.beamCompletionDate || total.beamCompletionDate;
+          dayRow.push({
+            text: beamDate ? this.formatDate(beamDate) : '-',
+            rowSpan: 2,
+            style: cellStyle
+          });
+        }
+
+        stopColumns.forEach(column => {
+          dayRow.push(
+            { text: val(day.stopsData?.[column.key]?.count, 0), style: cellStyle },
+            { text: val(total.stopsData?.[column.key]?.count, 0), rowSpan: 2, ...boldStyle },
+            { text: val(day.stopsData?.[column.key]?.duration), style: cellStyle },
+            { text: val(total.stopsData?.[column.key]?.duration), rowSpan: 2, ...boldStyle },
+          );
+        });
+
+        dayRow.push(
+          { text: val(day.stopsData?.total?.count, 0), ...boldStyle },
+          { text: val(total.stopsData?.total?.count, 0), rowSpan: 2, ...boldStyle },
+          { text: val(day.stopsData?.total?.duration), ...boldStyle },
+          { text: val(total.stopsData?.total?.duration), rowSpan: 2, ...boldStyle },
+        );
+        body.push(dayRow);
+
+        const nightRow: any[] = [
+          {},
+          {},
+          {},
+          { text: 'Night', style: cellStyle },
+          { text: val(night.pieceLengthM, 2), style: cellStyle },
+          {},
+          { text: val(night.picksCurrentShift), style: cellStyle },
+          {},
+          { text: val(night.efficiencyPercent, 1), style: cellStyle },
+          {},
+          { text: val(night.realEfficiencyPercent, 1), style: cellStyle },
+          {},
+          { text: val(night.speedRpm), style: cellStyle },
+          {},
+          { text: val(night.runTime), style: cellStyle },
+          {},
+          { text: val(night.beamLeft), style: cellStyle },
+          {},
+        ];
+        if (showBeamCompletionDate) nightRow.push({});
+
+        stopColumns.forEach(column => {
+          nightRow.push(
+            { text: val(night.stopsData?.[column.key]?.count, 0), style: cellStyle },
+            {},
+            { text: val(night.stopsData?.[column.key]?.duration), style: cellStyle },
+            {},
+          );
+        });
+
+        nightRow.push(
+          { text: val(night.stopsData?.total?.count, 0), ...boldStyle },
+          {},
+          { text: val(night.stopsData?.total?.duration), ...boldStyle },
+          {},
+        );
+        body.push(nightRow);
+      });
+
+      const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
+      body.push([
+        { text: '', style: subTtlCellStyle },
+        ...this.colSpanCells(`${this.formatDate(item.reportDate)} - Full Day`, 3, { style: subTtlCellStyle }),
+        ...this.colSpanCells(String(this.formatNum(item.prodMeter)), 2, { style: subTtlCellStyle }),
+        ...this.colSpanCells(String(item.totalPicks ?? '-'), 2, { style: subTtlCellStyle }),
+        ...this.colSpanCells(this.num(item.efficiency, 1), 2, { style: subTtlCellStyle }),
+        ...this.colSpanCells(this.num(item.realEfficiency, 1), 2, { style: subTtlCellStyle }),
+        ...this.colSpanCells(String(this.formatNum(item.avgSpeed)), 2, { style: subTtlCellStyle }),
+        ...this.colSpanCells(`Avg: ${item.avgPicks ?? '-'}`, avgColspan, { style: subTtlCellStyle }, { alignment: 'left' }),
+        ...this.colSpanCells(' ', stopSectionColspan, { style: subTtlCellStyle }),
+      ]);
+      groupIndex++;
+    }
+
+    body.push([
+      { text: ' ', colSpan: tableColspan },
+      ...Array(tableColspan - 1).fill({})
+    ]);
+
+    body.push([
+      ...this.colSpanCells('Total', 4, this.grandTotalFill, { alignment: 'center' }),
+      ...this.colSpanCells(String(this.formatNum(reportData.avgProdMeter)), 2, this.grandTotalFill),
+      ...this.colSpanCells(String(reportData.totalPicks ?? '-'), 2, this.grandTotalFill),
+      ...this.colSpanCells(String(reportData.totalEfficiency ?? '-'), 2, this.grandTotalFill),
+      ...this.colSpanCells(String(reportData.totalRealEfficiency ?? '-'), 2, this.grandTotalFill),
+      ...this.colSpanCells(String(reportData.avgSpeed ?? '-'), 2, this.grandTotalFill),
+      ...this.colSpanCells(`Total Avg: ${reportData.avgPicks ?? '-'}`, avgColspan, this.grandTotalFill, { alignment: 'left' }),
+      ...this.colSpanCells(' ', stopSectionColspan, this.grandTotalFill),
     ]);
 
     return body;

@@ -10,6 +10,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import APP_REGEXP from '@src/app/constants/app-regexp';
 
 
 @Component({
@@ -39,8 +40,8 @@ export class UpsertUser {
   protected userForm: FormGroup = this._fb.group({
     workspace: [null, [Validators.required]],
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required]],// username/mobile number
-    password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
+    userName: ["", [Validators.required, Validators.pattern(APP_REGEXP.USER_NAME.REGEXP)]],// username/mobile number
+    password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, [Validators.required]],
@@ -48,6 +49,7 @@ export class UpsertUser {
     shift: [[], []],
     machineIds: [[], []],
   });
+  protected userNameErrMsg: string = APP_REGEXP.USER_NAME.MESSAGE;
   protected isEyeOpen: boolean = false;
   protected machineList: any[] = [];
   protected readonly shiftOptions: { value: number, label: string }[] = [
@@ -94,7 +96,7 @@ export class UpsertUser {
         }));
       }
       this.workspace?.disable();
-      this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
+      this.password?.setValidators([Validators.minLength(6)]);
       if (this.showMasterFields && this.userData.workspaceId?._id) {
         this.loadMachines(this.userData.workspaceId._id);
       }
