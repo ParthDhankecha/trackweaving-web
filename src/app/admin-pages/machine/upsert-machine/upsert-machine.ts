@@ -48,7 +48,15 @@ export class UpsertMachine {
 
   protected machineNames: string[] = [];
   protected deviceTypeList: string[] = [];
-  protected displayTypeList: string[] = [];
+  protected displayTypeList: string[] = [
+    'nazon',
+    'chitic',
+    'pickwell',
+    'biana',
+    'haiwell',
+    'picanolRapier',
+    'picanolAirjet',
+  ];
   protected machineTypeList: string[] = [];
 
 
@@ -64,7 +72,8 @@ export class UpsertMachine {
 
         this.machineNames = res.data.machineNames || [];
         this.deviceTypeList = res.data.deviceTypes || [];
-        this.displayTypeList = res.data.displayTypes || [];
+        const apiDisplayTypes: string[] = res.data.displayTypes || [];
+        this.displayTypeList = [...new Set([...apiDisplayTypes, ...this.displayTypeList])];
         this.machineTypeList = res.data.machineTypes || [];
       },
       error: () => { }
