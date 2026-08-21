@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 
 import { HttpClient } from '../http-client/http-client';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -13,10 +13,12 @@ export class Users {
 
   private readonly _http: HttpClient = inject(HttpClient);
   private readonly _adminBaseUrl: string = 'admin/user';
-  private readonly _baseUrl: string = 'users';
+  private readonly _baseUrl: string = 'user';
 
   private readonly _coreService = inject(CoreFacadeService);
   protected readonly encodeKey = this._coreService.utils.encodeKey;
+  /** Cached once for the app lifetime — access matrix options. */
+  private _accessMatrix$?: Observable<IResponse>;
 
 
   // Admin APIs
@@ -60,5 +62,17 @@ export class Users {
       date: this.encodeKey
     };
     return this._http.put(`${this._baseUrl}/${id}`, body);
+  }
+
+  getAccessMatrix(): Observable<IResponse> {
+    if (!this._accessMatrix$) {
+      this._accessMatrix$ = this._http.get<IResponse>(`${this._baseUrl}/access-matrix`).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+    return this._accessMatrix$;
+  }
+  clearAccessMatrixCache(): void {
+    this._accessMatrix$ = undefined;
   }
 }

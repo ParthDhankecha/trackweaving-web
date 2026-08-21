@@ -32,4 +32,8 @@ export class PartsChangeEntry {
   update(pceId: string, payload: any): Observable<IResponse> {
     return this._http.put(`${this._baseUrl}/${pceId}`, payload);
   }
+
+  delete(pceId: string): Observable<IResponse> {
+    return this._http.delete(`${this._baseUrl}/${pceId}`);
+  }
 }

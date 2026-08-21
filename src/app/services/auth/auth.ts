@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import moment from 'moment';
@@ -6,6 +6,7 @@ import moment from 'moment';
 import { HttpClient } from '../http-client/http-client';
 import { IResponse } from '@src/app/models/http-response.model';
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
+import { AppInit } from '@src/app/core/services/app-init/app-init';
 import StorageKeys from '@src/app/constants/storage-keys';
 
 
@@ -18,6 +19,8 @@ export class Auth {
   private readonly _baseUrl: string = 'auth';
 
   private readonly _coreService = inject(CoreFacadeService);
+  /** Lazy resolve AppInit to avoid circular DI (AppInit → ApiFacade → Auth). */
+  private readonly _injector = inject(Injector);
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
@@ -76,5 +79,10 @@ export class Auth {
       ...resObj.data.user
     };
     localStorage.setItem(StorageKeys.USER_INFO, JSON.stringify(userDetails));
+
+    if (this._coreService.utils.isMaster) {
+      // Re-run sync once after login so roles/accessModules/config are fresh for this session
+      void this._injector.get(AppInit).initApp();
+    }
   }
 }

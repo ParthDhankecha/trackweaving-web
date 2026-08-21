@@ -36,11 +36,12 @@ export class UpsertUser {
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
 
 
+  protected usernameRegObj = APP_REGEXP.USER_NAME;
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
     workspace: [null, [Validators.required]],
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required, Validators.pattern(APP_REGEXP.USER_NAME.REGEXP)]],// username/mobile number
+    userName: ["", [Validators.required, Validators.minLength(this.usernameRegObj.MIN_LENGTH), Validators.pattern(this.usernameRegObj.REGEXP)]],// username/mobile number
     password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
@@ -49,7 +50,6 @@ export class UpsertUser {
     shift: [[], []],
     machineIds: [[], []],
   });
-  protected userNameErrMsg: string = APP_REGEXP.USER_NAME.MESSAGE;
   protected isEyeOpen: boolean = false;
   protected machineList: any[] = [];
   protected readonly shiftOptions: { value: number, label: string }[] = [

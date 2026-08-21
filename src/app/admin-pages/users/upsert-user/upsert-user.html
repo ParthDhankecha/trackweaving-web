@@ -65,7 +65,12 @@
                             <span>User Name is required.</span>
                             }
                             @if(userName.errors['pattern']){
-                            <span>{{userNameErrMsg}}</span>
+                            <span>{{usernameRegObj.MESSAGE}}</span>
+                            }
+                            @if(userName.errors['minlength']){
+                            <span>
+                                {{usernameRegObj.MIN_LENGTH_MESSAGE}}
+                            </span>
                             }
                         </div>
                         }

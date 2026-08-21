@@ -3,7 +3,11 @@
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="modal-content shadow-lg">
             <div class="modal-header">
                 <h1 class="modal-title fs-5">
+                    @if(hasUpsertAccess){
                     {{isEditMode ? 'Edit User' : 'Create User'}}
+                    }@else {
+                    View Details
+                    }
                 </h1>
                 <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
             </div>
@@ -47,7 +51,12 @@
                             <span>User name is required.</span>
                             }
                             @if(userName.errors['pattern']){
-                            <span>{{userNameErrMsg}}</span>
+                            <span>{{usernameRegObj.MESSAGE}}</span>
+                            }
+                            @if(userName.errors['minlength']){
+                            <span>
+                                {{usernameRegObj.MIN_LENGTH_MESSAGE}}
+                            </span>
                             }
                         </div>
                         }
@@ -219,9 +228,11 @@
                 <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
                     Cancel
                 </button>
+                @if(hasUpsertAccess){
                 <button class="btn btn-primary">
                     {{isEditMode ? 'Update' : 'Create'}}
                 </button>
+                }
             </div>
         </form>
     </div>

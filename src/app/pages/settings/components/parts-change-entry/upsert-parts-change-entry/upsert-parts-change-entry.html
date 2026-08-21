@@ -18,12 +18,11 @@
                             </label>
                             <app-common-dropdown [selectedOption]="partName?.value" [optionsList]="_partNameList"
                                 [enableCreate]="true" placeholder="Select Part name" (onSelect)="onSelectPart($event)"
-                                (onCreate)="onCreateNewPart($event)" listWrapClass="dpd-translate-y" uniqueKey="">
-                            </app-common-dropdown>
+                                (onCreate)="onCreateNewPart($event)" listWrapClass="dpd-translate-y" uniqueKey="" />
 
-                            @if(partName?.touched && partName?.errors){
+                            @if(partName && partName.touched && partName.errors){
                             <div class="invalid-feedback d-block">
-                                @if(partName?.errors?.['required']){
+                                @if(partName.errors['required']){
                                 <span>Part name is required.</span>
                                 }
                             </div>
@@ -44,9 +43,9 @@
                                 }
                             </select>
 
-                            @if(machineId?.touched && machineId?.errors){
+                            @if(machineId && machineId.touched && machineId.errors){
                             <div class="invalid-feedback d-block">
-                                @if(machineId?.errors?.['required']){
+                                @if(machineId.errors['required']){
                                 <span>Machine name is required.</span>
                                 }
                             </div>
@@ -60,9 +59,9 @@
                             <input type="date" id="changeDate" formControlName="changeDate" class="form-control"
                                 placeholder="Enter Part Name">
 
-                            @if(changeDate?.touched && changeDate?.errors){
+                            @if(changeDate && changeDate.touched && changeDate.errors){
                             <div class="invalid-feedback d-block">
-                                @if(changeDate?.errors?.['required']){
+                                @if(changeDate.errors['required']){
                                 <span>Change date is required.</span>
                                 }
                             </div>
@@ -84,12 +83,12 @@
                             <input type="text" formControlName="changedByContact" class="form-control mt-2"
                                 placeholder="Enter phone">
 
-                            @if(changedByContact?.touched && changedByContact?.errors){
+                            @if(changedByContact && changedByContact.touched && changedByContact.errors){
                             <div class="invalid-feedback d-block">
-                                @if(changedByContact?.errors?.['required']){
+                                @if(changedByContact.errors['required']){
                                 <span>Phone no is required.</span>
                                 }
-                                @if(changedByContact?.errors?.['pattern']){
+                                @if(changedByContact.errors['pattern']){
                                 <span>
                                     Enter a valid mobile number (with or without +91)
                                 </span>
@@ -105,12 +104,12 @@
                             <textarea name="notes" id="notes" formControlName="notes" class="form-control"
                                 placeholder="Enter notes" style="max-height: 6lh;"></textarea>
 
-                            @if(notes?.touched && notes?.errors){
+                            @if(notes && notes.touched && notes.errors){
                             <div class="invalid-feedback d-block">
-                                @if(notes?.errors?.['maxlength']){
+                                @if(notes.errors['maxlength']){
                                 <span>
                                     Notes cannot exceed
-                                    {{notes?.errors?.['maxlength']?.requiredLength}}
+                                    {{notes.errors['maxlength'].requiredLength}}
                                     characters.
                                 </span>
                                 }

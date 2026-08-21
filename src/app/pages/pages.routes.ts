@@ -8,6 +8,7 @@ import { Reports } from './reports/reports';
 
 // import { adminRoleGuard } from '../core/guards/admin-role-guard';
 import { authGuard } from '../core/guards/auth-guard';
+import { accessGuard } from '../core/guards/access-guard';
 import { RoleRedirect } from '../shared/components/role-redirect/role-redirect';
 
 
@@ -28,7 +29,8 @@ export const routes: Routes = [
         path: ROUTES.REPORT,
         title: APP_PAGE_TITLE.REPORT,
         component: Reports,
-        canActivate: [authGuard],
+        canActivate: [authGuard, accessGuard],
+        data: { accessModule: 'report' }
     },
     {
         path: ROUTES.SETTINGS.BASE,

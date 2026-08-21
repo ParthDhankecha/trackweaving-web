@@ -29,10 +29,11 @@ export class UpsertUser {
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
 
 
+  protected usernameRegObj = APP_REGEXP.USER_NAME;
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required, Validators.pattern(APP_REGEXP.USER_NAME.REGEXP)]],// username/mobile number
+    userName: ["", [Validators.required, Validators.minLength(this.usernameRegObj.MIN_LENGTH), Validators.pattern(this.usernameRegObj.REGEXP)]],// username/mobile number
     password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
@@ -40,7 +41,7 @@ export class UpsertUser {
     shift: [[], []],
     machineIds: [[], []],
   });
-  protected userNameErrMsg: string = APP_REGEXP.USER_NAME.MESSAGE;
+
   protected isEyeOpen: boolean = false;
   protected machineList: any[] = [];
   protected readonly shiftOptions: { value: number, label: string }[] = [
@@ -48,6 +49,10 @@ export class UpsertUser {
     { value: 1, label: 'Night Shift' },
   ];
 
+
+  protected get hasUpsertAccess(): boolean {
+    return this._coreService.utils.can('user', this.isEditMode ? 'update' : 'create');
+  }
 
   protected get showMasterFields(): boolean {
     if (!this.isEditMode) return true;
@@ -233,6 +238,7 @@ export class UpsertUser {
 
   protected isReqAlive: boolean = false;
   protected onSubmit(): void {
+    if (!this.hasUpsertAccess) return;
     if (this.isReqAlive) return;
 
     if (this.userForm.invalid) {

@@ -12,7 +12,7 @@
 </div>
 }
 
-<div [class.container-fluid]="!isDevice" [class.px-3]="showFactoryFilter">
+<div class="{{isDevice ? 'report-container-device':'container-fluid px-0 px-md-2'}}" [class.px-3]="showFactoryFilter">
     <div [class]="isDevice ? '' : 'p-3 my-4 bg-white shadow-sm rounded-2 border'">
         @if(!isDevice){
         <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2" [class.p-2]="isDevice">
@@ -231,26 +231,28 @@
         </div>
 
         @if(reportData){
-        <div [class]="isDevice ? '' : 'p-3'" id="print-section">
-            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" [class.ps-2]="isDevice"
-                [class.pe-2]="isDevice">
-                <div class="">
-                    <h2 class="d-inline-block font-semibold fs-5 m-0">
+        <div [class]="isDevice ? '' : 'py-3'" id="print-section">
+            <div class="report-header d-flex flex-column flex-xl-row align-items-stretch align-items-xl-center justify-content-between gap-2 mb-3"
+                [class.px-2]="isDevice">
+                <div class="report-header__title min-w-0">
+                    <h2 class="font-semibold fs-5 m-0 text-break">
                         {{reportData?.reportTitle}}
                     </h2>
                     @if (isDateRangeReport) {
-                    <span class="small" [class.d-block]="isDevice">
-                        (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
-                        <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
-                    </span>
+                    <div class="small text-muted mt-md-1">
+                        From&nbsp; <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>
+                        &nbsp;to&nbsp;
+                        <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>
+                    </div>
                     }
                 </div>
-                <div class="d-flex flex-wrap align-items-center">
+                <div class="d-flex flex-column flex-sm-row flex-wrap align-items-sm-center gap-2">
                     @if (isStoppageReport) {
-                    <div class="d-inline-flex flex-wrap align-items-center gap-2 me-2 user-select-none">
-                        <span class="small fw-semibold">View:</span>
+                    <div class="d-flex flex-wrap align-items-center column-gap-3 row-gap-2 user-select-none me-md-3">
+                        <span class="small fw-semibold text-nowrap me-2">View:</span>
+
                         @for (option of stoppageViewOptions; track option.id) {
-                        <div class="d-inline-flex align-items-center gap-1">
+                        <div class="d-inline-flex align-items-center gap-1 text-nowrap">
                             <input type="radio" [id]="'stoppage-view-' + option.id" name="stoppageViewMode"
                                 class="form-check-input m-0" [value]="option.id"
                                 [checked]="stoppageViewMode === option.id"
@@ -263,7 +265,8 @@
                     </div>
                     }
                     @if (showBy24HoursOption) {
-                    <div class="d-inline-flex align-items-center gap-1 me-2 user-select-none">
+                    <div
+                        class="d-inline-flex align-items-center gap-1 mb-1 mb-sm-0 me-xl-2 user-select-none text-nowrap">
                         <input type="checkbox" id="by24Hours" class="form-check-input m-0" [(ngModel)]="by24Hours"
                             (ngModelChange)="onBy24HoursChange($event)">
                         <label for="by24Hours" class="form-check-label small fw-semibold mb-0">
@@ -271,12 +274,22 @@
                         </label>
                     </div>
                     }
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
-                        Export to PDF
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsExcel()">
-                        Export to Excel
-                    </button>
+                    @if (hasExportAccess) {
+                    <div class="report-header__exports d-flex flex-wrap gap-2 ms-sm-auto">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsPDF()">
+                            @if (isPdfExporting) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Export to PDF
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsExcel()">
+                            @if (isExcelExporting) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Export to Excel
+                        </button>
+                    </div>
+                    }
                 </div>
             </div>
 
@@ -317,7 +330,7 @@
                     </thead>
                     <tbody class="align-middle text-center">
                         @for (row of stoppageTableRows; track $index) {
-                        <tr class="small" [class.custom-tr-bg]="row.groupEven">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(row.shift)">
                             @if (isTimeWiseStoppageView) {
                             <td>{{ row.reportDate | date:'dd-MMM-yyyy' }}</td>
                             <td>{{ row.shiftLabel }}</td>
@@ -374,8 +387,8 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center">
-                        @for (row of reportData?.list; track $index; let even = $even) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        @for (row of reportData?.list; track $index; let odd = $odd) {
+                        <tr class="small" [class.custom-tr-bg]="odd">
                             <td>{{ row.machineName }}</td>
                             <td class="text-nowrap">{{ row.startDate | date:'dd-MMM-yyyy' }}</td>
                             <td>{{ row.shift }}</td>
@@ -420,8 +433,8 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center">
-                        @for (row of reportData?.list; track $index; let even = $even) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        @for (row of reportData?.list; track $index; let odd = $odd) {
+                        <tr class="small" [class.custom-tr-bg]="odd">
                             <td>{{ row.machineCode || row.machineName || '-' }}</td>
                             <td>{{ row.beamLeft | number:'1.0-2' }}</td>
                             <td class="text-nowrap">
@@ -487,7 +500,7 @@
                     <tbody class="align-middle text-center">
                         @for (item of reportData?.list; track $index; let even = $even;) {
                         @for (data of item?.list; track data._id; let shiftIndex = $index;) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(data.shift)">
                             @if(shiftIndex === 0) {
                             <td [attr.rowspan]="item?.list?.length ?? 1">
                                 {{ item.reportDate | date:'dd-MMM-yyyy' }}
@@ -521,11 +534,13 @@
                             <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
                         </tr>
                         }
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 2 }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: item, even: isNightShift(item.shiftLabel), labelColspan: 2
+                        }" />
                         @if (item.fullDay; as fullDay) {
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 2, highlight: true }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: fullDay, labelColspan: 2, highlight: true
+                        }" />
                         }
                         }
                         @if (!reportData?.list?.length) {
@@ -591,10 +606,10 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center lh-1">
-                        @for (item of reportDataBy24Hours.list; track $index; let even = $even;) {
+                        @for (item of reportDataBy24Hours.list; track $index;) {
                         @for (data of item?.list; track data.machineId || data.machineCode; let mFirst = $first){
                         <!-- Day Shift row -->
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small">
                             @if (mFirst) {
                             <td [attr.rowspan]="(item?.list?.length ?? 0) * 2">
                                 {{item.reportDate | date:'dd-MMM-yyyy'}}
@@ -670,7 +685,7 @@
                             </td>
                         </tr>
                         <!-- Night shift row -->
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small custom-tr-bg">
                             <td>Night</td>
                             <td>{{(data?.night?.pieceLengthM|number:'1.0-2')??'-'}}</td>
                             <td>{{data?.night?.picksCurrentShift??'-'}}</td>
@@ -699,7 +714,7 @@
                             </td>
                         </tr>
                         }
-                        <tr class="small fw-semibold table-secondary">
+                        <tr class="small fw-semibold custom-tr-bg">
                             <td></td>
                             <td colspan="3">
                                 {{ item.reportDate|date:'dd-MMM-yyyy' }} - Full Day
@@ -801,7 +816,7 @@
                     <tbody class="align-middle text-center">
                         @for (item of reportData?.list; track $index; let even = $even;) {
                         @for (data of item?.list; track data._id;let shiftIndex = $index;) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(data.shift)">
                             @if(shiftIndex === 0) {
                             <td [attr.rowspan]="item?.list?.length ?? 1">
                                 {{ item.reportDate | date:'dd-MMM-yyyy' }}
@@ -862,11 +877,13 @@
                             </td>
                         </tr>
                         }
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 3 }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: item, even: isNightShift(item.shiftLabel), labelColspan: 3
+                        }" />
                         @if (item.fullDay; as fullDay) {
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 3, highlight: true }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: fullDay, even: even, labelColspan: 3, highlight: true
+                        }" />
                         }
                         }
                         <tr>

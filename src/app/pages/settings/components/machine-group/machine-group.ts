@@ -24,6 +24,13 @@ export class MachineGroup {
   protected isUpsertMachineGroupModalOpen: boolean = false;
 
 
+  protected get hasCreateAccess(): boolean {
+    return this._coreService.utils.can('machine_group', 'create');
+  }
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('machine_group', 'update');
+  }
+
 
   ngOnInit(): void {
     this.loadList();
@@ -45,6 +52,8 @@ export class MachineGroup {
 
 
   protected onOpenUpsertWorkspaceModal(machineGroup: any = null): void {
+    if (!machineGroup ? !this.hasCreateAccess : !this.hasUpdateAccess) return;
+
     this.upsertMachineGroupModalData = machineGroup;
     this.isUpsertMachineGroupModalOpen = true;
   }

@@ -37,6 +37,10 @@ export class MachineConfigure {
   });
 
 
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('machine_configure', 'update');
+  }
+
 
   ngOnInit(): void {
     if (this.isAdmin) {
@@ -107,7 +111,7 @@ export class MachineConfigure {
 
 
   protected onOpenUpsertMachineConfigureModal(machineConfigure: any): void {
-    if (!machineConfigure) return;
+    if (!this.hasUpdateAccess || !machineConfigure) return;
 
     this.upsertMachineConfigureModalData = machineConfigure;
     const obj: any = {
@@ -122,6 +126,7 @@ export class MachineConfigure {
 
     this.mcForm.patchValue(obj);
     this.machineName?.disable();
+    this.machineCode?.disable();
     this.isUpsertMachineConfigureModalOpen = true;
   }
 
@@ -143,6 +148,7 @@ export class MachineConfigure {
 
   protected isReqAlive: boolean = false;
   protected upsertMachineConfigure(): void {
+    if (!this.hasUpdateAccess) return;
     if (this.isReqAlive || !this.upsertMachineConfigureModalData?._id) return;
 
     if (this.mcForm?.invalid) {
@@ -176,7 +182,7 @@ export class MachineConfigure {
 
 
   protected onToggleAlert(machineConfigure: any): void {
-    if (this.isReqAlive || !machineConfigure?._id || !this.isAdmin) return;
+    if (!this.isAdmin || this.isReqAlive || !machineConfigure?._id) return;
 
     this.isReqAlive = true;
     const body = {
@@ -220,6 +226,8 @@ export class MachineConfigure {
   }
 
   protected onGroupChangeRequest(newGroupId: string, machineConfigure: any, selectEl: HTMLSelectElement): void {
+    if (!this.hasUpdateAccess) return;
+
     const normalizedNewId = newGroupId || null;
     const currentGroupId = this.getMachineGroupId(machineConfigure) || null;
 
@@ -246,6 +254,7 @@ export class MachineConfigure {
   }
 
   protected confirmGroupChange(): void {
+    if (!this.hasUpdateAccess) return;
     if (this.isReqAlive || !this.groupChangeConfirmData?.machine?._id) return;
 
     const machineId = this.groupChangeConfirmData.machine._id;

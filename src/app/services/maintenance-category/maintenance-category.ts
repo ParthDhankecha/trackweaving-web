@@ -17,6 +17,10 @@ export class MaintenanceCategory {
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
+  optionList(): Observable<IResponse> {
+    return this._http.get(`${this._baseUrl}/option-list`);
+  }
+
   list(): Observable<IResponse> {
     return this._http.get(`${this._baseUrl}`);
   }

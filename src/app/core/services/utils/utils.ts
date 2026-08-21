@@ -7,7 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import { _, TranslateService } from '@ngx-translate/core';
 
 import StorageKeys from '@src/app/constants/storage-keys';
-import { EToasterType, IToaster } from '@src/app/models/utils.model';
+import { AccessAction, AccessModule, EToasterType, IToaster } from '@src/app/models/utils.model';
 import { ROUTES } from '@src/app/constants/app.routes';
 import { AppConfig } from '../app-config/app-config';
 
@@ -71,6 +71,16 @@ export class Utils {
   }
   get isMaster(): boolean {
     return this._appConfig.roles && this._appConfig.roles.MASTER === this.decodeToken?.user?.type;
+  }
+
+  /**
+   * Check module + action permission.
+   * Admin always true (resolved access is full); missing access treated as deny.
+   */
+  can(module: AccessModule, action: AccessAction = 'read'): boolean {
+    if (this.isAdmin) return true;
+    const access = this._appConfig.access;
+    return access?.[module]?.includes(action) ?? false;
   }
 
   get isManufacturerAuthenticated(): boolean {

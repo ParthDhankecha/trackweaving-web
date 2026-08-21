@@ -82,7 +82,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex p-0">
-                                    <input class="form-check-input mx-auto fs-5" type="checkbox" id="isActive"
+                                    <input class="form-check-input mx-auto fs-5" type="checkbox" id="{{workspace._id}}isActive"
                                         [checked]="workspace?.isActive" (click)="onStatusChange($event, workspace)">
                                 </div>
                             </td>
@@ -121,7 +121,7 @@
 <!-- Create/Upsert Workspace Modal -->
 @if (isUpsertWorkspaceModalOpen){
 <app-upsert-workspace [workspaceData]="upsertWorkspaceModalData" (close)="onCloseWorkspaceModal()"
-    (upsert)="upsertWorkspaceModalEvent($event)"></app-upsert-workspace>
+    (upsert)="upsertWorkspaceModalEvent($event)" />
 }
 
 <!-- Delete Confirmation Modal -->

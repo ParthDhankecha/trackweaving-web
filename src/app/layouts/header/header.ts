@@ -36,27 +36,41 @@ export class Header {
 
   // machine group, machine configure, maintenance category, maintenance entry, shift wise comment update
   // parts change entry, users, privacy policy, terms & conditions
-  protected readonly settingsMenu: ISettingsMenu[] = [
+  private readonly _allSettingsMenu: ISettingsMenu[] = [
     {
-      id: 'machineGroup', icon: 'gearGroup', label: "Machine Group", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_GROUP)
+      id: 'machineGroup', icon: 'gearGroup', label: "Machine Group",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_GROUP),
+      accessModule: 'machine_group'
     },
     {
-      id: 'machineConfigure', icon: 'machineConfig', label: "Machine Configure", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_CONFIGURE)
+      id: 'machineConfigure', icon: 'machineConfig', label: "Machine Configure",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MACHINE_CONFIGURE),
+      accessModule: 'machine_configure'
     },
     {
-      id: 'maintenanceCategory', icon: 'list', label: "Maintenance Category", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_CATEGORY)
+      id: 'maintenanceCategory', icon: 'list', label: "Maintenance Category",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_CATEGORY),
+      accessModule: 'maintenance_category'
     },
     {
-      id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_ENTRY)
+      id: 'maintenanceEntry', icon: 'listPlus', label: "Maintenance Entry",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.MAINTENANCE_ENTRY),
+      accessModule: 'maintenance_entry'
     },
     {
-      id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.SHIFT_WISE_COMMENT_UPDATE)
+      id: 'shiftWiseCommentUpdate', icon: 'comment', label: "Shift Wise Comment Update",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.SHIFT_WISE_COMMENT_UPDATE),
+      accessModule: 'shift_wise_comment'
     },
     {
-      id: 'partsChangeEntry', icon: 'tools', label: "Parts Change Entry", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.PARTS_CHANGE_ENTRY)
+      id: 'partsChangeEntry', icon: 'tools', label: "Parts Change Entry",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.PARTS_CHANGE_ENTRY),
+      accessModule: 'part_change_entry'
     },
     {
-      id: 'users', icon: 'users', label: "Users", link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.USERS)
+      id: 'users', icon: 'users', label: "Users",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.USERS),
+      accessModule: 'user'
     },
     {
       id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: `/${ROUTES.PRIVACY_POLICY}`
@@ -65,6 +79,18 @@ export class Header {
       id: 'termsConditions', icon: 't&c', label: "Terms & Conditions", link: `/${ROUTES.TERMS_AND_CONDITIONS}`
     }
   ];
+
+
+  protected get settingsMenu(): ISettingsMenu[] {
+    return this._allSettingsMenu.filter((menu) => {
+      if (!menu.accessModule) return true;
+      return this._coreService.utils.can(menu.accessModule, 'read');
+    });
+  }
+
+  protected get canViewReports(): boolean {
+    return this._coreService.utils.can('report', 'read');
+  }
 
 
   @ViewChild('logoutModalContent') logoutModalContentRef!: ElementRef;

@@ -115,6 +115,12 @@ export class Reports {
     { id: 'timeWise', label: 'Time Wise (Descending)' }
   ];
 
+
+  protected get hasExportAccess(): boolean {
+    return this._coreService.utils.can('report', 'export') || this.showFactoryFilter;
+  }
+
+
   protected get isTimeWiseStoppageView(): boolean {
     return this.stoppageViewMode === 'timeWise';
   }
@@ -212,8 +218,10 @@ export class Reports {
     this.setSubscriptions();
 
     if (this.isDevice) {
-      // Inject the token into the WebView for device
-      (window as any).setDeviceToken = this.setDeviceToken.bind(this);
+      // WebView invokes this outside NgZone; wrap so the view updates.
+      (window as any).setDeviceToken = (token: string) => {
+        this._ngZone.run(() => this.setDeviceToken(token));
+      };
     } else {
       this.initialize();
     }
@@ -237,8 +245,8 @@ export class Reports {
 
     if (!localStorage.getItem(StorageKeys.ACCESS_TOKEN)) {
       localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
-      this.initialize();
     }
+    this.initialize();
   }
 
 
@@ -251,6 +259,9 @@ export class Reports {
           if (res.code === 'OK') {
             this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
             this.machineList = [...this.rawMachineList];
+            if (this.groupByMachine?.value) {
+              this.groupByMachine?.patchValue(false, { emitEvent: false });
+            }
             this.machinesLoaded = true;
             this.applyNavStateAndLoadReport();
           }
@@ -421,6 +432,11 @@ export class Reports {
   }
   get customStopMinutes(): AbstractControl | null {
     return this.filterForm.get('customStopMinutes');
+  }
+
+
+  protected isNightShift(shift: number | string): boolean {
+    return shift === 1 || shift === this.tableShiftObj['1'];
   }
 
   private flattenProductionReportList(parsedList: any[] = [], includeEntireDay = false): any[] {
@@ -730,7 +746,7 @@ export class Reports {
 
   protected onMachineSelectionChange(group: any = null): void {
     // Update machine group selection based on individual machine selections
-    if (group) group.selected = group.machines.every((m: any) => m.selected);
+    if (group) group.selected = group.machines?.length > 0 && group.machines.every((m: any) => m.selected);
 
     this.toggleSelectAllState();
   }
@@ -741,7 +757,7 @@ export class Reports {
       this.selectAll?.patchValue(false, { emitEvent: false });
       return;
     }
-    this.selectAll?.patchValue(this.rawMachineList.every((m: any) => m.selected), { emitEvent: false });
+    this.selectAll?.patchValue(this.rawMachineList?.length > 0 && this.rawMachineList.every((m: any) => m.selected), { emitEvent: false });
     if (this.machineIds?.errors) {
       this.machineIds.setErrors(null);
     }
@@ -1026,27 +1042,39 @@ export class Reports {
   }
 
 
+  protected isPdfExporting: boolean = false;
   protected exportAsPDF(): void {
-    if (!this.reportTable?.nativeElement) return;
+    if (!this.reportTable?.nativeElement || this.isPdfExporting) return;
 
     if (this.by24Hours) {
       if (!this.reportDataBy24Hours) return;
 
+      this.isPdfExporting = true;
       this._coreService.exportData.exportTableToPDF({
         ...this.reportDataBy24Hours,
         isBy24Hours: true,
         reportTitle: `${this.reportData?.reportTitle || 'Report'} (By 24 Hours)`,
-      }, this.isDevice);
+      }, this.isDevice).finally(() => {
+        this.isPdfExporting = false;
+      });
       return;
     }
 
-    this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice);
+    this.isPdfExporting = true;
+    this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice).finally(() => {
+      this.isPdfExporting = false;
+    });
   }
 
+  protected isExcelExporting: boolean = false;
   protected exportAsExcel(): void {
-    if (!this.reportTable?.nativeElement) return;
+    if (!this.reportTable?.nativeElement || this.isExcelExporting) return;
+
+    this.isExcelExporting = true;
     const filename = `${String(this.reportData?.reportTitle || 'report').toLowerCase().replace(/ +/g, '_')}_${moment().format('YYYYMMDD_HHmmss')}.xlsx`;
-    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, this.isDevice);
+    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, this.isDevice).finally(() => {
+      this.isExcelExporting = false;
+    });
   }
 
 

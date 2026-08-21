@@ -1,7 +1,9 @@
 const APP_REGEXP = {
     USER_NAME: {
-        REGEXP: /^[a-zA-Z][a-zA-Z0-9_]{5,}$/,
-        MESSAGE: 'Invalid user name. It should start with a letter and contain only letters, numbers, and underscores and be at least 6 characters long.',
+        REGEXP: /^(?!\s)(?!\s)(?!.*\s{2})(?!.*\s$).*$/,
+        MESSAGE: 'Spaces cannot be at the beginning or end, and consecutive spaces are not allowed.',
+        MIN_LENGTH: 6,
+        MIN_LENGTH_MESSAGE: 'Please enter at least 6 characters.',
     },
 };
 

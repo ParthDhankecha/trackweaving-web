@@ -7,6 +7,7 @@
                         Machine Group
                     </strong>
                     <div>
+                        @if(hasCreateAccess){
                         <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
                             (click)="onOpenUpsertWorkspaceModal()">
                             <svg height="18" width="18" viewBox="0 0 48 48" class="flex-shrink-0">
@@ -19,6 +20,7 @@
                                 New Machine Group
                             </span>
                         </button>
+                        }
                     </div>
                 </div>
             </caption>
@@ -28,9 +30,11 @@
                     <th scope="col" class="text-nowrap">
                         Group Name
                     </th>
+                    @if(hasUpdateAccess){
                     <th scope="col" class="w-1-percent">
                         Action
                     </th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -40,15 +44,17 @@
                     <td class="text-capitalize">
                         {{mgItem?.groupName}}
                     </td>
+                    @if(hasUpdateAccess){
                     <td>
                         <button class="btn btn-outline-primary btn-sm" (click)="onOpenUpsertWorkspaceModal(mgItem)">
                             Edit
                         </button>
                     </td>
+                    }
                 </tr>
                 }@empty {
                 <tr>
-                    <td colspan="3" class="text-muted small text-center">
+                    <td [attr.colspan]="hasUpdateAccess ? 3 : 2" class="text-muted small text-center">
                         No records found.
                     </td>
                 </tr>
@@ -62,5 +68,5 @@
 <!-- Create/Upsert Workspace Modal -->
 @if (isUpsertMachineGroupModalOpen){
 <app-upsert-machine-group [machineGroupData]="upsertMachineGroupModalData" (close)="onCloseMachineGroupModal()"
-    (upsert)="upsertMachineGroupModalEvent($event)"></app-upsert-machine-group>
+    (upsert)="upsertMachineGroupModalEvent($event)" />
 }

@@ -151,9 +151,9 @@ export class UpsertWorkspace {
   get gstNumber(): AbstractControl | null {
     return this.workspaceForm.get('GSTNo');
   }
-  get shiftType(): AbstractControl | null {
-    return this.workspaceForm.get('shiftType');
-  }
+  // get shiftType(): AbstractControl | null {
+  //   return this.workspaceForm.get('shiftType');
+  // }
   get dayStartTime(): AbstractControl | null {
     return this.workspaceForm?.controls?.['dayShift']?.get('startTime');
   }
@@ -184,8 +184,6 @@ export class UpsertWorkspace {
 
 
 
-
-
   protected isReqAlive: boolean = false;
   protected onSubmit(): void {
     if (this.isReqAlive) return;
@@ -198,8 +196,10 @@ export class UpsertWorkspace {
     const body: IWorkspace = {
       ...this.workspaceForm.value
     };
+    if (body.manufacturerId === 'null' || !body.manufacturerId) {
+      body.manufacturerId = null as any;
+    }
 
-    console.log('Submitting workspace form with data:', body);
     this.isReqAlive = true;
     if (!this.isEditMode) {
       this._apiFs.workspace.create(body).subscribe({

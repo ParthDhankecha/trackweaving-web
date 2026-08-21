@@ -17,7 +17,7 @@ export class ExportData {
   /**
    * EXPORT TO EXCEL (.xlsx) (using SheetJS)
    */
-  exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx', isDevice: boolean = false): void {
+  async exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx', isDevice: boolean = false): Promise<void> {
     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(tableElement, {
       raw: true
     });
@@ -36,7 +36,7 @@ export class ExportData {
   /**
    * EXPORT TO PDF (using pdfMake)
    */
-  exportTableToPDF(reportData: any, isDevice: boolean = false): void {
+  async exportTableToPDF(reportData: any, isDevice: boolean = false): Promise<void> {
     const title = reportData.reportTitle || 'Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
@@ -192,6 +192,21 @@ export class ExportData {
     bold: true
   };
 
+
+  private isNightShift(shift: number | string | undefined | null): boolean {
+    return shift === 1 || shift === 'Night Shift';
+  }
+  private isNightShiftGroup(item: any): boolean {
+    return this.isNightShift(item?.shiftLabel) || this.isNightShift(item?.list?.[0]?.shift);
+  }
+  private contentCellStyle(isNight: boolean): string {
+    return isNight ? 'contentCellBg' : 'contentCell';
+  }
+  private subTotalCellStyle(isNight: boolean): string {
+    return isNight ? 'subTotalCellBg' : 'subTotalCell';
+  }
+
+
   protected colSpanCells(text: string, colSpan: number, cellStyle: Record<string, unknown>, extra: Record<string, unknown> = {}): any[] {
     return [
       { text: text || ' ', colSpan, ...cellStyle, ...extra },
@@ -237,10 +252,10 @@ export class ExportData {
     body.push(headerRow2);
 
     // ---- Data Rows ----
-    let groupIndex = 0;
     for (const item of reportData.list || []) {
       let shiftIndex = 0;
-      const cellStyle = groupIndex % 2 === 0 ? 'contentCell' : 'contentCellBg';
+      const isNight = this.isNightShiftGroup(item);
+      const cellStyle = this.contentCellStyle(isNight);
       for (const data of item.list || []) {
         let cells = [{}, {}];
         if (shiftIndex === 0) {
@@ -279,7 +294,7 @@ export class ExportData {
         shiftIndex++;
       }
 
-      const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
+      const subTtlCellStyle = this.subTotalCellStyle(isNight);
       body.push([
         { text: '', style: subTtlCellStyle },
         { text: `${this.formatDate(item.reportDate)} - ${item.shiftLabel}`, colSpan: 3, style: subTtlCellStyle }, {}, {},
@@ -304,7 +319,6 @@ export class ExportData {
           { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
         ]);
       }
-      groupIndex++;
     }
 
     body.push([
@@ -399,62 +413,60 @@ export class ExportData {
       return value;
     };
 
-    let groupIndex = 0;
     for (const item of reportData.list || []) {
-      const cellStyle = groupIndex % 2 === 0 ? 'contentCell' : 'contentCellBg';
-      const boldStyle = { style: cellStyle, bold: true };
+      const dayStyle = 'contentCell';
+      const boldStyle = { style: dayStyle, bold: true };
+      const nightStyle = 'contentCellBg';
       const machines = item.list || [];
 
       machines.forEach((data: any, machineIndex: number) => {
         const day = data.day || {};
-        const night = data.night || {};
         const total = data.total || {};
-        const dateCell = machineIndex === 0
-          ? [{ text: this.formatDate(item.reportDate), rowSpan: machines.length * 2, style: cellStyle }]
-          : [{}];
+        const dateCell = machineIndex === 0 ? [{ text: this.formatDate(item.reportDate), rowSpan: machines.length * 2, style: dayStyle }] : [{}];
 
         const dayRow: any[] = [
           ...dateCell,
-          { text: data.machineCode || '-', rowSpan: 2, style: cellStyle },
-          { text: data.qualityLabel || '-', rowSpan: 2, style: cellStyle },
-          { text: 'Day', style: cellStyle },
+          { text: data.machineCode || '-', rowSpan: 2, style: dayStyle },
+          { text: data.qualityLabel || '-', rowSpan: 2, style: dayStyle },
+          { text: 'Day', style: dayStyle },
 
-          { text: val(day.pieceLengthM, 2), style: cellStyle },
+          { text: val(day.pieceLengthM, 2), style: dayStyle },
           { text: val(total.pieceLengthM, 2), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.picksCurrentShift), style: cellStyle },
+          { text: val(day.picksCurrentShift), style: dayStyle },
           { text: val(total.picksCurrentShift), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.efficiencyPercent, 1), style: cellStyle },
+          { text: val(day.efficiencyPercent, 1), style: dayStyle },
           { text: val(total.efficiencyPercent, 1), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.realEfficiencyPercent, 1), style: cellStyle },
+          { text: val(day.realEfficiencyPercent, 1), style: dayStyle },
           { text: val(total.realEfficiencyPercent, 1), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.speedRpm), style: cellStyle },
+          { text: val(day.speedRpm), style: dayStyle },
           { text: val(total.speedRpm), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.runTime), style: cellStyle },
+          { text: val(day.runTime), style: dayStyle },
           { text: val(total.runTime), rowSpan: 2, ...boldStyle },
 
-          { text: val(day.beamLeft), style: cellStyle },
+          { text: val(day.beamLeft), style: dayStyle },
           { text: val(total.beamLeft), rowSpan: 2, ...boldStyle },
         ];
 
+        const night = data.night || {};
         if (showBeamCompletionDate) {
           const beamDate = night.beamCompletionDate || day.beamCompletionDate || total.beamCompletionDate;
           dayRow.push({
             text: beamDate ? this.formatDate(beamDate) : '-',
             rowSpan: 2,
-            style: cellStyle
+            style: dayStyle
           });
         }
 
         stopColumns.forEach(column => {
           dayRow.push(
-            { text: val(day.stopsData?.[column.key]?.count, 0), style: cellStyle },
+            { text: val(day.stopsData?.[column.key]?.count, 0), style: dayStyle },
             { text: val(total.stopsData?.[column.key]?.count, 0), rowSpan: 2, ...boldStyle },
-            { text: val(day.stopsData?.[column.key]?.duration), style: cellStyle },
+            { text: val(day.stopsData?.[column.key]?.duration), style: dayStyle },
             { text: val(total.stopsData?.[column.key]?.duration), rowSpan: 2, ...boldStyle },
           );
         });
@@ -471,29 +483,29 @@ export class ExportData {
           {},
           {},
           {},
-          { text: 'Night', style: cellStyle },
-          { text: val(night.pieceLengthM, 2), style: cellStyle },
+          { text: 'Night', style: nightStyle },
+          { text: val(night.pieceLengthM, 2), style: nightStyle },
           {},
-          { text: val(night.picksCurrentShift), style: cellStyle },
+          { text: val(night.picksCurrentShift), style: nightStyle },
           {},
-          { text: val(night.efficiencyPercent, 1), style: cellStyle },
+          { text: val(night.efficiencyPercent, 1), style: nightStyle },
           {},
-          { text: val(night.realEfficiencyPercent, 1), style: cellStyle },
+          { text: val(night.realEfficiencyPercent, 1), style: nightStyle },
           {},
-          { text: val(night.speedRpm), style: cellStyle },
+          { text: val(night.speedRpm), style: nightStyle },
           {},
-          { text: val(night.runTime), style: cellStyle },
+          { text: val(night.runTime), style: nightStyle },
           {},
-          { text: val(night.beamLeft), style: cellStyle },
+          { text: val(night.beamLeft), style: nightStyle },
           {},
         ];
         if (showBeamCompletionDate) nightRow.push({});
 
         stopColumns.forEach(column => {
           nightRow.push(
-            { text: val(night.stopsData?.[column.key]?.count, 0), style: cellStyle },
+            { text: val(night.stopsData?.[column.key]?.count, 0), style: nightStyle },
             {},
-            { text: val(night.stopsData?.[column.key]?.duration), style: cellStyle },
+            { text: val(night.stopsData?.[column.key]?.duration), style: nightStyle },
             {},
           );
         });
@@ -507,7 +519,7 @@ export class ExportData {
         body.push(nightRow);
       });
 
-      const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
+      const subTtlCellStyle = 'subTotalCellBg';
       body.push([
         { text: '', style: subTtlCellStyle },
         ...this.colSpanCells(`${this.formatDate(item.reportDate)} - Full Day`, 3, { style: subTtlCellStyle }),
@@ -519,7 +531,6 @@ export class ExportData {
         ...this.colSpanCells(`Avg: ${item.avgPicks ?? '-'}`, avgColspan, { style: subTtlCellStyle }, { alignment: 'left' }),
         ...this.colSpanCells(' ', stopSectionColspan, { style: subTtlCellStyle }),
       ]);
-      groupIndex++;
     }
 
     body.push([
@@ -577,10 +588,10 @@ export class ExportData {
     headerRow2.push({}, {});
     body.push(headerRow2);
 
-    let groupIndex = 0;
     for (const item of section.list || []) {
       let shiftIndex = 0;
-      const cellStyle = groupIndex % 2 === 0 ? 'contentCell' : 'contentCellBg';
+      const isNight = this.isNightShiftGroup(item);
+      const cellStyle = this.contentCellStyle(isNight);
       for (const data of item.list || []) {
         let cells = [{}, {}];
         if (shiftIndex === 0) {
@@ -618,7 +629,7 @@ export class ExportData {
         shiftIndex++;
       }
 
-      const subTtlCellStyle = groupIndex % 2 === 0 ? 'subTotalCell' : 'subTotalCellBg';
+      const subTtlCellStyle = this.subTotalCellStyle(isNight);
       body.push([
         { text: '', style: subTtlCellStyle },
         { text: `${this.formatDate(item.reportDate)} - ${item.shiftLabel}`, colSpan: 2, style: subTtlCellStyle }, {},
@@ -643,7 +654,6 @@ export class ExportData {
           { text: '', colSpan: stopSectionColspan, style: subTtlCellStyle }, ...Array(stopSectionColspan - 1).fill({})
         ]);
       }
-      groupIndex++;
     }
 
     body.push([

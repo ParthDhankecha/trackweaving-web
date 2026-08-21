@@ -26,9 +26,9 @@ export class MaintenanceCategory {
 
   protected maintenanceCategoryList: any[] = [];
   protected upsertMaintenanceCategoryModalData: any = null;
-  protected isUpsertMaintenanceCategoryModalOpen = false;
+  protected isUpsertMaintenanceCategoryModalOpen: boolean = false;
   protected deleteMaintenanceCategoryData: any = null;
-  protected isDeleteModalOpen = false;
+  protected isDeleteModalOpen: boolean = false;
 
   ngOnInit(): void {
     this.loadList();
@@ -45,7 +45,27 @@ export class MaintenanceCategory {
     });
   }
 
+
+  protected get hasCreateAccess(): boolean {
+    return this._coreService.utils.can('maintenance_category', 'create');
+  }
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('maintenance_category', 'update');
+  }
+  protected get hasDeleteAccess(): boolean {
+    return this._coreService.utils.can('maintenance_category', 'delete');
+  }
+  protected get hasHistoryAccess(): boolean {
+    return this._coreService.utils.can('maintenance_entry', 'read');
+  }
+  protected get hasAnyActionAccess(): boolean {
+    return this.hasUpdateAccess || this.hasDeleteAccess || this.hasHistoryAccess;
+  }
+
+
   protected onOpenUpsertModal(maintenanceCategory: any = null): void {
+    if (!maintenanceCategory ? !this.hasCreateAccess : !this.hasUpdateAccess) return;
+
     this.upsertMaintenanceCategoryModalData = maintenanceCategory;
     this.isUpsertMaintenanceCategoryModalOpen = true;
   }
@@ -68,6 +88,8 @@ export class MaintenanceCategory {
   protected isReqAlive = false;
 
   protected onToggleAlert(maintenanceCategory: any): void {
+    if (!this.hasUpdateAccess) return;
+
     if (this.isReqAlive || !maintenanceCategory?._id) return;
 
     this.isReqAlive = true;
@@ -95,6 +117,8 @@ export class MaintenanceCategory {
   }
 
   protected onOpenDeleteModal(maintenanceCategory: any): void {
+    if (!this.hasDeleteAccess) return;
+
     this.deleteMaintenanceCategoryData = maintenanceCategory;
     this.isDeleteModalOpen = true;
   }
@@ -105,6 +129,8 @@ export class MaintenanceCategory {
   }
 
   protected onConfirmDelete(): void {
+    if (!this.hasDeleteAccess) return;
+
     const categoryId = this.deleteMaintenanceCategoryData?._id;
     if (this.isReqAlive || !categoryId) return;
 

@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { UpsertUser } from './upsert-user/upsert-user';
+import { UserAccess } from './user-access/user-access';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -14,12 +15,13 @@ import { EToasterType } from '@src/app/models/utils.model';
   selector: 'app-users',
   imports: [
     FormsModule,
-    UpsertUser
+    UpsertUser,
+    UserAccess
   ],
   templateUrl: './users.html',
   styleUrl: './users.scss'
 })
-export class Users {
+export class Users implements OnDestroy {
 
   // Inject services
   protected readonly _apiFs = inject(ApiFacadeService);
@@ -29,6 +31,9 @@ export class Users {
   protected userList: any[] = [];
   protected isUpsertUserModalOpen: boolean = false;
   protected upsertUserModalData: any = null; // Data for edit, null for create
+
+  protected isAccessModalOpen: boolean = false;
+  protected accessModalUser: any = null;
 
 
   ngOnInit(): void {
@@ -52,6 +57,17 @@ export class Users {
       error: (err) => { }
     });
   }
+
+  protected hasManageAccess(user: any): boolean {
+    return this._coreService.utils.isAdmin && !user?.isCurrentUser;
+  }
+  protected get hasCreateAccess(): boolean {
+    return this._coreService.utils.can('user', 'create');
+  }
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('user', 'update');
+  }
+
 
   protected isStatusChangeConfirmationModalOpen: boolean = false;
   protected userStatusChangeData: any = null;
@@ -102,6 +118,8 @@ export class Users {
 
 
   protected onOpenUpsertUserModal(user: any = null): void {
+    if (!this.hasUpdateAccess) return;
+
     this.upsertUserModalData = user;
     this.isUpsertUserModalOpen = true;
   }
@@ -124,5 +142,36 @@ export class Users {
       }
     }
     this.onCloseUserModal();
+  }
+
+
+  protected onOpenAccessModal(user: any): void {
+    if (!this.hasManageAccess(user)) return;
+
+    this.accessModalUser = user;
+    this.isAccessModalOpen = true;
+  }
+
+  protected onCloseAccessModal(): void {
+    this.isAccessModalOpen = false;
+    this.accessModalUser = null;
+  }
+
+  protected onAccessSaved(data: any): void {
+    if (data?._id) {
+      const index = this.userList.findIndex(u => u._id === data._id);
+      if (index !== -1) {
+        this.userList[index] = {
+          ...this.userList[index],
+          ...data
+        };
+      }
+    }
+    this.onCloseAccessModal();
+  }
+
+
+  ngOnDestroy(): void {
+    this._apiFs.users.clearAccessMatrixCache();
   }
 }
