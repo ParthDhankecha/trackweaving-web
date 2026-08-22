@@ -1,168 +1,194 @@
 <!-- inner header -->
 <div class="py-2 px-4 d-flex gap-3 align-items-center sticky-inner-header">
     <div class="d-flex flex-grow-1 gap-2"></div>
-    <div></div>
 </div>
 
-<!-- main content -->
 <div class="p-4">
+    @if (isLoading) {
     <div class="card">
+        <div class="card-body text-center py-5">
+            <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+        </div>
+    </div>
+    } @else {
+    <div class="card mb-4">
         <div class="card-body">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <h5 class="mb-0">
-                        App Version Config
-                    </h5>
-                    @if (!isLoading && !appVersionId) {
-                    <span class="badge bg-warning text-dark">
-                        Save required
-                    </span>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <h5 class="mb-0">
+                    Flavor Versions
+                </h5>
+                @if (!appVersionId) {
+                <span class="badge bg-warning text-dark">
+                    Save required
+                </span>
+                }
+            </div>
+
+            <form [formGroup]="versionForm" (ngSubmit)="onSubmitFlavors()">
+                <div class="row g-3">
+                    @for (flavor of flavorKeys; track flavor) {
+                    <div class="col-12 col-xxl-6" [formGroupName]="flavor">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="mb-3 text-capitalize">
+                                {{ flavor }}
+                            </h6>
+                            <div class="row g-3">
+                                @for (platform of platforms; track platform.key) {
+                                <div class="col-12 col-lg-6" [formGroupName]="platform.key">
+                                    <div class="fw-medium mb-2">
+                                        {{ platform.label }}
+                                    </div>
+                                    <div class="row g-2">
+                                        @for (field of versionFields; track field.key) {
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">
+                                                {{ field.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="number" min="1" step="1" class="form-control"
+                                                [formControlName]="field.key"
+                                                [class.is-invalid]="isInvalid(versionForm, flavor + '.' + platform.key + '.' + field.key)" />
+
+                                            @if (isInvalid(versionForm, flavor + '.' + platform.key + '.' + field.key)){
+                                            <span class="invalid-feedback d-block">
+                                                Must be at least 1.
+                                            </span>
+                                            }
+                                        </div>
+                                        }
+                                    </div>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
                     }
                 </div>
-                <p class="text-muted mb-0 small">
-                    Single config for Android and iOS. Changes are saved to history.
-                </p>
-            </div>
 
-            @if (isLoading) {
-            <div class="text-center py-5">
-                <span class="spinner-border spinner-border-sm"></span>
-                <span class="ms-2">Loading...</span>
-            </div>
-            } @else {
-            <form [formGroup]="versionForm" (ngSubmit)="onSubmit()">
-                <div class="row g-4">
-                    <!-- Android -->
-                    <div class="col-12 col-lg-6" formGroupName="android">
-                        <h6 class="mb-3">
-                            Android
-                        </h6>
-                        <div class="mb-3">
-                            <label class="form-label" for="androidMin">
-                                Min Version <span class="text-danger">*</span>
-                            </label>
-                            <input id="androidMin" type="number" min="1" class="form-control" formControlName="min" />
-
-                            @if (getAndroidControl('min')?.touched && getAndroidControl('min')?.errors) {
-                            <span class="invalid-feedback d-block">
-                                Min version is required and must be at least 1.
-                            </span>
-                            }
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="androidLatest">
-                                Latest Version <span class="text-danger">*</span>
-                            </label>
-                            <input id="androidLatest" type="number" min="1" class="form-control"
-                                formControlName="latest" />
-
-                            @if (getAndroidControl('latest')?.touched && getAndroidControl('latest')?.errors) {
-                            <span class="invalid-feedback d-block">
-                                Latest version is required and must be at least 1.
-                            </span>
-                            }
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="androidUpdateNote">
-                                Update Note
-                            </label>
-                            <textarea id="androidUpdateNote" class="form-control" rows="3" formControlName="updateNote"
-                                placeholder="Enter Android update note"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- iOS -->
-                    <div class="col-12 col-lg-6" formGroupName="ios">
-                        <h6 class="mb-3">
-                            iOS
-                        </h6>
-                        <div class="mb-3">
-                            <label class="form-label" for="iosMin">
-                                Min Version <span class="text-danger">*</span>
-                            </label>
-                            <input id="iosMin" type="number" min="1" class="form-control" formControlName="min" />
-
-                            @if (getIosControl('min')?.touched && getIosControl('min')?.errors) {
-                            <span class="invalid-feedback d-block">
-                                Min version is required and must be at least 1.
-                            </span>
-                            }
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="iosLatest">
-                                Latest Version <span class="text-danger">*</span>
-                            </label>
-                            <input id="iosLatest" type="number" min="1" class="form-control" formControlName="latest" />
-
-                            @if (getIosControl('latest')?.touched && getIosControl('latest')?.errors) {
-                            <span class="invalid-feedback d-block">
-                                Latest version is required and must be at least 1.
-                            </span>
-                            }
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="iosUpdateNote">
-                                Update Note
-                            </label>
-                            <textarea id="iosUpdateNote" class="form-control" rows="3" formControlName="updateNote"
-                                placeholder="Enter iOS update note"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end mt-2">
-                    <button type="submit" class="btn btn-primary d-flex align-items-center" [disabled]="isReqAlive">
-                        @if (!isReqAlive) {
-                        <span>{{ appVersionId ? 'Update' : 'Create' }}</span>
-                        } @else {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span class="ms-2">Please wait...</span>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary" [disabled]="isFlavorReqAlive">
+                        @if (isFlavorReqAlive) {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
                         }
+                        {{ appVersionId ? 'Update Flavors' : 'Create' }}
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
 
+    <div class="card">
+        <div class="card-body">
+            <h5 class="mb-3">
+                Version History
+                <span class="badge text-bg-secondary ms-1">
+                    {{ history.length }}
+                </span>
+            </h5>
 
-            <!-- Change History(Show if history is available) -->
-            @if (history && history.length) {
-            <hr class="my-4" />
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="mb-0">
-                    Change History
-                    <span class="badge text-bg-secondary ms-1">
-                        {{ history.length }}
-                    </span>
-                </h6>
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="showHistory = !showHistory">
-                    {{ showHistory ? 'Hide' : 'Show' }}
-                </button>
+            @if (!appVersionId) {
+            <div class="alert alert-warning mb-0">
+                Save flavor versions first to add history.
             </div>
-            @if (showHistory) {
+            } @else {
+            <form [formGroup]="historyForm" (ngSubmit)="onSubmitHistory()" class="border rounded p-3 mb-4">
+                <h6 class="mb-3">
+                    {{ editingHistoryId ? 'Edit History' : 'Add History' }}
+                </h6>
+                <div class="row g-3 align-items-end">
+                    <div class="col-6 col-xl-2">
+                        <label class="form-label" for="historyBuild">
+                            Build <span class="text-danger">*</span>
+                        </label>
+                        <input id="historyBuild" type="number" min="1" step="1" formControlName="build"
+                            placeholder="e.g. 2" class="form-control"
+                            [class.is-invalid]="isInvalid(historyForm, 'build')" />
+
+                        @if (isInvalid(historyForm, 'build')) {
+                        <span class="invalid-feedback d-block">
+                            Must be at least 1.
+                        </span>
+                        }
+                    </div>
+                    <div class="col-6 col-xl-2">
+                        <label class="form-label" for="historyVersion">
+                            Version <span class="text-danger">*</span>
+                        </label>
+                        <input id="historyVersion" type="text" formControlName="version" class="form-control"
+                            placeholder="e.g. 1.0.2" [class.is-invalid]="isInvalid(historyForm, 'version')" />
+
+                        @if (isInvalid(historyForm, 'version')) {
+                        <span class="invalid-feedback d-block">
+                            Version is required.
+                        </span>
+                        }
+                    </div>
+                    <div class="col-12 col-xl">
+                        <label class="form-label" for="historyUpdateNote">
+                            Update Note
+                        </label>
+                        <!-- <input id="historyUpdateNote" type="text" class="form-control" formControlName="updateNote"
+                            placeholder="Enter update notes" /> -->
+                        <textarea id="historyUpdateNote" class="form-control" rows="2" formControlName="updateNote"
+                            placeholder="Enter update notes"></textarea>
+                    </div>
+                    <div class="col-12 col-xl-auto">
+                        <div class="d-flex justify-content-end gap-2">
+                            @if (editingHistoryId) {
+                            <button type="button" class="btn btn-outline-secondary" (click)="cancelEditHistory()"
+                                [disabled]="isHistoryReqAlive">Cancel</button>
+                            }
+                            <button type="submit" class="btn btn-primary" [disabled]="isHistoryReqAlive">
+                                @if (isHistoryReqAlive) {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                {{ editingHistoryId ? 'Update History' : 'Add History' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
             <div class="table-responsive">
-                <table class="table table-sm table-hover">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
                             <th>#</th>
+                            <th>Build</th>
+                            <th>Version</th>
+                            <th>Update Note</th>
                             <th>Changed At</th>
-                            <th>Android (min / latest)</th>
-                            <th>iOS (min / latest)</th>
-                            <th>Notes</th>
+                            <th class="text-end">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (item of history; track $index; let i = $index) {
+                        @for (item of history; track item._id || i; let i = $index) {
                         <tr>
                             <td>{{ i + 1 }}</td>
-                            <td>{{ item?.changedAt | date:'medium' }}</td>
-                            <td>{{ item?.android?.min }} / {{ item?.android?.latest }}</td>
-                            <td>{{ item?.ios?.min }} / {{ item?.ios?.latest }}</td>
-                            <td>
-                                <div class="small">
-                                    A: {{ item?.android?.updateNote || '-' }}
-                                </div>
-                                <div class="small">
-                                    i: {{ item?.ios?.updateNote || '-' }}
-                                </div>
+                            <td>{{ item?.build }}</td>
+                            <td>{{ item?.version }}</td>
+                            <td class="text-break">
+                                {{ item?.updateNote || '-' }}
+                            </td>
+                            <td class="text-nowrap">
+                                {{ item?.changedAt|date:'yyyy/MM/dd HH:mm' }}
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                    (click)="startEditHistory(item)">
+                                    Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="openDeleteHistory(item)">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="6" class="text-muted small text-center py-4">
+                                No history yet.
                             </td>
                         </tr>
                         }
@@ -170,8 +196,40 @@
                 </table>
             </div>
             }
-            }
-            }
+        </div>
+    </div>
+    }
+</div>
+
+
+<!-- delete history modal -->
+@if (deleteConfirmConfig.isOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" (click)="closeDeleteHistory()"></button>
+            </div>
+            <div class="modal-body">
+                Delete history for build <strong>{{ deleteConfirmConfig.data?.build }}</strong>
+                ({{ deleteConfirmConfig.data?.version }})?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeDeleteHistory()"
+                    [disabled]="isHistoryReqAlive">Cancel</button>
+
+                <button type="button" class="btn btn-danger" (click)="confirmDeleteHistory()"
+                    [disabled]="isHistoryReqAlive">
+                    @if (isHistoryReqAlive) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Delete
+                </button>
+            </div>
         </div>
     </div>
 </div>
+}
