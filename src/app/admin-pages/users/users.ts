@@ -104,6 +104,12 @@ export class Users {
     }
   }
 
+  protected readonly userTypeMap: Record<number, string> = this._coreService.appConfig.userTypeOptions.reduce((acc, o) => {
+    acc[o.value] = o.label;
+    return acc;
+  }, {} as Record<number, string>);
+
+
   protected userSearchTerms: string = '';
   protected onUserSearch(event: Event): void {
     event.stopPropagation();

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { ELangCode, IAppConfigData, ILanguage, IUserAccess, IUserRoles } from '@src/app/models/utils.model';
+import { ELangCode, IAppConfigData, ILanguage, IUserAccess, IUserRoles, IUserTypeOption } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
 
 
@@ -69,7 +69,9 @@ export class AppConfig {
     publicUrl: '',
     clientUrl: '',
     roles: undefined,
+    userTypeOptions: [],
     access: undefined,
+    isOwner: false,
     efficiencyAveragePer: 85,
     efficiencyGoodPer: 90,
     beamLeftMin: 1000,
@@ -91,7 +93,15 @@ export class AppConfig {
     return this.configData.roles!;
   }
 
+  get userTypeOptions(): IUserTypeOption[] {
+    return this.configData.userTypeOptions ?? [];
+  }
+
   get access(): IUserAccess | null {
     return this.configData?.access ?? null;
+  }
+
+  get isOwner(): boolean {
+    return !!this.configData?.isOwner;
   }
 }

@@ -72,12 +72,19 @@ export class Utils {
   get isMaster(): boolean {
     return this._appConfig.roles && this._appConfig.roles.MASTER === this.decodeToken?.user?.type;
   }
+  get isOwner(): boolean {
+    return !!this._appConfig.isOwner;
+  }
 
   /**
    * Check module + action permission.
    * Admin always true (resolved access is full); missing access treated as deny.
+   * User create/delete is workspace-owner only.
    */
   can(module: AccessModule, action: AccessAction = 'read'): boolean {
+    if (module === 'user' && (action === 'create' || action === 'delete')) {
+      return this.isOwner;
+    }
     if (this.isAdmin) return true;
     const access = this._appConfig.access;
     return access?.[module]?.includes(action) ?? false;

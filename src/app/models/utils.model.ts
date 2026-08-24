@@ -31,11 +31,18 @@ export interface IUserRoles {
     MASTER: number;
 }
 
+export interface IUserTypeOption {
+    value: number;
+    label: string;
+}
+
 export interface IAppConfigData {
     publicUrl: string;
     clientUrl: string;
     roles?: IUserRoles;
+    userTypeOptions?: IUserTypeOption[];
     access?: IUserAccess;
+    isOwner?: boolean;
     efficiencyAveragePer: number;
     efficiencyGoodPer: number;
     beamLeftMin: number;

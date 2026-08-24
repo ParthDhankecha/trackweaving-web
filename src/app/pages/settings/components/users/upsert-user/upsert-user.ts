@@ -1,4 +1,5 @@
-import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -22,6 +23,7 @@ export class UpsertUser {
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
 
   @Input('userData') userData: any = null;
@@ -32,6 +34,7 @@ export class UpsertUser {
   protected usernameRegObj = APP_REGEXP.USER_NAME;
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
+    userType: [null, [Validators.required]],
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
     userName: ["", [Validators.required, Validators.minLength(this.usernameRegObj.MIN_LENGTH), Validators.pattern(this.usernameRegObj.REGEXP)]],// username/mobile number
     password: ["", [Validators.required, Validators.minLength(6)]],
@@ -50,16 +53,19 @@ export class UpsertUser {
   ];
 
 
+  protected get userTypeOptions() {
+    return this._coreService.appConfig.userTypeOptions;
+  }
+
   protected get hasUpsertAccess(): boolean {
     return this._coreService.utils.can('user', this.isEditMode ? 'update' : 'create');
   }
 
   protected get showMasterFields(): boolean {
-    if (!this.isEditMode) return true;
-    // Admin can edit master user's shift/machines only
-    if (!this._coreService.utils.isAdmin) return false;
     const masterRole = this._coreService.appConfig.roles?.MASTER;
-    return masterRole !== undefined && this.userData?.userType === masterRole;
+    if (masterRole === undefined) return false;
+    if (!this.isEditMode) return this.userType?.value === masterRole;
+    return this._coreService.utils.isOwner && this.userData?.userType === masterRole;
   }
 
 
@@ -77,9 +83,11 @@ export class UpsertUser {
         mobile: this.userData.mobile || '',
         email: this.userData.email || '',
         isActive: this.userData.isActive ?? true,
+        userType: this.userData.userType ?? null,
         shift: this.normalizeShiftValue(this.userData.shift),
         machineIds: this.userData?.machineIds ?? []
       });
+      this.userType?.disable();
     }
     this.syncMasterFieldValidators();
   }
@@ -88,6 +96,9 @@ export class UpsertUser {
   protected ngOnInit(): void {
     this.loadMachines();
     this.syncMasterFieldValidators();
+    this.userType?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.syncMasterFieldValidators());
   }
 
 
@@ -150,6 +161,9 @@ export class UpsertUser {
 
   get fullname(): AbstractControl | null {
     return this.userForm.get('fullname');
+  }
+  get userType(): AbstractControl | null {
+    return this.userForm.get('userType');
   }
   get userName(): AbstractControl | null {
     return this.userForm.get('userName');
@@ -259,6 +273,11 @@ export class UpsertUser {
     if (this.showMasterFields) {
       body.shift = this.normalizeShiftValue(this.shift?.value);
       body.machineIds = this.machineIds?.value || [];
+    }
+    if (this.isEditMode) {
+      delete body.userType;
+    } else {
+      body.userType = Number(this.userType?.value);
     }
 
     this.isReqAlive = true;

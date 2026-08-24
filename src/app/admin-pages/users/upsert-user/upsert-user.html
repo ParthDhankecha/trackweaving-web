@@ -28,6 +28,32 @@
                         </div>
                         }
                     </div>
+                    <!-- User Type -->
+                    <div class="col-12 col-lg-6 mb-3">
+                        <span class="form-label d-block">
+                            User Type <span class="text-danger">*</span>
+                        </span>
+                        <div class="d-flex flex-wrap gap-3">
+                            @for (option of userTypeOptions; track option.value) {
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" id="userType-{{option.value}}"
+                                    formControlName="userType" [value]="option.value">
+
+                                <label class="form-check-label" for="userType-{{option.value}}">
+                                    {{ option.label }}
+                                </label>
+                            </div>
+                            }
+                        </div>
+
+                        @if(userType && userType.touched && userType.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(userType.errors['required']){
+                            <span>User type is required.</span>
+                            }
+                        </div>
+                        }
+                    </div>
                     <!-- fullname -->
                     <div class="col-12 col-lg-6 mb-3">
                         <label for="fullname" class="form-label">

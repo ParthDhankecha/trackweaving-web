@@ -64,6 +64,10 @@ export class Users {
     return this._http.put(`${this._baseUrl}/${id}`, body);
   }
 
+  delete(id: string): Observable<IResponse> {
+    return this._http.delete(`${this._baseUrl}/${id}`);
+  }
+
   getAccessMatrix(): Observable<IResponse> {
     if (!this._accessMatrix$) {
       this._accessMatrix$ = this._http.get<IResponse>(`${this._baseUrl}/access-matrix`).pipe(

@@ -34,6 +34,14 @@ export class Users implements OnDestroy {
 
   protected isAccessModalOpen: boolean = false;
   protected accessModalUser: any = null;
+  protected deleteConfirmModalConfig: { isOpen: boolean, data: any } = {
+    isOpen: false,
+    data: null
+  };
+  protected readonly userTypeMap: Record<number, string> = this._coreService.appConfig.userTypeOptions.reduce((acc, o) => {
+    acc[o.value] = o.label;
+    return acc;
+  }, {} as Record<number, string>);
 
 
   ngOnInit(): void {
@@ -58,14 +66,21 @@ export class Users implements OnDestroy {
     });
   }
 
+  private readonly _userRoles = this._coreService.appConfig.roles;
   protected hasManageAccess(user: any): boolean {
-    return this._coreService.utils.isAdmin && !user?.isCurrentUser;
+    return this._coreService.utils.isOwner && !user?.isCurrentUser && user?.userType === this._userRoles?.MASTER;
   }
   protected get hasCreateAccess(): boolean {
     return this._coreService.utils.can('user', 'create');
   }
   protected get hasUpdateAccess(): boolean {
     return this._coreService.utils.can('user', 'update');
+  }
+  protected get hasDeleteAccess(): boolean {
+    return this._coreService.utils.can('user', 'delete');
+  }
+  protected get isOwner(): boolean {
+    return this._coreService.utils.isOwner;
   }
 
 
@@ -74,7 +89,7 @@ export class Users implements OnDestroy {
   protected onStatusChange(event: any, user: any): void {
     event?.stopPropagation();
     event?.preventDefault();
-    if (user?.isCurrentUser) return;
+    if (!this.isOwner || user?.isCurrentUser) return;
 
     this.userStatusChangeData = { ...user };
     this.isStatusChangeConfirmationModalOpen = true;
@@ -118,7 +133,7 @@ export class Users implements OnDestroy {
 
 
   protected onOpenUpsertUserModal(user: any = null): void {
-    if (!this.hasUpdateAccess) return;
+    if (!user ? !this.hasCreateAccess : !this.hasUpdateAccess) return;
 
     this.upsertUserModalData = user;
     this.isUpsertUserModalOpen = true;
@@ -168,6 +183,45 @@ export class Users implements OnDestroy {
       }
     }
     this.onCloseAccessModal();
+  }
+
+
+  protected onOpenDeleteConfirmModal(user: any): void {
+    if (!this.hasDeleteAccess || user?.isCurrentUser) return;
+    this.deleteConfirmModalConfig = {
+      isOpen: true,
+      data: user
+    };
+  }
+
+  protected closeDeleteConfirmModal(): void {
+    this.deleteConfirmModalConfig = {
+      isOpen: false,
+      data: null
+    };
+  }
+
+  protected confirmDeleteUser(): void {
+    if (this.isReqAlive) return;
+    const userId = this.deleteConfirmModalConfig.data?._id;
+    if (!userId) return;
+
+    this.isReqAlive = true;
+    this._apiFs.users.delete(userId).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this._coreService.utils.showToaster(EToasterType.Success, 'User deleted successfully.');
+          this.closeDeleteConfirmModal();
+          this.loadList();
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
   }
 
 
