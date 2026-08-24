@@ -56,6 +56,7 @@ export class UpsertMachine {
     'haiwell',
     'picanolRapier',
     'picanolAirjet',
+    'itema'
   ];
   protected machineTypeList: string[] = [];
 
