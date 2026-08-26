@@ -19,9 +19,9 @@
                 <input type="text" class="form-control mobile-input" formControlName="userName"
                     placeholder="Enter username">
 
-                @if(userName?.touched && userName?.invalid) {
+                @if(userName && userName.touched && userName.invalid) {
                 <div class="text-danger mt-1">
-                    @if(userName?.errors?.['required']) {
+                    @if(userName.errors?.['required']) {
                     <small>Username is required.</small>
                     }
                 </div>
@@ -33,7 +33,7 @@
                 </label>
                 <div class="input-group flex-nowrap">
                     <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" formControlName="password"
-                        maxlength="20" placeholder="Enter your password" aria-describedby="password">
+                        placeholder="Enter your password" aria-describedby="password">
                     <span class="input-group-text user-select-none position-relative cursor-pointer" id="password"
                         (click)="isEyeOpen = !isEyeOpen">
                         <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
@@ -45,15 +45,15 @@
                         <span class="password-eye-line" [class.hide]="isEyeOpen"></span>
                     </span>
                 </div>
-                @if(password?.touched && password?.invalid) {
+                @if(password && password.touched && password.invalid) {
                 <div class="text-danger mt-1">
-                    @if(password?.errors?.['required']) {
+                    @if(password.errors?.['required']) {
                     <small>Password is required.</small>
                     }
-                    @if(password?.errors?.['minlength']) {
+                    @if(password.errors?.['minlength']) {
                     <small>Password must be at least 6 characters long.</small>
                     }
-                    @if(password?.errors?.['maxlength']) {
+                    @if(password.errors?.['maxlength']) {
                     <small>Password cannot exceed 20 characters.</small>
                     }
                 </div>
