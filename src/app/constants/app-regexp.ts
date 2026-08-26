@@ -1,0 +1,10 @@
+const APP_REGEXP = {
+    USER_NAME: {
+        REGEXP: /^(?!\s)(?!\s)(?!.*\s{2})(?!.*\s$).*$/,
+        MESSAGE: 'Spaces cannot be at the beginning or end, and consecutive spaces are not allowed.',
+        MIN_LENGTH: 6,
+        MIN_LENGTH_MESSAGE: 'Please enter at least 6 characters.',
+    },
+};
+
+export default APP_REGEXP;

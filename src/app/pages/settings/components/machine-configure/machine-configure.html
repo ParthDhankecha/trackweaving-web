@@ -22,12 +22,16 @@
                     <th scope="col" class="text-nowrap">
                         IP
                     </th>
+                    @if (isAdmin) {
                     <th scope="col" class="text-nowrap">
                         Alert
                     </th>
+                    }
+                    @if(hasUpdateAccess){
                     <th scope="col" class="w-1-percent">
                         Action
                     </th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -41,15 +45,20 @@
                         {{mgItem?.machineName}}
                     </td>
                     <td>
+                        @if(hasUpdateAccess){
                         <select #groupSelect class="form-select form-select-sm text-capitalize"
-                            [ngModel]="getMachineGroupId(mgItem)"
-                            [ngModelOptions]="{standalone: true}"
+                            [ngModel]="getMachineGroupId(mgItem)" [ngModelOptions]="{standalone: true}"
                             (ngModelChange)="onGroupChangeRequest($event, mgItem, groupSelect)">
                             <option value="">No Group</option>
                             @for (mg of machineGroupList; track mg._id) {
                             <option [value]="mg._id">{{ mg.groupName }}</option>
                             }
                         </select>
+                        }@else {
+                        <span class="text-capitalize">
+                            {{mgItem?.machineGroupId?.groupName || '-'}}
+                        </span>
+                        }
                     </td>
                     <td class="text-capitalize">
                         {{mgItem?.quality || '-'}}{{mgItem?.reed ? ` (${mgItem?.reed})` : ''}}
@@ -57,6 +66,7 @@
                     <td class="text-capitalize">
                         {{mgItem?.ip}}
                     </td>
+                    @if (isAdmin) {
                     <td class="text-capitalize">
                         <div class="custom-switch" [class.on]="mgItem.isAlertActive" (click)="onToggleAlert(mgItem)">
                             <span class="switch-track shadow-sm">
@@ -66,16 +76,19 @@
                             </span>
                         </div>
                     </td>
+                    }
+                    @if(hasUpdateAccess){
                     <td>
                         <button class="btn btn-outline-primary btn-sm"
                             (click)="onOpenUpsertMachineConfigureModal(mgItem)">
                             Edit
                         </button>
                     </td>
+                    }
                 </tr>
                 }@empty {
                 <tr>
-                    <td colspan="8" class="text-muted small text-center">
+                    <td [attr.colspan]="hasUpdateAccess ? 8 : 7" class="text-muted small text-center">
                         No records found.
                     </td>
                 </tr>
@@ -89,123 +102,123 @@
 <!-- Upsert Machine Configuration Modal -->
 @if (isUpsertMachineConfigureModalOpen){
 <div class="modal d-block">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <form [formGroup]="mcForm" (ngSubmit)="upsertMachineConfigure()">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">
-                        Edit Machine Configuration
-                    </h1>
-                    <button type="button" class="btn-close" (click)="onCloseMachineConfigureModal()"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Machine Name -->
-                        <div class="col-12 mb-3">
-                            <label for="machineName" class="form-label">
-                                Company Name <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="machineName" formControlName="machineName"
-                                class="form-control text-capitalize">
-                        </div>
-                        <!-- Machine Code -->
-                        <div class="col-12 mb-3">
-                            <label for="machineCode" class="form-label">
-                                Machine Code <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
-                                placeholder="Enter Machine Code">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <form [formGroup]="mcForm" (ngSubmit)="upsertMachineConfigure()" class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">
+                    Edit Machine Configuration
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseMachineConfigureModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Machine Name -->
+                    <div class="col-12 mb-3">
+                        <label for="machineName" class="form-label">
+                            Company Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="machineName" formControlName="machineName"
+                            class="form-control text-capitalize">
+                    </div>
+                    <!-- Machine Code -->
+                    <div class="col-12 mb-3">
+                        <label for="machineCode" class="form-label">
+                            Machine Code <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
+                            placeholder="Enter Machine Code">
 
-                            @if(machineCode?.touched && machineCode?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(machineCode?.errors?.['required']){
-                                <span>Group Name is required.</span>
-                                }
-                                @if(machineCode?.errors?.['pattern']){
-                                <span>
-                                    Machine Code must start with 'M' followed by numbers only.
-                                </span>
-                                }
-                            </div>
+                        @if(machineCode && machineCode.touched && machineCode.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineCode.errors['required']){
+                            <span>Machine Code is required.</span>
                             }
-                        </div>
-                        <!-- Machine Group Name -->
-                        <div class="col-12 mb-3">
-                            <label for="machineGroupName" class="form-label">
-                                Machine Group Name
-                            </label>
-                            <select id="machineGroupName" class="form-select w-100 text-capitalize"
-                                formControlName="machineGroupId">
-                                <option value="" selected>Select Machine Group</option>
-                                @for(mg of machineGroupList; track mg._id;){
-                                <option [value]="mg?._id">
-                                    {{mg?.groupName}}
-                                </option>
-                                }
-                            </select>
-                        </div>
-                        <!-- Max Speed Limit -->
-                        <div class="col-12 mb-3">
-                            <label for="maxSpeedLimit" class="form-label">
-                                Machine Max Speed Limit
-                            </label>
-                            <input type="number" id="maxSpeedLimit" formControlName="maxSpeedLimit" class="form-control"
-                                placeholder="Enter Machine Max Speed Limit">
-
-                            @if(maxSpeedLimit?.touched && maxSpeedLimit?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(maxSpeedLimit?.errors?.['required']){
-                                <span>Machine Max Speed is required.</span>
-                                }
-                                @if(maxSpeedLimit?.errors?.['min']){
-                                <span>
-                                    Enter at least {{ maxSpeedLimit?.errors?.['min']?.min }} for machine speed.
-                                </span>
-                                }
-                            </div>
-                            }
-                        </div>
-                        <!-- Quality -->
-                        <div class="col-12 mb-3">
-                            <label for="quality" class="form-label">
-                                Quality
-                            </label>
-                            <input type="text" id="quality" formControlName="quality" class="form-control"
-                                placeholder="Enter running quality">
-                        </div>
-                        <!-- Reed -->
-                        <div class="col-12 mb-3">
-                            <label for="reed" class="form-label">
-                                Reed
-                            </label>
-                            <input type="text" id="reed" formControlName="reed" class="form-control"
-                                placeholder="Enter reed">
-                        </div>
-                        <!-- Alert -->
-                        <div class="col-12 mb-3 d-flex align-items-center">
-                            <span class="form-label me-3 mb-0">
-                                Alert
+                            @if(machineCode.errors['pattern']){
+                            <span>
+                                Machine Code must start with 'M' followed by numbers only.
                             </span>
-                            <div class="custom-switch" [class.on]="isAlertActive?.value" (click)="onChangeAlert()">
-                                <span class="switch-track">
-                                    <span class="switch-thumb">
-                                        {{ isAlertActive?.value ? 'On' : 'Off' }}
-                                    </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- Machine Group Name -->
+                    <div class="col-12 mb-3">
+                        <label for="machineGroupName" class="form-label">
+                            Machine Group Name
+                        </label>
+                        <select id="machineGroupName" class="form-select w-100 text-capitalize"
+                            formControlName="machineGroupId">
+                            <option value="" selected>Select Machine Group</option>
+                            @for(mg of machineGroupList; track mg._id;){
+                            <option [value]="mg?._id">
+                                {{mg?.groupName}}
+                            </option>
+                            }
+                        </select>
+                    </div>
+                    <!-- Max Speed Limit -->
+                    <div class="col-12 mb-3">
+                        <label for="maxSpeedLimit" class="form-label">
+                            Machine Max Speed Limit
+                        </label>
+                        <input type="number" id="maxSpeedLimit" formControlName="maxSpeedLimit" class="form-control"
+                            placeholder="Enter Machine Max Speed Limit">
+
+                        @if(maxSpeedLimit && maxSpeedLimit.touched && maxSpeedLimit.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(maxSpeedLimit.errors['required']){
+                            <span>Machine Max Speed is required.</span>
+                            }
+                            @if(maxSpeedLimit.errors['min']){
+                            <span>
+                                Enter at least {{ maxSpeedLimit.errors['min'].min }} for machine speed.
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <!-- Quality -->
+                    <div class="col-12 mb-3">
+                        <label for="quality" class="form-label">
+                            Quality
+                        </label>
+                        <input type="text" id="quality" formControlName="quality" class="form-control"
+                            placeholder="Enter running quality">
+                    </div>
+                    <!-- Reed -->
+                    <div class="col-12 mb-3">
+                        <label for="reed" class="form-label">
+                            Reed
+                        </label>
+                        <input type="text" id="reed" formControlName="reed" class="form-control"
+                            placeholder="Enter reed">
+                    </div>
+                    <!-- Alert -->
+                    @if (mcForm.controls['isAlertActive']) {
+                    <div class="col-12 mb-3 d-flex align-items-center">
+                        <span class="form-label me-3 mb-0">
+                            Alert
+                        </span>
+                        <div class="custom-switch" [class.on]="isAlertActive?.value" (click)="onChangeAlert()">
+                            <span class="switch-track">
+                                <span class="switch-thumb">
+                                    {{ isAlertActive?.value ? 'On' : 'Off' }}
                                 </span>
-                            </div>
+                            </span>
                         </div>
                     </div>
+                    }
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseMachineConfigureModal()">
-                        Cancel
-                    </button>
-                    <button class="btn btn-primary">
-                        Update
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseMachineConfigureModal()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary">
+                    Update
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 }
@@ -216,7 +229,9 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Group Change</h5>
+                <h5 class="modal-title">
+                    Confirm Group Change
+                </h5>
                 <button type="button" class="btn-close" (click)="closeGroupChangeConfirm()"></button>
             </div>
             <div class="modal-body">
@@ -231,8 +246,7 @@
                 <button type="button" class="btn btn-secondary" (click)="closeGroupChangeConfirm()">
                     Cancel
                 </button>
-                <button type="button" class="btn btn-primary" (click)="confirmGroupChange()"
-                    [disabled]="isReqAlive">
+                <button type="button" class="btn btn-primary" (click)="confirmGroupChange()" [disabled]="isReqAlive">
                     Confirm
                 </button>
             </div>

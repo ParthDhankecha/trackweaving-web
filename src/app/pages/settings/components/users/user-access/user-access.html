@@ -1,0 +1,86 @@
+<div class="modal modal-lg fade show d-block">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content shadow-lg access-modal">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 mb-0">
+                    Module Access
+                    @if ((userData?.fullname || userData?.userName); as displayName;) {
+                    <span class="access-subtitle">({{ displayName }})</span>
+                    }
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+            </div>
+
+            <div class="modal-body d-flex flex-column pb-1">
+                @if (isMatrixLoaded) {
+                <div class="access-matrix-wrap">
+                    <table class="access-matrix">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="col-module">Module</th>
+                                <th scope="col" class="col-all">All</th>
+                                @for (action of accessActions; track action.key) {
+                                <th scope="col" class="col-action">{{ action.label }}</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (mod of accessModules; track mod.key) {
+                            <tr>
+                                <td class="col-module">
+                                    <div class="module-name">{{ mod.label }}</div>
+                                    <div class="module-meta">
+                                        {{ grantedCount(mod.key) }}/{{ allowedCount(mod.key) }} allowed
+                                    </div>
+                                </td>
+                                <td class="col-all">
+                                    <label class="access-cell">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="isModuleAllChecked(mod.key)"
+                                            [indeterminate]="isModuleAllIndeterminate(mod.key)"
+                                            (change)="onToggleModuleAll(mod.key, $event)">
+                                    </label>
+                                </td>
+                                @for (action of accessActions; track action.key) {
+                                <td class="col-action" [class.is-na]="!moduleHasAction(mod.key, action.key)"
+                                    [class.is-on]="isAccessChecked(mod.key, action.key)">
+                                    @if (moduleHasAction(mod.key, action.key)) {
+                                    <label class="access-cell">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="isAccessChecked(mod.key, action.key)"
+                                            (change)="onToggleAccess(mod.key, action.key, $event)">
+                                    </label>
+                                    }
+                                </td>
+                                }
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="access-hint mb-0">
+                    Tick an action to grant it. Grey cells are not available for that module.
+                </p>
+                }@else {
+                <div class="text-center py-5 text-muted">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Loading access matrix…
+                </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" [disabled]="isReqAlive || !isMatrixLoaded"
+                    (click)="onSubmit()">
+                    @if (isReqAlive) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    }
+                    Save Access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

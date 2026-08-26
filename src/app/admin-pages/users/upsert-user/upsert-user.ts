@@ -1,4 +1,5 @@
-import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 
 import moment from 'moment';
@@ -10,6 +11,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import APP_REGEXP from '@src/app/constants/app-regexp';
 
 
 @Component({
@@ -27,6 +29,7 @@ export class UpsertUser {
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
 
   @Input('workspaceList') workspaceList: any = [];
@@ -35,12 +38,14 @@ export class UpsertUser {
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
 
 
+  protected usernameRegObj = APP_REGEXP.USER_NAME;
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
     workspace: [null, [Validators.required]],
+    userType: [null, [Validators.required]],
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required]],// username/mobile number
-    password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
+    userName: ["", [Validators.required, Validators.minLength(this.usernameRegObj.MIN_LENGTH), Validators.pattern(this.usernameRegObj.REGEXP)]],// username/mobile number
+    password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, [Validators.required]],
@@ -56,10 +61,14 @@ export class UpsertUser {
   ];
 
 
+  protected get userTypeOptions() {
+    return this._coreService.appConfig.userTypeOptions;
+  }
+
+
   protected get showMasterFields(): boolean {
-    if (!this.isEditMode) return true;
     const masterRole = this._coreService.appConfig.roles?.MASTER;
-    return masterRole !== undefined && this.userData?.userType === masterRole;
+    return masterRole !== undefined && this.userType?.value === masterRole;
   }
 
 
@@ -77,6 +86,7 @@ export class UpsertUser {
         isActive: this.userData?.isActive ?? true,
         receiveWhatsappReport: this.userData?.receiveWhatsappReport ?? false,
         workspace: this.workspaceList.find((ws: any) => ws._id === this.userData.workspaceId?._id) || null,
+        userType: this.userData?.userType ?? null,
         shift: this.normalizeShiftValue(this.userData?.shift),
         machineIds: this.userData?.machineIds ?? [],
       });
@@ -94,7 +104,8 @@ export class UpsertUser {
         }));
       }
       this.workspace?.disable();
-      this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
+      this.userType?.disable();
+      this.password?.setValidators([Validators.minLength(6)]);
       if (this.showMasterFields && this.userData.workspaceId?._id) {
         this.loadMachines(this.userData.workspaceId._id);
       }
@@ -107,7 +118,23 @@ export class UpsertUser {
   protected ngOnInit(): void {
     this.syncMasterFieldValidators();
     this.syncWhatsappReportControl();
-    this.mobile?.valueChanges.subscribe(() => this.syncWhatsappReportControl());
+    this.mobile?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.syncWhatsappReportControl());
+    this.userType?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.onUserTypeChange());
+  }
+
+
+  private onUserTypeChange(): void {
+    this.syncMasterFieldValidators();
+    const workspaceId = this.workspace?.value?._id;
+    if (this.showMasterFields && workspaceId) {
+      this.loadMachines(workspaceId);
+    } else {
+      this.machineList = [];
+    }
   }
 
 
@@ -227,6 +254,9 @@ export class UpsertUser {
   }
   get workspace(): AbstractControl | null {
     return this.userForm.get('workspace');
+  }
+  get userType(): AbstractControl | null {
+    return this.userForm.get('userType');
   }
   get userName(): AbstractControl | null {
     return this.userForm.get('userName');
@@ -373,6 +403,11 @@ export class UpsertUser {
     } else {
       delete body.shift;
       delete body.machineIds;
+    }
+    if (this.isEditMode) {
+      delete body.userType;
+    } else {
+      body.userType = Number(body.userType);
     }
 
     this.isReqAlive = true;

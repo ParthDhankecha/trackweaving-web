@@ -9,18 +9,44 @@ export interface ILanguage {
     label: string;
 }
 
+
+export type AccessAction = 'create' | 'read' | 'update' | 'delete';
+
+export type AccessModule =
+    | 'default'
+    | 'machine_group'
+    | 'machine_configure'
+    | 'maintenance_category'
+    | 'maintenance_entry'
+    | 'maintenance_history'
+    | 'shift_wise_comment'
+    | 'part_change_entry'
+    | 'user'
+    | 'report';
+
+export type IUserAccess = Partial<Record<AccessModule, AccessAction[]>>;
+
 export interface IUserRoles {
     SUPER_ADMIN: number;
     ADMIN: number;
     MASTER: number;
 }
 
+export interface IUserTypeOption {
+    value: number;
+    label: string;
+}
+
 export interface IAppConfigData {
     publicUrl: string;
     clientUrl: string;
     roles?: IUserRoles;
+    userTypeOptions?: IUserTypeOption[];
+    access?: IUserAccess;
+    isOwner?: boolean;
     efficiencyAveragePer: number;
     efficiencyGoodPer: number;
+    beamLeftMin: number;
     refreshInterval: number;
     currencySymbol?: string;
 }
@@ -52,4 +78,6 @@ export interface ISettingsMenu {
     icon: string,
     label: string,
     link: string,
+    /** Module key used for access checks; omit for always-visible items */
+    accessModule?: AccessModule,
 }

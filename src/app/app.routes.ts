@@ -14,6 +14,7 @@ import { PageNotFound } from './shared/components/page-not-found/page-not-found'
 
 import { authGuard } from './core/guards/auth-guard';
 // import { landingGuard } from './core/guards/landing-guard';
+import { Reports } from './pages/reports/reports';
 
 
 export const routes: Routes = [
@@ -57,6 +58,12 @@ export const routes: Routes = [
         path: ROUTES.MANUFACTURER.BASE,
         title: APP_PAGE_TITLE.MANUFACTURER.BASE,
         loadChildren: () => import('./manufacturer-pages/manufacturer-pages.routes').then(m => m.routes),
+    },
+    {
+        path: ROUTES.DEVICE_REPORT,
+        title: APP_PAGE_TITLE.DEVICE_REPORT,
+        data: { isDevice: true },
+        component: Reports,
     },
     {
         path: ROUTES.TERMS_AND_CONDITIONS,

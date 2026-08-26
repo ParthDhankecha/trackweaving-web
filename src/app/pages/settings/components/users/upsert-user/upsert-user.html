@@ -3,13 +3,42 @@
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="modal-content shadow-lg">
             <div class="modal-header">
                 <h1 class="modal-title fs-5">
+                    @if(hasUpsertAccess){
                     {{isEditMode ? 'Edit User' : 'Create User'}}
+                    }@else {
+                    View Details
+                    }
                 </h1>
                 <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
             </div>
 
             <div class="modal-body">
                 <div class="row">
+                    <!-- User Type -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="form-label d-block">
+                            User Type <span class="text-danger">*</span>
+                        </span>
+                        <div class="d-flex flex-wrap gap-3">
+                            @for (option of userTypeOptions; track option.value) {
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" id="userType-{{option.value}}"
+                                    formControlName="userType" [value]="option.value">
+                                <label class="form-check-label" for="userType-{{option.value}}">
+                                    {{ option.label }}
+                                </label>
+                            </div>
+                            }
+                        </div>
+
+                        @if(userType && userType.touched && userType.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(userType.errors['required']){
+                            <span>User type is required.</span>
+                            }
+                        </div>
+                        }
+                    </div>
                     <!-- fullname -->
                     <div class="col-12 col-md-6 mb-3">
                         <label for="fullname" class="form-label">
@@ -46,11 +75,12 @@
                             @if(userName.errors['required']){
                             <span>User name is required.</span>
                             }
-                            @if(userName.errors['maxlength']){
+                            @if(userName.errors['pattern']){
+                            <span>{{usernameRegObj.MESSAGE}}</span>
+                            }
+                            @if(userName.errors['minlength']){
                             <span>
-                                User name cannot exceed
-                                {{userName.errors['maxlength'].requiredLength}}
-                                characters.
+                                {{usernameRegObj.MIN_LENGTH_MESSAGE}}
                             </span>
                             }
                         </div>
@@ -63,8 +93,8 @@
                         </label>
                         <div class="input-group flex-nowrap">
                             <input [type]="isEyeOpen ? 'text' : 'password'" class="form-control" id="password"
-                                formControlName="password" maxlength="20" placeholder="Enter your password"
-                                aria-describedby="password">
+                                formControlName="password" maxlength="20"
+                                placeholder="{{isEditMode ?'Enter your password' : 'Leave blank to keep current'}}">
                             <span class="input-group-text user-select-none position-relative cursor-pointer"
                                 (click)="isEyeOpen = !isEyeOpen">
                                 <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'
@@ -87,13 +117,6 @@
                                 Password must be at least
                                 {{password.errors['minlength'].requiredLength}}
                                 characters long.
-                            </span>
-                            }
-                            @if (password.errors['maxlength']){
-                            <span>
-                                Password cannot exceed
-                                {{password.errors['maxlength'].requiredLength}}
-                                characters.
                             </span>
                             }
                         </div>
@@ -224,15 +247,28 @@
                     </div>
                     }
                 </div>
+
+                @if(isEditMode && userTypeChangeWarning; as warningMsg;){
+                <div class="alert alert-warning d-flex align-items-start gap-2 m-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                        class="flex-shrink-0 mt-1" viewBox="0 0 16 16">
+                        <path
+                            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+                    </svg>
+                    <span>{{ warningMsg }}</span>
+                </div>
+                }
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
                     Cancel
                 </button>
+                @if(hasUpsertAccess){
                 <button class="btn btn-primary">
                     {{isEditMode ? 'Update' : 'Create'}}
                 </button>
+                }
             </div>
         </form>
     </div>

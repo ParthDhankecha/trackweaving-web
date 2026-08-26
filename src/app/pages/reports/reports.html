@@ -12,14 +12,16 @@
 </div>
 }
 
-<div class="container-fluid" [class.px-3]="showFactoryFilter">
-    <div class="p-3 my-4 bg-white shadow-sm rounded-2 border">
-        <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2">
+<div class="{{isDevice ? 'report-container-device':'container-fluid px-0 px-md-2'}}" [class.px-3]="showFactoryFilter">
+    <div [class]="isDevice ? '' : 'p-3 my-4 bg-white shadow-sm rounded-2 border'">
+        @if(!isDevice){
+        <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2" [class.p-2]="isDevice">
             Reports
         </strong>
+        }
         <!-- Report Filters -->
         <div class="border-bottom mb-3">
-            <div [formGroup]="filterForm" class="row mb-2">
+            <div [formGroup]="filterForm" class="row mb-2" [class.m-0]="isDevice">
                 @if (showFactoryFilter) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                     <span class="form-label small fw-semibold mb-1">Factory:</span>
@@ -29,7 +31,9 @@
                 </div>
                 }
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                    <label for="reportType" class="form-label small fw-semibold mb-1">Report Type:</label>
+                    <label for="reportType" class="form-label small fw-semibold mb-1">
+                        Report Type:
+                    </label>
                     <select id="reportType" class="form-select text-capitalize" formControlName="reportType">
                         @for (type of reportTypeOptions; track $index;){
                         <option [value]="type.id">{{ type.label }}</option>
@@ -37,26 +41,30 @@
                     </select>
                 </div>
                 @if (isDateRangeReport) {
-                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                    <label for="startDate" class="form-label small fw-semibold mb-1">From Date:</label>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2" [class.col-6]="isDevice">
+                    <label for="startDate" class="form-label small fw-semibold mb-1">
+                        From Date:
+                    </label>
                     <input type="date" id="startDate" class="form-control" formControlName="startDate">
-                    @if (startDate?.touched && startDate?.errors) {
+                    @if (startDate && startDate.touched && startDate.errors) {
                     <div class="invalid-feedback d-block">
-                        @if (startDate?.errors?.['required']) {
+                        @if (startDate.errors['required']) {
                         <span>From date is required.</span>
                         }
                     </div>
                     }
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                    <label for="endDate" class="form-label small fw-semibold mb-1">End Date:</label>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2" [class.col-6]="isDevice">
+                    <label for="endDate" class="form-label small fw-semibold mb-1">
+                        End Date:
+                    </label>
                     <input type="date" id="endDate" class="form-control" formControlName="endDate">
-                    @if (endDate?.touched && endDate?.errors) {
+                    @if (endDate && endDate.touched && endDate.errors) {
                     <div class="invalid-feedback d-block">
-                        @if (endDate?.errors?.['required']) {
+                        @if (endDate.errors['required']) {
                         <span>End date is required.</span>
                         }
-                        @if (endDate?.errors?.['invalidRange']) {
+                        @if (endDate.errors['invalidRange']) {
                         <span>End date must be after or same as From date.</span>
                         }
                     </div>
@@ -65,7 +73,9 @@
                 }
                 @if (!isBeamProductionReport && !isBeamCompletionDateReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
-                    <label for="shift" class="form-label small fw-semibold mb-1">Shift:</label>
+                    <label for="shift" class="form-label small fw-semibold mb-1">
+                        Shift:
+                    </label>
                     <select id="shift" class="form-select text-capitalize" formControlName="shift">
                         @for (shift of shiftOptions; track $index;){
                         <option [value]="shift.id">{{shift.label}}</option>
@@ -75,7 +85,9 @@
                 }
                 @if (isStoppageReport) {
                 <div class="col-12 mb-2 user-select-none">
-                    <label class="form-label small fw-semibold mb-1">Min Stop Time:</label>
+                    <label class="form-label small fw-semibold mb-1">
+                        Min Stop Time:
+                    </label>
                     <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
                         @for (option of stopTimeOptions; track option.id) {
                         <div class="d-inline-flex align-items-center gap-2">
@@ -91,7 +103,8 @@
                             <input type="radio" id="stop-time-custom" name="stopTimeFilter" class="form-check-input m-0"
                                 formControlName="stopTimeFilter" [value]="stopTimeCustomId"
                                 (change)="stopTimeSelectionError = false">
-                            <label for="stop-time-custom" class="form-check-label small fw-semibold mb-0">Custom:</label>
+                            <label for="stop-time-custom"
+                                class="form-check-label small fw-semibold mb-0">Custom:</label>
                             <input type="number" id="customStopMinutes" class="form-control form-control-sm"
                                 style="width: 100px;" formControlName="customStopMinutes" min="1" placeholder="mins"
                                 (input)="stopTimeSelectionError = false">
@@ -112,13 +125,18 @@
                 }
             </div>
             <!-- Machine Options -->
+            @if(isOptionsLoading){
+            <div class="text-center text-muted py-3">
+                Loading...
+            </div>
+            }@else {
             @if (showMachineSelection) {
-            <div class="mb-2 user-select-none">
+            <div class="mb-2 user-select-none" [class.p-2]="isDevice">
                 <div [formGroup]="filterForm" class="d-flex align-items-center flex-wrap gap-3 mb-2">
                     <span class="fw-semibold">Machine: </span>
                     <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="groupByMachine" name="groupByMachine" formControlName="groupByMachine"
-                            class="form-check-input fs-5 m-0">
+                        <input type="checkbox" id="groupByMachine" name="groupByMachine"
+                            formControlName="groupByMachine" class="form-check-input fs-5 m-0">
                         <label for="groupByMachine" class="form-check-label small fw-semibold">Group by Machine</label>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -132,8 +150,8 @@
                 @for (group of machineList; track group._id) {
                 <div class="mb-3 text-capitalize">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <input type="checkbox" id="{{group._id}}" name="groupByMachine" class="form-check-input fs-5 m-0"
-                            [value]="group.selected" [(ngModel)]="group.selected"
+                        <input type="checkbox" id="{{group._id}}" name="groupByMachine"
+                            class="form-check-input fs-5 m-0" [value]="group.selected" [(ngModel)]="group.selected"
                             (ngModelChange)="onMachineGroupSelectionChange($event, group)">
                         <label for="{{group._id}}" class="form-check-label small fw-semibold">
                             {{ group.groupName }}
@@ -157,8 +175,8 @@
                 <div class="d-flex flex-wrap align-items-center gap-2 column-gap-3">
                     @for (machine of machineList; track machine._id) {
                     <div class="d-inline-flex align-items-center gap-2">
-                        <input type="checkbox" id="machine-{{machine._id}}" name="machineIds" class="form-check-input m-0"
-                            [value]="machine.selected" [(ngModel)]="machine.selected"
+                        <input type="checkbox" id="machine-{{machine._id}}" name="machineIds"
+                            class="form-check-input m-0" [value]="machine.selected" [(ngModel)]="machine.selected"
                             (ngModelChange)="onMachineSelectionChange()">
                         <label for="machine-{{machine._id}}" class="form-check-label small">
                             {{ machine.machineCode }}
@@ -167,10 +185,10 @@
                     }
                 </div>
                 }
-    
-                @if(machineIds?.touched && machineIds?.errors) {
+
+                @if(machineIds && machineIds.touched && machineIds.errors) {
                 <div class="invalid-feedback d-block">
-                    @if (machineIds?.errors?.['required']) {
+                    @if (machineIds.errors['required']) {
                     <span>Please select at least one machine.</span>
                     }
                 </div>
@@ -179,7 +197,7 @@
             }
             @if (isQualityWiseReport) {
             <div class="mb-2" [formGroup]="filterForm">
-                <div class="row">
+                <div class="row" [class.m-0]="isDevice">
                     <div class="col-sm-6 col-md-4 col-lg-3">
                         <label for="quality" class="form-label small fw-semibold mb-1">Quality:</label>
                         <select id="quality" class="form-select text-capitalize" formControlName="quality">
@@ -202,37 +220,42 @@
                 </div>
             </div>
             }
+            }
         </div>
         <!-- Show Report Button -->
-        <div class="text-center mb-3 user-select-none">
-            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()" [disabled]="isReqAlive"
-                [class.disabled]="isReqAlive">
+        <div class="text-center mb-3 user-select-none" [class.p-2]="isDevice">
+            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()"
+                [disabled]="isReqAlive" [class.disabled]="isReqAlive">
                 Show Report
             </button>
         </div>
-    
+
         @if(reportData){
-        <div class="p-3" id="print-section">
-            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
-                <div class="">
-                    <h2 class="d-inline-block font-semibold fs-5 m-0">
+        <div [class]="isDevice ? '' : 'py-3'" id="print-section">
+            <div class="report-header d-flex flex-column flex-xl-row align-items-stretch align-items-xl-center justify-content-between gap-2 mb-3"
+                [class.px-2]="isDevice">
+                <div class="report-header__title min-w-0">
+                    <h2 class="font-semibold fs-5 m-0 text-break">
                         {{reportData?.reportTitle}}
                     </h2>
                     @if (isDateRangeReport) {
-                    <span class="small">
-                        (From: <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>, To:
-                        <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>)
-                    </span>
+                    <div class="small text-muted mt-md-1">
+                        From&nbsp; <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>
+                        &nbsp;to&nbsp;
+                        <strong>{{ reportData?.toDate | date:'dd-MMM-yyyy' }}</strong>
+                    </div>
                     }
                 </div>
-                <div>
+                <div class="d-flex flex-column flex-sm-row flex-wrap align-items-sm-center gap-2">
                     @if (isStoppageReport) {
-                    <div class="d-inline-flex flex-wrap align-items-center gap-2 me-2 user-select-none">
-                        <span class="small fw-semibold">View:</span>
+                    <div class="d-flex flex-wrap align-items-center column-gap-3 row-gap-2 user-select-none me-md-3">
+                        <span class="small fw-semibold text-nowrap me-2">View:</span>
+
                         @for (option of stoppageViewOptions; track option.id) {
-                        <div class="d-inline-flex align-items-center gap-1">
+                        <div class="d-inline-flex align-items-center gap-1 text-nowrap">
                             <input type="radio" [id]="'stoppage-view-' + option.id" name="stoppageViewMode"
-                                class="form-check-input m-0" [value]="option.id" [checked]="stoppageViewMode === option.id"
+                                class="form-check-input m-0" [value]="option.id"
+                                [checked]="stoppageViewMode === option.id"
                                 (change)="onStoppageViewModeChange(option.id)">
                             <label [for]="'stoppage-view-' + option.id" class="form-check-label small mb-0">
                                 {{ option.label }}
@@ -241,18 +264,37 @@
                         }
                     </div>
                     }
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsPDF()">
-                        Export to PDF
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" (click)="exportAsExcel()">
-                        Export to Excel
-                    </button>
+                    @if (showBy24HoursOption) {
+                    <div
+                        class="d-inline-flex align-items-center gap-1 mb-1 mb-sm-0 me-xl-2 user-select-none text-nowrap">
+                        <input type="checkbox" id="by24Hours" class="form-check-input m-0" [(ngModel)]="by24Hours"
+                            (ngModelChange)="onBy24HoursChange($event)">
+                        <label for="by24Hours" class="form-check-label small fw-semibold mb-0">
+                            By 24 Hours
+                        </label>
+                    </div>
+                    }
+                    <div class="report-header__exports d-flex flex-wrap gap-2 ms-sm-auto">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsPDF()">
+                            @if (isPdfExporting) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Export to PDF
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsExcel()">
+                            @if (isExcelExporting) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Export to Excel
+                        </button>
+                    </div>
                 </div>
             </div>
-    
+
             <ng-template #shiftTotalRow let-row="row" let-even="even" let-labelColspan="labelColspan"
                 let-highlight="highlight">
-                <tr class="small fw-semibold" [class.custom-tr-bg]="even && !highlight" [class.table-secondary]="highlight">
+                <tr class="small fw-semibold" [class.custom-tr-bg]="even && !highlight"
+                    [class.table-secondary]="highlight">
                     <td></td>
                     <td [attr.colspan]="labelColspan">
                         {{ row.reportDate | date:'dd-MMM-yyyy' }} - {{ row.shiftLabel }}
@@ -268,8 +310,8 @@
                     <td [attr.colspan]="stopSectionColspan"></td>
                 </tr>
             </ng-template>
-    
-            <div class="table-responsive">
+
+            <div class="table-responsive" [class.px-2]="isDevice">
                 @switch(reportData?.reportType){
                 @case('stoppageReport'){
                 <table class="table table-bordered" #reportTable>
@@ -286,7 +328,7 @@
                     </thead>
                     <tbody class="align-middle text-center">
                         @for (row of stoppageTableRows; track $index) {
-                        <tr class="small" [class.custom-tr-bg]="row.groupEven">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(row.shift)">
                             @if (isTimeWiseStoppageView) {
                             <td>{{ row.reportDate | date:'dd-MMM-yyyy' }}</td>
                             <td>{{ row.shiftLabel }}</td>
@@ -343,8 +385,8 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center">
-                        @for (row of reportData?.list; track $index; let even = $even) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        @for (row of reportData?.list; track $index; let odd = $odd) {
+                        <tr class="small" [class.custom-tr-bg]="odd">
                             <td>{{ row.machineName }}</td>
                             <td class="text-nowrap">{{ row.startDate | date:'dd-MMM-yyyy' }}</td>
                             <td>{{ row.shift }}</td>
@@ -389,8 +431,8 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center">
-                        @for (row of reportData?.list; track $index; let even = $even) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        @for (row of reportData?.list; track $index; let odd = $odd) {
+                        <tr class="small" [class.custom-tr-bg]="odd">
                             <td>{{ row.machineCode || row.machineName || '-' }}</td>
                             <td>{{ row.beamLeft | number:'1.0-2' }}</td>
                             <td class="text-nowrap">
@@ -401,7 +443,9 @@
                                 }
                             </td>
                             <td>{{ formatCompletionSource(row.completionSource) }}</td>
-                            <td>{{ row.avgDailyProduction != null ? (row.avgDailyProduction | number:'1.0-2') : '-' }}</td>
+                            <td>
+                                {{ row.avgDailyProduction != null ? (row.avgDailyProduction | number:'1.0-2') : '-' }}
+                            </td>
                             <td>{{ row.estimatedDaysRemaining ?? '-' }}</td>
                         </tr>
                         }
@@ -454,7 +498,7 @@
                     <tbody class="align-middle text-center">
                         @for (item of reportData?.list; track $index; let even = $even;) {
                         @for (data of item?.list; track data._id; let shiftIndex = $index;) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(data.shift)">
                             @if(shiftIndex === 0) {
                             <td [attr.rowspan]="item?.list?.length ?? 1">
                                 {{ item.reportDate | date:'dd-MMM-yyyy' }}
@@ -488,11 +532,13 @@
                             <td class="fw-semibold text-nowrap">{{data.stopsData.total.duration}}</td>
                         </tr>
                         }
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 2 }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: item, even: isNightShift(item.shiftLabel), labelColspan: 2
+                        }" />
                         @if (item.fullDay; as fullDay) {
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 2, highlight: true }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: fullDay, labelColspan: 2, highlight: true
+                        }" />
                         }
                         }
                         @if (!reportData?.list?.length) {
@@ -522,12 +568,213 @@
                 }
                 @case ('productionShiftWise') {
                 <table class="table table-bordered" #reportTable>
+                    @if (by24Hours){
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th rowspan="3">Date</th>
+                            <th rowspan="3">Machine</th>
+                            <th rowspan="3">Quality</th>
+                            <th rowspan="3">Shift</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Picks</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Eff. %</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Real Eff. %</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Speed</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Run Time</th>
+                            <th colspan="2" rowspan="2" class="text-nowrap">Beam Left</th>
+                            @if (showBeamCompletionDateColumn) {
+                            <th rowspan="3">Beam Completion Date</th>
+                            }
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <th colspan="4" class="text-nowrap">{{stopColumn.label}}</th>
+                            }
+                            <th colspan="4" rowspan="2" class="text-nowrap">Total Stops</th>
+                        </tr>
+                        <tr>
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <th colspan="2">Count</th>
+                            <th colspan="2">Duration</th>
+                            }
+                        </tr>
+                        <tr>
+                            @for (column of reportDataBy24Hours.shiftColumns; track column) {
+                            <th>Shift</th>
+                            <th>{{column.label}}</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center lh-1">
+                        @for (item of reportDataBy24Hours.list; track $index;) {
+                        @for (data of item?.list; track data.machineId || data.machineCode; let mFirst = $first){
+                        <!-- Day Shift row -->
+                        <tr class="small">
+                            @if (mFirst) {
+                            <td [attr.rowspan]="(item?.list?.length ?? 0) * 2">
+                                {{item.reportDate | date:'dd-MMM-yyyy'}}
+                            </td>
+                            }
+                            <td rowspan="2">{{data.machineCode}}</td>
+                            <td rowspan="2">{{data.qualityLabel}}</td>
+                            <td>Day</td>
+
+                            <td>{{(data?.day?.pieceLengthM|number:'1.0-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.pieceLengthM|number:'1.0-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.picksCurrentShift??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.picksCurrentShift??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.efficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.efficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.realEfficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.realEfficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+
+                            <td>{{(data?.day?.speedRpm??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.speedRpm??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.runTime??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.runTime??'-')}}
+                            </td>
+
+                            <td>{{(data?.day?.beamLeft??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.beamLeft??'-')}}
+                            </td>
+
+                            @if (showBeamCompletionDateColumn) {
+                            <td rowspan="2" class="text-nowrap">
+                                {{((data?.night?.beamCompletionDate||data?.day?.beamCompletionDate)|date:'dd-MMM-yyyy')??'-'}}
+                            </td>
+                            }
+
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <td>{{(data?.day?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td>{{(data?.day?.stopsData?.[stopColumn.key]?.duration??'-')}}</td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.[stopColumn.key]?.duration??'-')}}
+                            </td>
+                            }
+
+                            <td class="fw-semibold">
+                                {{(data?.day?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td class="fw-semibold text-nowrap">
+                                {{(data?.day?.stopsData?.total?.duration??'-')}}
+                            </td>
+                            <td rowspan="2" class="fw-semibold">
+                                {{(data?.total?.stopsData?.total?.duration??'-')}}
+                            </td>
+                        </tr>
+                        <!-- Night shift row -->
+                        <tr class="small custom-tr-bg">
+                            <td>Night</td>
+                            <td>{{(data?.night?.pieceLengthM|number:'1.0-2')??'-'}}</td>
+                            <td>{{data?.night?.picksCurrentShift??'-'}}</td>
+                            <td>{{(data?.night?.efficiencyPercent|number:'1.1-2')??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{(data?.night?.realEfficiencyPercent|number:'1.1-2')??'-'}}
+                            </td>
+                            <td>{{data?.night?.speedRpm??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{data?.night?.runTime??'-'}}
+                            </td>
+                            <td>{{data?.night?.beamLeft??'-'}}</td>
+
+                            @for (stopColumn of reportDataBy24Hours.stopColumns; track stopColumn.key) {
+                            <td>{{(data?.night?.stopsData?.[stopColumn.key]?.count|number:'1.0-2')??'-'}}</td>
+                            <td class="text-nowrap">
+                                {{data?.night?.stopsData?.[stopColumn.key]?.duration??'-'}}
+                            </td>
+                            }
+
+                            <td class="fw-semibold">
+                                {{(data?.night?.stopsData?.total?.count|number:'1.0-2')??'-'}}
+                            </td>
+                            <td class="fw-semibold">
+                                {{(data?.night?.stopsData?.total?.duration??'-')}}
+                            </td>
+                        </tr>
+                        }
+                        <tr class="small fw-semibold custom-tr-bg">
+                            <td></td>
+                            <td colspan="3">
+                                {{ item.reportDate|date:'dd-MMM-yyyy' }} - Full Day
+                            </td>
+                            <td colspan="2">
+                                {{ (item.prodMeter|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ item.totalPicks??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (item.efficiency|number:'1.1-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (item.realEfficiency|number:'1.1-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ item?.avgSpeed??'-' }}
+                            </td>
+                            <td [attr.colspan]="showBeamCompletionDateColumn ? 5 : 4"
+                                class="text-start text-capitalize">
+                                Avg: {{ item.avgPicks??'-' }}
+                            </td>
+                            <td [attr.colspan]="(reportDataBy24Hours.stopColumns.length * 4) + 4"></td>
+                        </tr>
+                        }
+                        <tr>
+                            <td [attr.colspan]="by24HoursTableColspan">&nbsp;</td>
+                        </tr>
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="4" class="text-uppercase">Total</td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.avgProdMeter|number:'1.0-2')?.replace(',','') }}
+                            </td>
+                            <td colspan="2">
+                                {{ reportDataBy24Hours.totalPicks??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.totalEfficiency|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ (reportDataBy24Hours.totalRealEfficiency|number:'1.0-2')??'-' }}
+                            </td>
+                            <td colspan="2">
+                                {{ reportDataBy24Hours.avgSpeed??'-' }}
+                            </td>
+                            <td [attr.colspan]="showBeamCompletionDateColumn ? 5 : 4"
+                                class="text-start text-capitalize">
+                                Total Avg: {{ (reportDataBy24Hours.avgPicks|number:'1.0-2')?.replace(',','') }}
+                            </td>
+                            <td [attr.colspan]="(reportDataBy24Hours.stopColumns.length * 4) + 4"></td>
+                        </tr>
+                    </tbody>
+                    }@else {
                     <thead class="table-dark text-center align-middle">
                         <tr>
                             <th rowspan="2">Date</th>
                             <th rowspan="2">Shift</th>
                             <th rowspan="2">Machine</th>
-                            <th rowspan="2">Quality</th>
+                            <th rowspan="2" class="quality-column">
+                                Quality
+                            </th>
                             <th rowspan="2" class="text-nowrap">
                                 Prod. [Mtrs]
                             </th>
@@ -569,7 +816,7 @@
                     <tbody class="align-middle text-center">
                         @for (item of reportData?.list; track $index; let even = $even;) {
                         @for (data of item?.list; track data._id;let shiftIndex = $index;) {
-                        <tr class="small" [class.custom-tr-bg]="even">
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(data.shift)">
                             @if(shiftIndex === 0) {
                             <td [attr.rowspan]="item?.list?.length ?? 1">
                                 {{ item.reportDate | date:'dd-MMM-yyyy' }}
@@ -630,11 +877,13 @@
                             </td>
                         </tr>
                         }
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: item, even: even, labelColspan: 3 }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: item, even: isNightShift(item.shiftLabel), labelColspan: 3
+                        }" />
                         @if (item.fullDay; as fullDay) {
-                        <ng-container [ngTemplateOutlet]="shiftTotalRow"
-                            [ngTemplateOutletContext]="{ row: fullDay, even: even, labelColspan: 3, highlight: true }" />
+                        <ng-container [ngTemplateOutlet]="shiftTotalRow" [ngTemplateOutletContext]="{
+                            row: fullDay, even: even, labelColspan: 3, highlight: true
+                        }" />
                         }
                         }
                         <tr>
@@ -653,6 +902,7 @@
                             <td [attr.colspan]="stopSectionColspan"></td>
                         </tr>
                     </tbody>
+                    }
                 </table>
                 }
                 }

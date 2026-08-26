@@ -196,7 +196,6 @@ export class Workspace {
   protected confirmDeleteWorkspace(): void {
     if (!this.deleteConfirmModalConfig.data?._id) return;
 
-    console.log('Deleting workspace with ID:', this.deleteConfirmModalConfig.data);
     this.closeDeleteConfirmModal();
   }
 }

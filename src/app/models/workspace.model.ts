@@ -1,6 +1,7 @@
 // Interface for Workspace
 export interface IWorkspace {
     _id?: string;
+    manufacturerId?: string;
     workspaceName: string;
     gstNumber: string;
     isActive: string;

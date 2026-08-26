@@ -1,209 +1,210 @@
 <div class="modal modal-lg fade show d-block">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <form [formGroup]="machineForm" (ngSubmit)="onSubmit()">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">
-                        {{isEditMode ? 'Edit Machine' : 'Create Machine'}}
-                    </h1>
-                    <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
-                </div>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <form [formGroup]="machineForm" (ngSubmit)="onSubmit()" class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">
+                    {{isEditMode ? 'Edit Machine' : 'Create Machine'}}
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+            </div>
 
-                <div class="modal-body">
-                    <!-- Machine Fields -->
-                    <div class="row">
-                        <!-- machineCode, machineName, ip, workspaceId -->
-                        <!-- Workspace -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="userName" class="form-label">
-                                Workspace <span class="text-danger">*</span>
-                            </label>
-                            <div class="dropdown position-relative">
-                                <button class="btn btn-light w-100 dropdown-toggle text-capitalize" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    {{workspace?.value?.firmName || 'Select Workspace'}}
-                                </button>
-                                <ul class="dropdown-menu pt-0 w-100">
-                                    <div class="search-list-height">
-                                        <div class="bg-secondary-subtle position-sticky top-0 border-bottom">
-                                            <app-search-input (onSearch)="onSearchTerms($event)"></app-search-input>
-                                        </div>
-                                        @for(wItem of filteredWorkspaceList; track wItem._id){
-                                        <li (click)="onWorkspaceChange(wItem)">
-                                            <span class="dropdown-item text-capitalize"
-                                                [class.active]="wItem?._id === workspace?.value?._id">
-                                                {{wItem.firmName}}
-                                            </span>
-                                        </li>
-                                        }
+            <div class="modal-body">
+                <!-- Machine Fields -->
+                <div class="row">
+                    <!-- machineCode, machineName, ip, workspaceId -->
+                    <!-- Workspace -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="userName" class="form-label">
+                            Workspace <span class="text-danger">*</span>
+                        </label>
+                        <div class="dropdown position-relative">
+                            <button class="btn btn-light w-100 dropdown-toggle text-capitalize" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                {{workspace?.value?.firmName || 'Select Workspace'}}
+                            </button>
+                            <ul class="dropdown-menu pt-0 w-100">
+                                <div class="search-list-height">
+                                    <div class="bg-secondary-subtle position-sticky top-0 border-bottom">
+                                        <app-search-input (onSearch)="onSearchTerms($event)" />
                                     </div>
-                                </ul>
-                            </div>
+                                    @for(wItem of filteredWorkspaceList; track wItem._id){
+                                    <li (click)="onWorkspaceChange(wItem)">
+                                        <span class="dropdown-item text-capitalize"
+                                            [class.active]="wItem?._id === workspace?.value?._id">
+                                            {{wItem.firmName}}
+                                        </span>
+                                    </li>
+                                    }
+                                </div>
+                            </ul>
+                        </div>
 
-                            @if(workspace?.touched && workspace?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(workspace?.errors?.['required']){
-                                <span>Workspace is required.</span>
-                                }
-                            </div>
+                        @if(workspace && workspace.touched && workspace.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(workspace.errors['required']){
+                            <span>Workspace is required.</span>
                             }
                         </div>
-                        <!-- Machine Code -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="machineCode" class="form-label">
-                                Machine Code <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
-                                placeholder="Enter Machine Code">
+                        }
+                    </div>
+                    <!-- Machine Code -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="machineCode" class="form-label">
+                            Machine Code <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="machineCode" formControlName="machineCode" class="form-control"
+                            placeholder="Enter Machine Code">
 
-                            @if(machineCode?.touched && machineCode?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(machineCode?.errors?.['required']){
-                                <span>Machine Code is required.</span>
-                                }
-                                @if(machineCode?.errors?.['pattern']){
-                                <span>
-                                    Machine Code must start with 'M' followed by numbers only.
-                                </span>
-                                }
-                            </div>
+                        @if(machineCode && machineCode.touched && machineCode.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineCode.errors['required']){
+                            <span>Machine Code is required.</span>
+                            }
+                            @if(machineCode.errors['pattern']){
+                            <span>
+                                Machine Code must start with 'M' followed by numbers only.
+                            </span>
                             }
                         </div>
-                        <!-- Device Type -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="deviceType" class="form-label">
-                                Device Type <span class="text-danger">*</span>
-                            </label>
-                            <select id="deviceType" formControlName="deviceType" class="form-select text-capitalize">
-                                <option value="" disabled selected>Select Device Type</option>
-                                @for(dtOption of deviceTypeList; track dtOption;){
-                                <option [value]="dtOption">
-                                    {{dtOption}}
-                                </option>
-                                }
-                            </select>
+                        }
+                    </div>
+                    <!-- Device Type -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="deviceType" class="form-label">
+                            Device Type <span class="text-danger">*</span>
+                        </label>
+                        <select id="deviceType" formControlName="deviceType" class="form-select text-capitalize">
+                            <option value="" disabled selected>Select Device Type</option>
+                            @for(dtOption of deviceTypeList; track dtOption;){
+                            <option [value]="dtOption">
+                                {{dtOption}}
+                            </option>
+                            }
+                        </select>
 
-                            @if(deviceType?.touched && deviceType?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(deviceType?.errors?.['required']){
-                                <span>Device Type is required.</span>
-                                }
-                            </div>
+                        @if(deviceType && deviceType.touched && deviceType.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(deviceType.errors['required']){
+                            <span>Device Type is required.</span>
                             }
                         </div>
-                        <!-- Display Type -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="displayType" class="form-label">
-                                Display Type <span class="text-danger">*</span>
-                            </label>
-                            <select id="displayType" formControlName="displayType" class="form-select text-capitalize">
-                                <option value="" disabled selected>Select Display Type</option>
-                                @for(dtOption of displayTypeList; track dtOption;){
-                                <option [value]="dtOption">
-                                    {{dtOption}}
-                                </option>
-                                }
-                            </select>
+                        }
+                    </div>
+                    <!-- Display Type -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="displayType" class="form-label">
+                            Display Type <span class="text-danger">*</span>
+                        </label>
+                        <select id="displayType" formControlName="displayType" class="form-select text-capitalize">
+                            <option value="" disabled selected>Select Display Type</option>
+                            @for(dtOption of displayTypeList; track dtOption;){
+                            <option [value]="dtOption">
+                                {{dtOption}}
+                            </option>
+                            }
+                        </select>
 
-                            @if(displayType?.touched && displayType?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(displayType?.errors?.['required']){
-                                <span>Display Type is required.</span>
-                                }
-                            </div>
+                        @if(displayType && displayType.touched && displayType.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(displayType.errors['required']){
+                            <span>Display Type is required.</span>
                             }
                         </div>
-                        <!-- Machine Type -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="machineType" class="form-label">
-                                Machine Type <span class="text-danger">*</span>
-                            </label>
-                            <select id="machineType" formControlName="machineType" class="form-select text-capitalize">
-                                <option value="" disabled selected>Select Machine Type</option>
-                                @for(mtOption of machineTypeList; track mtOption;){
-                                <option [value]="mtOption">
-                                    {{mtOption}}
-                                </option>
-                                }
-                            </select>
+                        }
+                    </div>
+                    <!-- Machine Type -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="machineType" class="form-label">
+                            Machine Type <span class="text-danger">*</span>
+                        </label>
+                        <select id="machineType" formControlName="machineType" class="form-select text-capitalize">
+                            <option value="" disabled selected>Select Machine Type</option>
+                            @for(mtOption of machineTypeList; track mtOption;){
+                            <option [value]="mtOption">
+                                {{mtOption}}
+                            </option>
+                            }
+                        </select>
 
-                            @if(machineType?.touched && machineType?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(machineType?.errors?.['required']){
-                                <span>Machine Type is required.</span>
-                                }
-                            </div>
+                        @if(machineType && machineType.touched && machineType.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineType.errors['required']){
+                            <span>Machine Type is required.</span>
                             }
                         </div>
-                        <!-- Machine Name -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="machineName" class="form-label">
-                                Machine Name <span class="text-danger">*</span>
-                            </label>
-                            <select id="machineName" formControlName="machineName" class="form-select text-capitalize">
-                                <option value="" disabled selected>Select Machine Name</option>
-                                @for(mName of _machineNames; track mName;){
-                                <option [value]="mName">
-                                    {{mName}}
-                                </option>
-                                }
-                            </select>
+                        }
+                    </div>
+                    <!-- Machine Name -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="machineName" class="form-label">
+                            Machine Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="machineName" formControlName="machineName"
+                            class="form-control text-capitalize" list="machineNameSuggestions"
+                            placeholder="Enter or choose machine name" maxlength="100" autocomplete="off">
+                        <datalist id="machineNameSuggestions">
+                            @for(mName of machineNames; track mName){
+                            <option [value]="mName"></option>
+                            }
+                        </datalist>
 
-                            @if(machineName?.touched && machineName?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(machineName?.errors?.['required']){
-                                <span>Machine Name is required.</span>
-                                }
-                            </div>
+                        @if(machineName && machineName.touched && machineName.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineName.errors['required']){
+                            <span>Machine Name is required.</span>
+                            }
+                            @if(machineName.errors['maxlength']){
+                            <span>Machine Name cannot exceed 100 characters.</span>
                             }
                         </div>
-                        <!-- IP Address -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="ip" class="form-label">
-                                IP Address <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" id="ip" formControlName="ip" class="form-control"
-                                placeholder="Enter IP address (e.g. 0.0.0.0)">
+                        }
+                    </div>
+                    <!-- IP Address -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="ip" class="form-label">
+                            IP Address <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="ip" formControlName="ip" class="form-control"
+                            placeholder="Enter IP address (e.g. 0.0.0.0)">
 
-                            @if(machineIp?.touched && machineIp?.errors){
-                            <div class="invalid-feedback d-block">
-                                @if(machineIp?.errors?.['required']){
-                                <span>IP Address is required.</span>
-                                }
-                                @if(machineIp?.errors?.['pattern']){
-                                <span>Invalid IP Address format.</span>
-                                }
-                            </div>
+                        @if(machineIp && machineIp.touched && machineIp.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(machineIp.errors['required']){
+                            <span>IP Address is required.</span>
+                            }
+                            @if(machineIp.errors['pattern']){
+                            <span>Invalid IP Address format.</span>
                             }
                         </div>
-                        <!-- Quality -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="quality" class="form-label">
-                                Quality
-                            </label>
-                            <input type="text" id="quality" formControlName="quality" class="form-control"
-                                placeholder="Enter running quality">
-                        </div>
-                        <!-- Reed -->
-                        <div class="col-12 col-md-6 mb-3">
-                            <label for="reed" class="form-label">
-                                Reed
-                            </label>
-                            <input type="text" id="reed" formControlName="reed" class="form-control"
-                                placeholder="Enter reed">
-                        </div>
+                        }
+                    </div>
+                    <!-- Quality -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="quality" class="form-label">
+                            Quality
+                        </label>
+                        <input type="text" id="quality" formControlName="quality" class="form-control"
+                            placeholder="Enter running quality">
+                    </div>
+                    <!-- Reed -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="reed" class="form-label">
+                            Reed
+                        </label>
+                        <input type="text" id="reed" formControlName="reed" class="form-control"
+                            placeholder="Enter reed">
                     </div>
                 </div>
+            </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
-                        Cancel
-                    </button>
-                    <button class="btn btn-primary">
-                        {{isEditMode ? 'Update' : 'Create'}}
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary">
+                    {{isEditMode ? 'Update' : 'Create'}}
+                </button>
+            </div>
+        </form>
     </div>
 </div>

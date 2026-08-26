@@ -46,6 +46,7 @@ export const ROUTES = {
         REPORT: 'report',
         getFullRoute: (route: string) => `/${ROUTES.MANUFACTURER.BASE}/${route}`
     },
+    DEVICE_REPORT: 'device-report',
     TERMS_AND_CONDITIONS: 'terms-and-condition',
     PRIVACY_POLICY: 'privacy-policy',
     SUPPORT: 'support',

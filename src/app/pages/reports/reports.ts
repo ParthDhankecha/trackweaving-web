@@ -1,6 +1,6 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, NgZone, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 
@@ -13,6 +13,7 @@ import { CommonDropdown } from '@src/app/shared/components/common-dropdown/commo
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
 import { ROUTES } from '@src/app/constants/app.routes';
+import StorageKeys from '@src/app/constants/storage-keys';
 
 interface IReportNavState {
   reportType?: string;
@@ -41,6 +42,8 @@ export class Reports {
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _router = inject(Router);
+  protected readonly _route = inject(ActivatedRoute);
+  private readonly _ngZone = inject(NgZone);
   /** Captured at construction — `getCurrentNavigation()` is only available then. */
   private readonly navState: IReportNavState | null =
     (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
@@ -49,14 +52,17 @@ export class Reports {
 
   protected readonly _fb = inject(FormBuilder);
 
+  /** From route data (`device-report` sets `{ isDevice: true }`). */
+  protected readonly isDevice = !!this._route.snapshot.data['isDevice'];
+  protected isOptionsLoading = false;
   protected showFactoryFilter = false;
   protected workspaceOptions: { _id: string; firmName: string }[] = [];
   protected selectedWorkspaceId = '';
 
 
-  protected readonly tableShiftObj: any = {
-    0: { key: 'dayShift', label: 'Day Shift' },
-    1: { key: 'nightShift', label: 'Night Shift' }
+  protected readonly tableShiftObj: Record<string, string> = {
+    '0': 'Day Shift',
+    '1': 'Night Shift'
   };
   protected readonly shiftOptions: any[] = [
     { id: 'all', val: -1, label: 'All Shift' },
@@ -103,10 +109,12 @@ export class Reports {
   protected stoppageTableRows: any[] = [];
   protected stopTimeSelectionError: boolean = false;
   protected stoppageViewMode: 'machineWise' | 'timeWise' = 'machineWise';
+  protected by24Hours: boolean = false;
   protected readonly stoppageViewOptions: { id: 'machineWise' | 'timeWise'; label: string }[] = [
     { id: 'machineWise', label: 'Machine Wise' },
     { id: 'timeWise', label: 'Time Wise (Descending)' }
   ];
+
 
   protected get isTimeWiseStoppageView(): boolean {
     return this.stoppageViewMode === 'timeWise';
@@ -132,6 +140,14 @@ export class Reports {
     return this.reportType?.value === 'qualityProductionReport';
   }
 
+  protected get isProductionShiftWiseReport(): boolean {
+    return this.reportData?.reportType === 'productionShiftWise';
+  }
+
+  protected get showBy24HoursOption(): boolean {
+    return this.isProductionShiftWiseReport && this.shift?.value === 'all';
+  }
+
   protected get showMachineSelection(): boolean {
     return !this.isQualityWiseReport;
   }
@@ -154,6 +170,12 @@ export class Reports {
 
   get shiftTotalAvgColspan(): number {
     return this.showBeamCompletionDateColumn ? 3 : 2;
+  }
+
+  get by24HoursTableColspan(): number {
+    // // Date + Machine + Quality + Shift + (7 metrics * 2) + optional beam date (1)
+    // // + (stopColumns * 4) + Total Stops (4)
+    return 4 + ((this.reportDataBy24Hours?.shiftColumns?.length ?? 0) * 2) + (this.showBeamCompletionDateColumn ? 1 : 0);
   }
 
   protected formatQualityReed = formatQualityReed;
@@ -188,25 +210,60 @@ export class Reports {
 
   ngOnInit(): void {
     this.syncReportTypeValidators();
-    this.loadMachineList();
-    this.loadMachineGroupList();
-    this.loadQualityList();
     this.setSubscriptions();
+
+    if (this.isDevice) {
+      // WebView invokes this outside NgZone; wrap so the view updates.
+      (window as any).setDeviceToken = (token: string) => {
+        this._ngZone.run(() => this.setDeviceToken(token));
+      };
+    } else {
+      this.initialize();
+    }
+  }
+
+  private async initialize(): Promise<void> {
+    this.isOptionsLoading = true;
+    try {
+      await Promise.allSettled([
+        this.loadMachineList(),
+        this.loadMachineGroupList(),
+        this.loadQualityList()
+      ]);
+    } finally {
+      this.isOptionsLoading = false;
+    }
+  }
+
+  setDeviceToken(token: string): void {
+    if (typeof token !== 'string' || !token?.trim()) return;
+
+    if (!localStorage.getItem(StorageKeys.ACCESS_TOKEN)) {
+      localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
+    }
+    this.initialize();
   }
 
 
-  protected loadMachineList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadMachineList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchMachineOptions().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
-          this.machineList = [...this.rawMachineList];
-          this.machinesLoaded = true;
-          this.applyNavStateAndLoadReport();
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchMachineOptions().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.rawMachineList = (res.data || []).map((m: any) => ({ ...m, selected: false }));
+            this.machineList = [...this.rawMachineList];
+            if (this.groupByMachine?.value) {
+              this.groupByMachine?.patchValue(false, { emitEvent: false });
+            }
+            this.machinesLoaded = true;
+            this.applyNavStateAndLoadReport();
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -214,15 +271,19 @@ export class Reports {
     return this._apiFs.machineConfigure.optionList();
   }
 
-  protected loadQualityList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadQualityList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchQualities().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.qualityList = res.data || [];
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchQualities().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.qualityList = res.data || [];
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -230,17 +291,21 @@ export class Reports {
     return this._apiFs.reports.getQualities();
   }
 
-  protected loadMachineGroupList(): void {
-    if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
+  protected async loadMachineGroupList(): Promise<void> {
+    if (this.showFactoryFilter && !this.selectedWorkspaceId) return Promise.resolve();
 
-    this.fetchMachineGroups().subscribe({
-      next: (res: any) => {
-        if (res.code === 'OK') {
-          this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
-          this.machineGroupsLoaded = true;
-          this.applyNavStateAndLoadReport();
-        }
-      }
+    return new Promise<void>((resolve) => {
+      this.fetchMachineGroups().subscribe({
+        next: (res: any) => {
+          if (res.code === 'OK') {
+            this.machineGroupList = (res.data || []).map((mg: any) => ({ ...mg, selected: false }));
+            this.machineGroupsLoaded = true;
+            this.applyNavStateAndLoadReport();
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
     });
   }
 
@@ -261,6 +326,8 @@ export class Reports {
   }
 
   protected goToManufacturerDashboard(): void {
+    if (!this.showFactoryFilter) return;
+
     this._router.navigate(
       [ROUTES.MANUFACTURER.getFullRoute(ROUTES.MANUFACTURER.DASHBOARD)],
       { state: this.selectedWorkspaceId ? { workspaceId: this.selectedWorkspaceId } : undefined }
@@ -278,6 +345,8 @@ export class Reports {
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
     this.stoppageViewMode = 'machineWise';
+    this.by24Hours = false;
+    this.reportDataBy24Hours = null;
     this.machineIds?.patchValue(null, { emitEvent: false });
     this.selectAll?.patchValue(false, { emitEvent: false });
     this.loadMachineList();
@@ -360,6 +429,11 @@ export class Reports {
     return this.filterForm.get('customStopMinutes');
   }
 
+
+  protected isNightShift(shift: number | string): boolean {
+    return shift === 1 || shift === this.tableShiftObj['1'];
+  }
+
   private flattenProductionReportList(parsedList: any[] = [], includeEntireDay = false): any[] {
     const list: any[] = [];
     parsedList.forEach((item: any) => {
@@ -368,7 +442,7 @@ export class Reports {
         list.push({
           ...dayShift,
           reportDate: item.reportDate,
-          shiftLabel: this.tableShiftObj[0].label,
+          shiftLabel: this.tableShiftObj['0'],
         });
       }
 
@@ -377,7 +451,7 @@ export class Reports {
         list.push({
           ...nightShift,
           reportDate: item.reportDate,
-          shiftLabel: this.tableShiftObj[1].label,
+          shiftLabel: this.tableShiftObj['1'],
         });
       }
       if (includeEntireDay && dayShift && nightShift) {
@@ -564,6 +638,8 @@ export class Reports {
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
       this.stoppageViewMode = 'machineWise';
+      this.by24Hours = false;
+      this.reportDataBy24Hours = null;
     });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
@@ -665,7 +741,7 @@ export class Reports {
 
   protected onMachineSelectionChange(group: any = null): void {
     // Update machine group selection based on individual machine selections
-    if (group) group.selected = group.machines.every((m: any) => m.selected);
+    if (group) group.selected = group.machines?.length > 0 && group.machines.every((m: any) => m.selected);
 
     this.toggleSelectAllState();
   }
@@ -676,7 +752,7 @@ export class Reports {
       this.selectAll?.patchValue(false, { emitEvent: false });
       return;
     }
-    this.selectAll?.patchValue(this.rawMachineList.every((m: any) => m.selected), { emitEvent: false });
+    this.selectAll?.patchValue(this.rawMachineList?.length > 0 && this.rawMachineList.every((m: any) => m.selected), { emitEvent: false });
     if (this.machineIds?.errors) {
       this.machineIds.setErrors(null);
     }
@@ -748,6 +824,8 @@ export class Reports {
           this.reportData.reportType = filter.reportType;
           this.reportData.fromDate = filter.startDate;
           this.reportData.toDate = filter.endDate;
+          this.by24Hours = false;
+          this.reportDataBy24Hours = null;
 
           if (filter.reportType === 'stoppageReport') {
             this.reportStopColumns = [];
@@ -784,6 +862,8 @@ export class Reports {
         this.reportStopColumns = [];
         this.showBeamCompletionDateColumn = false;
         this.stoppageTableRows = [];
+        this.by24Hours = false;
+        this.reportDataBy24Hours = null;
         const msg = err?.error.message || 'An error occurred while generating the report';
         this._coreService.utils.showToaster(EToasterType.Danger, msg);
       }
@@ -803,19 +883,200 @@ export class Reports {
     }
   }
 
-  protected exportAsPDF(): void {
-    if (!this.reportTable?.nativeElement) return;
-    this._coreService.exportData.exportTableToPDF(this.reportData);
+
+  protected reportDataBy24Hours: any = null;
+  protected onBy24HoursChange(enabled: boolean): void {
+    if (!this.reportData || this.reportData.reportType !== 'productionShiftWise') return;
+    if (this.reportDataBy24Hours !== null) return;
+
+    const { list, ...rest } = this.reportData;
+    this.reportDataBy24Hours = {
+      ...rest,
+      list: [],
+      shiftColumns: Array.from({ length: 7 + (rest.stopColumns.length * 2) + 2 }, (_, i) => ({
+        key: `cell_${i + 1}`,
+        label: (i == 2 || i == 3) ? 'Avg' : 'Total'
+      })),
+    };
+
+    const groupByDate: Map<string, Record<string, any>> = new Map();
+
+    const dayShiftLabel = this.tableShiftObj['0'];
+    const nightShiftLabel = this.tableShiftObj['1'];
+    for (const item of list) {
+      const key = item.reportDate;
+      if (!groupByDate.has(key)) groupByDate.set(key, {});
+
+      const val: any = groupByDate.get(key);
+      if (item.shiftLabel === dayShiftLabel) {
+        val.day = item;
+      } else if (item.shiftLabel === nightShiftLabel) {
+        val.night = item;
+        if (item.fullDay) {
+          val.fullDay = item.fullDay;
+        }
+      }
+    }
+
+    const result: any[] = [];
+    for (const [reportDate, { day, night, fullDay }] of groupByDate) {
+      const machineMap = new Map<string, Record<string, any>>();
+
+      for (const machine of day?.list ?? []) {
+        const id = String(machine.machineId ?? machine.machineCode);
+        machineMap.set(id, {
+          machineId: machine.machineId,
+          machineCode: machine.machineCode,
+          day: { ...machine },
+          night: null
+        });
+      }
+      for (const machine of night?.list ?? []) {
+        const id = String(machine.machineId ?? machine.machineCode);
+        const existing: any = machineMap.get(id);
+        if (existing) {
+          existing.night = { ...machine };
+        } else {
+          machineMap.set(id, {
+            machineId: machine.machineId,
+            machineCode: machine.machineCode,
+            day: null,
+            night: { ...machine },
+          });
+        }
+      }
+
+      const list = [...machineMap.values()].map(
+        entry => this.mergeMachineDayNight(entry)
+      ).sort((a, b) =>
+        String(a.machineCode || '').localeCompare(String(b.machineCode || ''))
+      );
+
+      const dateTotals = fullDay ?? {
+        reportDate,
+        prodMeter: (day ?? night)?.prodMeter ?? 0,
+        totalPicks: (day ?? night)?.totalPicks ?? 0,
+        efficiency: (day ?? night)?.efficiency ?? 0,
+        realEfficiency: (day ?? night)?.realEfficiency ?? 0,
+        avgSpeed: (day ?? night)?.avgSpeed ?? 0,
+        avgPicks: (day ?? night)?.avgPicks ?? 0
+      };
+
+      result.push({
+        ...dateTotals,
+        reportDate,
+        list
+      });
+    }
+
+    this.reportDataBy24Hours.list = result;
   }
 
+  private mergeMachineDayNight(entry: Record<string, any>): any {
+    const { day, night } = entry;
+    const qualityParts: string[] = [];
+    if (day) qualityParts.push(formatQualityReed(day.quality, day.reed));
+    if (night) {
+      const nightQuality = formatQualityReed(night.quality, night.reed);
+      if (!qualityParts.includes(nightQuality)) qualityParts.push(nightQuality);
+    }
+
+    return {
+      machineId: entry['machineId'],
+      machineCode: entry['machineCode'],
+      qualityLabel: qualityParts.filter(Boolean).join(' / ') || '-',
+      day: day || null,
+      night: night || null,
+      total: {
+        pieceLengthM: (day?.pieceLengthM ?? 0) + (night?.pieceLengthM ?? 0),
+        picksCurrentShift: (day?.picksCurrentShift ?? 0) + (night?.picksCurrentShift ?? 0),
+        efficiencyPercent: this.avgDefined([day?.efficiencyPercent, night?.efficiencyPercent]),
+        realEfficiencyPercent: this.avgDefined([day?.realEfficiencyPercent, night?.realEfficiencyPercent]),
+        speedRpm: this.avgDefined([day?.speedRpm || null, night?.speedRpm || null]),
+        runTime: this.sumRunTime([day?.runTime, night?.runTime]),
+        beamLeft: night?.beamLeft ?? day?.beamLeft ?? 0,
+        stopsData: this.mergeStopsData(day?.stopsData, night?.stopsData),
+      }
+    };
+  }
+  private avgDefined(values: Array<number | null | undefined>): number | null {
+    const nums = values.filter((v): v is number => v != null && Number.isFinite(Number(v))).map(Number);
+    if (!nums.length) return null;
+    const avg = nums.reduce((sum, n) => sum + n, 0) / nums.length;
+    return Math.round(avg);
+  }
+  private sumRunTime(values: Array<string | null | undefined>): string | null {
+    const validValues = values.filter((value): value is string => !!value?.trim?.());
+    if (!validValues.length) { return null; }
+
+    const totalMinutes = validValues.reduce((total, value) => {
+      const [hours, minutes] = value.split(':').map(Number);
+      return total + moment.duration({ hours, minutes }).asMinutes();
+    }, 0);
+
+    const duration = moment.duration(totalMinutes, 'minutes');
+    return `${Math.floor(duration.asHours()).toString().padStart(2, '0')}:${duration.minutes().toString().padStart(2, '0')}`;
+  }
+  private mergeStopsData(dayStops: any = {}, nightStops: any = {}): any {
+    const keys = new Set<string>([
+      ...Object.keys(dayStops || {}),
+      ...Object.keys(nightStops || {})
+    ]);
+    const merged: any = {};
+
+    keys.forEach(key => {
+      const dayCount = Number(dayStops?.[key]?.count) || 0;
+      const nightCount = Number(nightStops?.[key]?.count) || 0;
+      merged[key] = {
+        count: dayCount + nightCount,
+        duration: this.sumRunTime([dayStops?.[key]?.duration, nightStops?.[key]?.duration]) || '00:00'
+      };
+    });
+
+    return merged;
+  }
+
+
+  protected isPdfExporting: boolean = false;
+  protected exportAsPDF(): void {
+    if (!this.reportTable?.nativeElement || this.isPdfExporting) return;
+
+    if (this.by24Hours) {
+      if (!this.reportDataBy24Hours) return;
+
+      this.isPdfExporting = true;
+      this._coreService.exportData.exportTableToPDF({
+        ...this.reportDataBy24Hours,
+        isBy24Hours: true,
+        reportTitle: `${this.reportData?.reportTitle || 'Report'} (By 24 Hours)`,
+      }, this.isDevice).finally(() => {
+        this.isPdfExporting = false;
+      });
+      return;
+    }
+
+    this.isPdfExporting = true;
+    this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice).finally(() => {
+      this.isPdfExporting = false;
+    });
+  }
+
+  protected isExcelExporting: boolean = false;
   protected exportAsExcel(): void {
-    if (!this.reportTable?.nativeElement) return;
+    if (!this.reportTable?.nativeElement || this.isExcelExporting) return;
+
+    this.isExcelExporting = true;
     const filename = `${String(this.reportData?.reportTitle || 'report').toLowerCase().replace(/ +/g, '_')}_${moment().format('YYYYMMDD_HHmmss')}.xlsx`;
-    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename);
+    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, this.isDevice).finally(() => {
+      this.isExcelExporting = false;
+    });
   }
 
 
   ngOnDestroy(): void {
+    if (this.isDevice) {
+      delete (window as any).setDeviceToken;
+    }
     this.subscriptionHandler$.next();
     this.subscriptionHandler$.complete();
   }

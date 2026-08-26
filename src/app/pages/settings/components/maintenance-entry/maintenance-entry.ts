@@ -28,37 +28,56 @@ export class MaintenanceEntry {
   protected readonly _fb = inject(FormBuilder);
   private readonly _route = inject(ActivatedRoute);
 
-  protected meForm: FormGroup = this._fb.group({
-    lastMaintenanceDate: ['', [Validators.required, this.lastMaintenanceDateValidator.bind(this)]],
-    nextMaintenanceDate: ['', [Validators.required, this.nextMaintenanceDateValidator.bind(this)]],
-    completedBy: [''],
-    phone: ['', [Validators.required, Validators.pattern('^(?:\\+91[-\\s]?|91[-\\s]?|0)?[6-9]\\d{9}$')]],
-    remarks: ['', [Validators.maxLength(500)]],
-  });
+
+  protected meForm!: FormGroup;
 
   protected maintenanceEntryList: any[] = [];
   protected maintenanceCategoryList: any[] = [];
   protected machineFilterList: any[] = [];
   protected maintenanceHistoryList: any[] = [];
-  protected selectedCategoryId = '';
-  protected selectedMachineId = '';
-  protected selectedCategoryName = '';
-  protected isHistoryLoading = false;
-  protected showHistorySection = false;
+  protected selectedCategoryId: string = '';
+  protected selectedMachineId: string = '';
+  protected selectedCategoryName: string = '';
+  protected isHistoryLoading: boolean = false;
+  protected showHistorySection: boolean = false;
+
+
+  protected get hasHistoryAccess(): boolean {
+    return this._coreService.utils.can('maintenance_history', 'read');
+  }
+  protected get hasReadAccess(): boolean {
+    return this._coreService.utils.can('maintenance_entry', 'read');
+  }
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('maintenance_entry', 'update');
+  }
+
 
   ngOnInit(): void {
-    this.loadList();
-    this.loadCategories();
-    this.loadMachineFilterList();
+    if (this.hasReadAccess) {
+      this.loadList();
 
-    this._route.queryParamMap.subscribe(params => {
-      const categoryId = params.get('categoryId') || '';
+      this.meForm = this._fb.group({
+        lastMaintenanceDate: ['', [Validators.required, this.lastMaintenanceDateValidator.bind(this)]],
+        nextMaintenanceDate: ['', [Validators.required, this.nextMaintenanceDateValidator.bind(this)]],
+        completedBy: [''],
+        phone: ['', [Validators.pattern('^(?:\\+91[-\\s]?|91[-\\s]?|0)?[6-9]\\d{9}$')]],
+        remarks: ['', [Validators.maxLength(500)]],
+      })
+    }
+
+    if (this.hasHistoryAccess) {
+      this.loadMachineOptions();
+      this.loadCategories();
+
+      const categoryId = this._route.snapshot.queryParamMap.get('categoryId') || '';
       if (categoryId) {
         this.selectedCategoryId = categoryId;
         this.loadMaintenanceHistory();
       }
-    });
+    }
   }
+
 
   private loadList(): void {
     this._apiFs.maintenanceEntry.list().subscribe({
@@ -72,21 +91,22 @@ export class MaintenanceEntry {
   }
 
   private loadCategories(): void {
-    this._apiFs.maintenanceCategory.list().subscribe({
+    this._apiFs.maintenanceCategory.optionList().subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
-          this.maintenanceCategoryList = res.data || [];
+          this.maintenanceCategoryList = Array.isArray(res.data) ? res.data : [];
+          this.selectedCategoryName = this.maintenanceCategoryList.find(category => category._id === this.selectedCategoryId)?.name || '';
         }
       },
       error: () => { }
     });
   }
 
-  private loadMachineFilterList(): void {
+  private loadMachineOptions(): void {
     this._apiFs.machineConfigure.optionList().subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
-          this.machineFilterList = res.data || [];
+          this.machineFilterList = Array.isArray(res.data) ? res.data : [];
         }
       },
       error: () => { }
@@ -100,6 +120,8 @@ export class MaintenanceEntry {
       this.selectedCategoryName = '';
       return;
     }
+
+    this.selectedCategoryName = this.maintenanceCategoryList.find(category => category._id === this.selectedCategoryId)?.name || '';
     this.loadMaintenanceHistory();
   }
 
@@ -109,7 +131,7 @@ export class MaintenanceEntry {
   }
 
   protected loadMaintenanceHistory(): void {
-    if (!this.selectedCategoryId) return;
+    if (!this.selectedCategoryId || !this.hasHistoryAccess) return;
 
     this.isHistoryLoading = true;
     this.showHistorySection = true;
@@ -125,8 +147,7 @@ export class MaintenanceEntry {
       next: (res: IResponse) => {
         this.isHistoryLoading = false;
         if (res.code === 'OK') {
-          this.maintenanceHistoryList = res.data?.list || [];
-          this.selectedCategoryName = res.data?.categoryName || '';
+          this.maintenanceHistoryList = Array.isArray(res.data) ? res.data : [];
         }
       },
       error: (err: any) => {
@@ -137,6 +158,7 @@ export class MaintenanceEntry {
       }
     });
   }
+
 
   get lastMaintenanceDate(): AbstractControl | null {
     return this.meForm?.get('lastMaintenanceDate');
@@ -153,6 +175,7 @@ export class MaintenanceEntry {
   get remarks(): AbstractControl | null {
     return this.meForm.get('remarks');
   }
+
 
   private lastMaintenanceDateValidator(control: AbstractControl): ValidationErrors | null {
     if (this.nextMaintenanceDate && !this.nextMaintenanceDate?.touched) this.nextMaintenanceDate.markAsTouched();
@@ -176,10 +199,11 @@ export class MaintenanceEntry {
     return null;
   }
 
-  protected upsertMaintenanceEntryModalData: any;
-  protected isUpsertMaintenanceEntryModalOpen = false;
 
+  protected upsertMaintenanceEntryModalData: any;
+  protected isUpsertMaintenanceEntryModalOpen: boolean = false;
   protected onOpenUpsertMaintenanceEntryModal(maintenanceEntry: any, alertItem: any): void {
+    if (!this.hasUpdateAccess) return;
     if (!maintenanceEntry?.machineId || !alertItem?._id) return;
 
     this.upsertMaintenanceEntryModalData = { ...maintenanceEntry };
@@ -194,10 +218,11 @@ export class MaintenanceEntry {
     this.isUpsertMaintenanceEntryModalOpen = true;
   }
 
-  protected isReqAlive = false;
-
+  protected isReqAlive: boolean = false;
   protected onSubmitUpdateMaintenanceEntry(): void {
+    if (!this.hasUpdateAccess) return;
     if (this.isReqAlive || !this.upsertMaintenanceEntryModalData?.machineId) return;
+
     if (this.meForm.invalid) {
       this.meForm.markAllAsTouched();
       return;

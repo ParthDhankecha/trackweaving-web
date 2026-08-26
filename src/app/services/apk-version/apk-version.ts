@@ -22,11 +22,19 @@ export class ApkVersion {
     return this._http.get(`${this._adminBaseUrl}`);
   }
 
-  create(payload: any): Observable<IResponse> {
-    return this._http.post(`${this._adminBaseUrl}`, payload);
-  }
-
   update(payload: any): Observable<IResponse> {
     return this._http.put(`${this._adminBaseUrl}`, payload);
+  }
+
+  addHistory(payload: any): Observable<IResponse> {
+    return this._http.post(`${this._adminBaseUrl}/history`, payload);
+  }
+
+  updateHistory(historyId: string, payload: any): Observable<IResponse> {
+    return this._http.put(`${this._adminBaseUrl}/history/${historyId}`, payload);
+  }
+
+  deleteHistory(historyId: string): Observable<IResponse> {
+    return this._http.delete(`${this._adminBaseUrl}/history/${historyId}`);
   }
 }

@@ -11,6 +11,7 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { IResponse } from '@src/app/models/http-response.model';
+import { EToasterType } from '@src/app/models/utils.model';
 
 
 @Component({
@@ -42,6 +43,9 @@ export class PartsChangeEntry {
 
   protected upsertPartsChangeEntryModalData: any;
   protected isUpsertPartsChangeEntryModalOpen: boolean = false;
+  protected deletePartChangeData: any = null;
+  protected isDeleteModalOpen: boolean = false;
+  protected isReqAlive: boolean = false;
 
   protected toggleFilterPopup: boolean = false;
   protected cacheSearchTerm: string = '';
@@ -49,6 +53,20 @@ export class PartsChangeEntry {
   protected filteredFilterMachineList: any[] = [];
   protected cacheFilterMachineList: any[] = [];
   protected isAllFilterSelected: boolean = false;
+
+
+  protected get hasCreateAccess(): boolean {
+    return this._coreService.utils.can('part_change_entry', 'create');
+  }
+  protected get hasUpdateAccess(): boolean {
+    return this._coreService.utils.can('part_change_entry', 'update');
+  }
+  protected get hasDeleteAccess(): boolean {
+    return this._coreService.utils.can('part_change_entry', 'delete');
+  }
+  protected get hasAnyActionAccess(): boolean {
+    return this.hasUpdateAccess || this.hasDeleteAccess;
+  }
 
 
   ngOnInit(): void {
@@ -117,8 +135,11 @@ export class PartsChangeEntry {
     this._apiFs.partsChangeEntry.listPagination(payload).subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
-          this.partChangeList = res.data.partChangeLogs || [];
-          this.totalEntries = res.data.totalCount ?? 0;
+          const { list, count } = res.data;
+          if (Array.isArray(list)) {
+            this.partChangeList = list;
+            this.totalEntries = count ?? list.length;
+          }
         }
       },
       error: (err) => { }
@@ -127,6 +148,8 @@ export class PartsChangeEntry {
 
 
   protected onOpenUpsertPartChangeModal(pce: any = null): void {
+    if (pce ? !this.hasUpdateAccess : !this.hasCreateAccess) return;
+
     this.upsertPartsChangeEntryModalData = pce;
     this.isUpsertPartsChangeEntryModalOpen = true;
   }
@@ -136,8 +159,54 @@ export class PartsChangeEntry {
   }
 
   protected upsertPartChangeModalEvent(data: any): void {
-    this.loadList();
     this.onClosePartChangeModal();
+    const index = this.partChangeList.findIndex((item: any) => item._id === data?._id);
+    if (index !== -1) {
+      this.partChangeList[index] = data;
+    } else {
+      this.loadList();
+    }
+  }
+
+
+  protected onOpenDeleteModal(pce: any): void {
+    if (!this.hasDeleteAccess) return;
+
+    this.deletePartChangeData = pce;
+    this.isDeleteModalOpen = true;
+  }
+
+  protected onCloseDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.deletePartChangeData = null;
+  }
+
+  protected onConfirmDelete(): void {
+    if (!this.hasDeleteAccess) return;
+
+    const pceId = this.deletePartChangeData?._id;
+    if (this.isReqAlive || !pceId) return;
+
+    this.isReqAlive = true;
+    this._apiFs.partsChangeEntry.delete(pceId).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this._coreService.utils.showToaster(EToasterType.Success, 'Parts change entry deleted successfully.');
+          this.onCloseDeleteModal();
+
+          if (this.partChangeList.length === 1 && this.currentPage > 1) {
+            this.currentPage--;
+          }
+          this.loadList();
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        const msg = err?.error?.message || 'Something went wrong, please try again later.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
   }
 
 

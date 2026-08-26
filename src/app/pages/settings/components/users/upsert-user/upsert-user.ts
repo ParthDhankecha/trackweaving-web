@@ -1,4 +1,5 @@
-import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -6,6 +7,7 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import APP_REGEXP from '@src/app/constants/app-regexp';
 
 
 @Component({
@@ -21,6 +23,7 @@ export class UpsertUser {
   protected readonly _coreService = inject(CoreFacadeService);
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
 
   @Input('userData') userData: any = null;
@@ -28,17 +31,20 @@ export class UpsertUser {
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
 
 
+  protected usernameRegObj = APP_REGEXP.USER_NAME;
   protected isEditMode: boolean = false;
   protected userForm: FormGroup = this._fb.group({
+    userType: [null, [Validators.required]],
     fullname: ["", [Validators.required, Validators.maxLength(100)]],
-    userName: ["", [Validators.required]],// username/mobile number
-    password: ["", [Validators.required, Validators.minLength(6), Validators.maxLength(20)]],
+    userName: ["", [Validators.required, Validators.minLength(this.usernameRegObj.MIN_LENGTH), Validators.pattern(this.usernameRegObj.REGEXP)]],// username/mobile number
+    password: ["", [Validators.required, Validators.minLength(6)]],
     mobile: ["", [Validators.pattern('^[0-9]{10}$')]],
     email: ["", [Validators.email]],
     isActive: [true, []],
     shift: [[], []],
     machineIds: [[], []],
   });
+
   protected isEyeOpen: boolean = false;
   protected machineList: any[] = [];
   protected readonly shiftOptions: { value: number, label: string }[] = [
@@ -47,12 +53,34 @@ export class UpsertUser {
   ];
 
 
+  protected get userTypeOptions() {
+    return this._coreService.appConfig.userTypeOptions;
+  }
+
+  protected get hasUpsertAccess(): boolean {
+    return this._coreService.utils.can('user', this.isEditMode ? 'update' : 'create');
+  }
+
+  /** Workspace owner can set type on create, and change another user's type on edit. */
+  protected get canChangeUserType(): boolean {
+    if (!this._coreService.utils.isOwner || !this.hasUpsertAccess) return false;
+    return !(this.isEditMode && this.userData?.isCurrentUser);
+  }
+
+  private readonly _userRoles = this._coreService.appConfig.roles;
   protected get showMasterFields(): boolean {
-    if (!this.isEditMode) return true;
-    // Admin can edit master user's shift/machines only
-    if (!this._coreService.utils.isAdmin) return false;
-    const masterRole = this._coreService.appConfig.roles?.MASTER;
-    return masterRole !== undefined && this.userData?.userType === masterRole;
+    const masterRole = this._userRoles?.MASTER;
+    if (masterRole === undefined) return false;
+    if (!this.isEditMode) return this.userType?.value === masterRole;
+    return this._coreService.utils.isOwner && this.userType?.value === masterRole;
+  }
+
+  protected get userTypeChangeWarning(): string {
+    if (!this.isEditMode || this.userType?.value == this.userData?.userType) return '';
+
+    return this.userType?.value === this._userRoles?.MASTER
+      ? 'Changing this user to Master requires shift and machine assignments. Module access will default to read-only if they have none. The user will need to sign in again.'
+      : 'Changing this user to Admin will remove their shift, machine assignments, and module access. The user will need to sign in again.';
   }
 
 
@@ -63,16 +91,20 @@ export class UpsertUser {
       if (this.userData?.isCurrentUser) {
         this.userForm.removeControl('isActive');
       }
-      this.password?.setValidators([Validators.minLength(6), Validators.maxLength(20)]);
+      this.password?.setValidators([Validators.minLength(6)]);
       this.userForm.patchValue({
         fullname: this.userData.fullname || '',
         userName: this.userData.userName || '',
         mobile: this.userData.mobile || '',
         email: this.userData.email || '',
         isActive: this.userData.isActive ?? true,
+        userType: this.userData.userType ?? null,
         shift: this.normalizeShiftValue(this.userData.shift),
         machineIds: this.userData?.machineIds ?? []
       });
+      if (!this.canChangeUserType) {
+        this.userType?.disable();
+      }
     }
     this.syncMasterFieldValidators();
   }
@@ -81,6 +113,14 @@ export class UpsertUser {
   protected ngOnInit(): void {
     this.loadMachines();
     this.syncMasterFieldValidators();
+    this.userType?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      if (this.isEditMode) {
+        this.resetMasterFieldsToOriginal();
+      }
+      this.syncMasterFieldValidators();
+    });
   }
 
 
@@ -98,6 +138,12 @@ export class UpsertUser {
   }
 
 
+  private resetMasterFieldsToOriginal(): void {
+    this.shift?.setValue(this.normalizeShiftValue(this.userData?.shift), { emitEvent: false });
+    this.machineIds?.setValue([...(this.userData?.machineIds ?? [])], { emitEvent: false });
+  }
+
+
   private syncMasterFieldValidators(): void {
     if (this.showMasterFields) {
       this.shift?.setValidators([this.atLeastOneShiftValidator]);
@@ -105,8 +151,10 @@ export class UpsertUser {
     } else {
       this.shift?.clearValidators();
       this.machineIds?.clearValidators();
-      this.shift?.setValue([], { emitEvent: false });
-      this.machineIds?.setValue([], { emitEvent: false });
+      if (!this.isEditMode) {
+        this.shift?.setValue([], { emitEvent: false });
+        this.machineIds?.setValue([], { emitEvent: false });
+      }
     }
     this.shift?.updateValueAndValidity({ emitEvent: false });
     this.machineIds?.updateValueAndValidity({ emitEvent: false });
@@ -143,6 +191,9 @@ export class UpsertUser {
 
   get fullname(): AbstractControl | null {
     return this.userForm.get('fullname');
+  }
+  get userType(): AbstractControl | null {
+    return this.userForm.get('userType');
   }
   get userName(): AbstractControl | null {
     return this.userForm.get('userName');
@@ -231,6 +282,7 @@ export class UpsertUser {
 
   protected isReqAlive: boolean = false;
   protected onSubmit(): void {
+    if (!this.hasUpsertAccess) return;
     if (this.isReqAlive) return;
 
     if (this.userForm.invalid) {
@@ -251,6 +303,9 @@ export class UpsertUser {
     if (this.showMasterFields) {
       body.shift = this.normalizeShiftValue(this.shift?.value);
       body.machineIds = this.machineIds?.value || [];
+    }
+    if (!this.isEditMode || this.canChangeUserType) {
+      body.userType = Number(this.userType?.value);
     }
 
     this.isReqAlive = true;
