@@ -48,7 +48,7 @@ export class Login {
 
   protected loginForm: FormGroup = this._fb.group({
     userName: ['', [Validators.required]],
-    password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(20)]]
+    password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(200)]]
   });
   protected isEyeOpen: boolean = false;
 
