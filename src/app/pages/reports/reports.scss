@@ -25,8 +25,14 @@
     }
 }
 
-.quality-column {
-    width: max(350px, 20%);
+.shift-wise-production-table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+
+    .quality-column {
+        width: max(350px, 20%);
+    }
 }
 
 .custom-tr-bg {
