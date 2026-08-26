@@ -238,9 +238,10 @@ export class Reports {
   setDeviceToken(token: string): void {
     if (typeof token !== 'string' || !token?.trim()) return;
 
-    if (!localStorage.getItem(StorageKeys.ACCESS_TOKEN)) {
-      localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
-    }
+    // clear all local storage items & set new token
+    localStorage.clear();
+    localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
+    // initialize the page
     this.initialize();
   }
 
