@@ -7,14 +7,14 @@ import { CoreFacadeService } from '../services/core-facade-service';
 
 
 /**
- * Route data: { accessModule: AccessModule }
+ * Route data: { accessModules: AccessModule[] }
  */
 export const accessGuard: CanActivateFn = (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
   const router = inject(Router);
   const _coreService = inject(CoreFacadeService);
 
-  const module = (route.data?.['accessModule'] as AccessModule) || 'default';
-  if (_coreService.utils.can(module)) {
+  const modules = (route.data?.['accessModules'] as AccessModule[]) || ['default'];
+  if (modules.some(m => _coreService.utils.can(m, 'read'))) {
     return true;
   }
 

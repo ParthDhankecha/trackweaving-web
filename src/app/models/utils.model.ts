@@ -10,7 +10,7 @@ export interface ILanguage {
 }
 
 
-export type AccessAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'history';
+export type AccessAction = 'create' | 'read' | 'update' | 'delete';
 
 export type AccessModule =
     | 'default'
@@ -18,6 +18,7 @@ export type AccessModule =
     | 'machine_configure'
     | 'maintenance_category'
     | 'maintenance_entry'
+    | 'maintenance_history'
     | 'shift_wise_comment'
     | 'part_change_entry'
     | 'user'

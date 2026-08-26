@@ -61,11 +61,26 @@ export class UpsertUser {
     return this._coreService.utils.can('user', this.isEditMode ? 'update' : 'create');
   }
 
+  /** Workspace owner can set type on create, and change another user's type on edit. */
+  protected get canChangeUserType(): boolean {
+    if (!this._coreService.utils.isOwner || !this.hasUpsertAccess) return false;
+    return !(this.isEditMode && this.userData?.isCurrentUser);
+  }
+
+  private readonly _userRoles = this._coreService.appConfig.roles;
   protected get showMasterFields(): boolean {
-    const masterRole = this._coreService.appConfig.roles?.MASTER;
+    const masterRole = this._userRoles?.MASTER;
     if (masterRole === undefined) return false;
     if (!this.isEditMode) return this.userType?.value === masterRole;
-    return this._coreService.utils.isOwner && this.userData?.userType === masterRole;
+    return this._coreService.utils.isOwner && this.userType?.value === masterRole;
+  }
+
+  protected get userTypeChangeWarning(): string {
+    if (!this.isEditMode || this.userType?.value == this.userData?.userType) return '';
+
+    return this.userType?.value === this._userRoles?.MASTER
+      ? 'Changing this user to Master requires shift and machine assignments. Module access will default to read-only if they have none. The user will need to sign in again.'
+      : 'Changing this user to Admin will remove their shift, machine assignments, and module access. The user will need to sign in again.';
   }
 
 
@@ -87,7 +102,9 @@ export class UpsertUser {
         shift: this.normalizeShiftValue(this.userData.shift),
         machineIds: this.userData?.machineIds ?? []
       });
-      this.userType?.disable();
+      if (!this.canChangeUserType) {
+        this.userType?.disable();
+      }
     }
     this.syncMasterFieldValidators();
   }
@@ -98,7 +115,12 @@ export class UpsertUser {
     this.syncMasterFieldValidators();
     this.userType?.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => this.syncMasterFieldValidators());
+    ).subscribe(() => {
+      if (this.isEditMode) {
+        this.resetMasterFieldsToOriginal();
+      }
+      this.syncMasterFieldValidators();
+    });
   }
 
 
@@ -116,6 +138,12 @@ export class UpsertUser {
   }
 
 
+  private resetMasterFieldsToOriginal(): void {
+    this.shift?.setValue(this.normalizeShiftValue(this.userData?.shift), { emitEvent: false });
+    this.machineIds?.setValue([...(this.userData?.machineIds ?? [])], { emitEvent: false });
+  }
+
+
   private syncMasterFieldValidators(): void {
     if (this.showMasterFields) {
       this.shift?.setValidators([this.atLeastOneShiftValidator]);
@@ -123,8 +151,10 @@ export class UpsertUser {
     } else {
       this.shift?.clearValidators();
       this.machineIds?.clearValidators();
-      this.shift?.setValue([], { emitEvent: false });
-      this.machineIds?.setValue([], { emitEvent: false });
+      if (!this.isEditMode) {
+        this.shift?.setValue([], { emitEvent: false });
+        this.machineIds?.setValue([], { emitEvent: false });
+      }
     }
     this.shift?.updateValueAndValidity({ emitEvent: false });
     this.machineIds?.updateValueAndValidity({ emitEvent: false });
@@ -274,9 +304,7 @@ export class UpsertUser {
       body.shift = this.normalizeShiftValue(this.shift?.value);
       body.machineIds = this.machineIds?.value || [];
     }
-    if (this.isEditMode) {
-      delete body.userType;
-    } else {
+    if (!this.isEditMode || this.canChangeUserType) {
       body.userType = Number(this.userType?.value);
     }
 

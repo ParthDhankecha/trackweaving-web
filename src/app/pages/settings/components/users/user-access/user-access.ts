@@ -8,7 +8,7 @@ import { AccessAction, AccessModule, EToasterType, IUserAccess } from '@src/app/
 
 
 /** Column order in the table. Unknown actions from the API are appended. */
-const ACTION_ORDER: AccessAction[] = ['read', 'create', 'update', 'delete', 'history', 'export'];
+const ACTION_ORDER: AccessAction[] = ['read', 'create', 'update', 'delete'];
 
 
 @Component({

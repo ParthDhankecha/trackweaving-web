@@ -56,7 +56,7 @@ export class MaintenanceCategory {
     return this._coreService.utils.can('maintenance_category', 'delete');
   }
   protected get hasHistoryAccess(): boolean {
-    return this._coreService.utils.can('maintenance_entry', 'read');
+    return this._coreService.utils.can('maintenance_history', 'read');
   }
   protected get hasAnyActionAccess(): boolean {
     return this.hasUpdateAccess || this.hasDeleteAccess || this.hasHistoryAccess;

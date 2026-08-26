@@ -21,49 +21,49 @@ export const routes: Routes = [
         title: APP_PAGE_TITLE.SETTINGS.MACHINE_GROUP,
         component: MachineGroup,
         canActivate: [accessGuard],
-        data: { accessModule: 'machine_group' }
+        data: { accessModules: ['machine_group'] }
     },
     {
         path: ROUTES.SETTINGS.MACHINE_CONFIGURE,
         title: APP_PAGE_TITLE.SETTINGS.MACHINE_CONFIGURE,
         component: MachineConfigure,
         canActivate: [accessGuard],
-        data: { accessModule: 'machine_configure' }
+        data: { accessModules: ['machine_configure'] }
     },
     {
         path: ROUTES.SETTINGS.MAINTENANCE_CATEGORY,
         title: APP_PAGE_TITLE.SETTINGS.MAINTENANCE_CATEGORY,
         component: MaintenanceCategory,
         canActivate: [accessGuard],
-        data: { accessModule: 'maintenance_category' }
+        data: { accessModules: ['maintenance_category'] }
     },
     {
         path: ROUTES.SETTINGS.MAINTENANCE_ENTRY,
         title: APP_PAGE_TITLE.SETTINGS.MAINTENANCE_ENTRY,
         component: MaintenanceEntry,
         canActivate: [accessGuard],
-        data: { accessModule: 'maintenance_entry' }
+        data: { accessModules: ['maintenance_entry', 'maintenance_history'] }
     },
     {
         path: ROUTES.SETTINGS.SHIFT_WISE_COMMENT_UPDATE,
         title: APP_PAGE_TITLE.SETTINGS.SHIFT_WISE_COMMENT_UPDATE,
         component: ShiftWiseComments,
         canActivate: [accessGuard],
-        data: { accessModule: 'shift_wise_comment' }
+        data: { accessModules: ['shift_wise_comment'] }
     },
     {
         path: ROUTES.SETTINGS.PARTS_CHANGE_ENTRY,
         title: APP_PAGE_TITLE.SETTINGS.PARTS_CHANGE_ENTRY,
         component: PartsChangeEntry,
         canActivate: [accessGuard],
-        data: { accessModule: 'part_change_entry' }
+        data: { accessModules: ['part_change_entry'] }
     },
     {
         path: ROUTES.SETTINGS.USERS,
         title: APP_PAGE_TITLE.SETTINGS.USERS,
         component: Users,
         canActivate: [accessGuard],
-        data: { accessModule: 'user' }
+        data: { accessModules: ['user'] }
     },
     {
         path: ROUTES.PAGE_NOT_FOUND,

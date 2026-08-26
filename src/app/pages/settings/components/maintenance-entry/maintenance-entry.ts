@@ -29,14 +29,7 @@ export class MaintenanceEntry {
   private readonly _route = inject(ActivatedRoute);
 
 
-  protected meForm: FormGroup = this._fb.group({
-    lastMaintenanceDate: ['', [Validators.required, this.lastMaintenanceDateValidator.bind(this)]],
-    nextMaintenanceDate: ['', [Validators.required, this.nextMaintenanceDateValidator.bind(this)]],
-    completedBy: [''],
-    phone: ['', [Validators.pattern('^(?:\\+91[-\\s]?|91[-\\s]?|0)?[6-9]\\d{9}$')]],
-    remarks: ['', [Validators.maxLength(500)]],
-  });
-
+  protected meForm!: FormGroup;
 
   protected maintenanceEntryList: any[] = [];
   protected maintenanceCategoryList: any[] = [];
@@ -50,7 +43,10 @@ export class MaintenanceEntry {
 
 
   protected get hasHistoryAccess(): boolean {
-    return this._coreService.utils.can('maintenance_entry', 'history');
+    return this._coreService.utils.can('maintenance_history', 'read');
+  }
+  protected get hasReadAccess(): boolean {
+    return this._coreService.utils.can('maintenance_entry', 'read');
   }
   protected get hasUpdateAccess(): boolean {
     return this._coreService.utils.can('maintenance_entry', 'update');
@@ -58,17 +54,28 @@ export class MaintenanceEntry {
 
 
   ngOnInit(): void {
-    this.loadList();
-    this.loadCategories();
-    this.loadMachineFilterList();
+    if (this.hasReadAccess) {
+      this.loadList();
 
-    this._route.queryParamMap.subscribe(params => {
-      const categoryId = params.get('categoryId') || '';
+      this.meForm = this._fb.group({
+        lastMaintenanceDate: ['', [Validators.required, this.lastMaintenanceDateValidator.bind(this)]],
+        nextMaintenanceDate: ['', [Validators.required, this.nextMaintenanceDateValidator.bind(this)]],
+        completedBy: [''],
+        phone: ['', [Validators.pattern('^(?:\\+91[-\\s]?|91[-\\s]?|0)?[6-9]\\d{9}$')]],
+        remarks: ['', [Validators.maxLength(500)]],
+      })
+    }
+
+    if (this.hasHistoryAccess) {
+      this.loadMachineOptions();
+      this.loadCategories();
+
+      const categoryId = this._route.snapshot.queryParamMap.get('categoryId') || '';
       if (categoryId) {
         this.selectedCategoryId = categoryId;
         this.loadMaintenanceHistory();
       }
-    });
+    }
   }
 
 
@@ -84,8 +91,6 @@ export class MaintenanceEntry {
   }
 
   private loadCategories(): void {
-    if (!this.hasHistoryAccess) return;
-
     this._apiFs.maintenanceCategory.optionList().subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {
@@ -97,9 +102,7 @@ export class MaintenanceEntry {
     });
   }
 
-  private loadMachineFilterList(): void {
-    if (!this.hasHistoryAccess) return;
-
+  private loadMachineOptions(): void {
     this._apiFs.machineConfigure.optionList().subscribe({
       next: (res: IResponse) => {
         if (res.code === 'OK') {

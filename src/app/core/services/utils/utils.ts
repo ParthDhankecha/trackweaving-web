@@ -125,6 +125,12 @@ export class Utils {
     this.decodeTokenData = null;
     this.clearAllToaster();
     this._router.navigateByUrl(`${ROUTES[baseKey].getFullRoute(ROUTES[baseKey].LOGIN)}`);
+    // Reset config data to initial state
+    this._appConfig.configData = {
+      ...this._appConfig.configData,
+      access: undefined,
+      isOwner: false,
+    };
   }
 
 

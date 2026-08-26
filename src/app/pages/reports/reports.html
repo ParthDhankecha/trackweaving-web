@@ -224,7 +224,7 @@
         </div>
         <!-- Show Report Button -->
         <div class="text-center mb-3 user-select-none" [class.p-2]="isDevice">
-            <button type="button" class="btn btn-outline-primary" [class.btn-sm]="isDevice" (click)="onShowReport()"
+            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()"
                 [disabled]="isReqAlive" [class.disabled]="isReqAlive">
                 Show Report
             </button>
@@ -274,7 +274,6 @@
                         </label>
                     </div>
                     }
-                    @if (hasExportAccess) {
                     <div class="report-header__exports d-flex flex-wrap gap-2 ms-sm-auto">
                         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsPDF()">
                             @if (isPdfExporting) {
@@ -289,7 +288,6 @@
                             Export to Excel
                         </button>
                     </div>
-                    }
                 </div>
             </div>
 
@@ -774,7 +772,9 @@
                             <th rowspan="2">Date</th>
                             <th rowspan="2">Shift</th>
                             <th rowspan="2">Machine</th>
-                            <th rowspan="2">Quality</th>
+                            <th rowspan="2" class="quality-column">
+                                Quality
+                            </th>
                             <th rowspan="2" class="text-nowrap">
                                 Prod. [Mtrs]
                             </th>

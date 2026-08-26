@@ -116,11 +116,6 @@ export class Reports {
   ];
 
 
-  protected get hasExportAccess(): boolean {
-    return this._coreService.utils.can('report', 'export') || this.showFactoryFilter;
-  }
-
-
   protected get isTimeWiseStoppageView(): boolean {
     return this.stoppageViewMode === 'timeWise';
   }

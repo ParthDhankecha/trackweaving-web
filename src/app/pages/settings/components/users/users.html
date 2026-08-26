@@ -73,7 +73,8 @@
                             Edit
                         </button>
                         @if (hasManageAccess(user)) {
-                        <button class="btn btn-sm btn-outline-secondary me-2" (click)="onOpenAccessModal(user)">
+                        <button class="btn btn-sm btn-outline-{{ !user?.access ? 'warning': 'secondary'}} me-2"
+                            (click)="onOpenAccessModal(user)">
                             Access
                         </button>
                         }

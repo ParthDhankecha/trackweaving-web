@@ -25,6 +25,10 @@
     }
 }
 
+.quality-column {
+    width: max(350px, 20%);
+}
+
 .custom-tr-bg {
     td {
         background: #0000000d !important;

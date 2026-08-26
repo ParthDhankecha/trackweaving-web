@@ -80,7 +80,7 @@ export class Auth {
     };
     localStorage.setItem(StorageKeys.USER_INFO, JSON.stringify(userDetails));
 
-    if (this._coreService.utils.isMaster) {
+    if (!this._coreService.utils.isSuperAdmin) {
       // Re-run sync once after login so roles/accessModules/config are fresh for this session
       void this._injector.get(AppInit).initApp();
     }

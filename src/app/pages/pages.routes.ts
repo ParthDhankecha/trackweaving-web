@@ -30,7 +30,7 @@ export const routes: Routes = [
         title: APP_PAGE_TITLE.REPORT,
         component: Reports,
         canActivate: [authGuard, accessGuard],
-        data: { accessModule: 'report' }
+        data: { accessModules: ['report'] }
     },
     {
         path: ROUTES.SETTINGS.BASE,
