@@ -21,14 +21,12 @@
         padding: 0.25rem 0.65rem 0.125rem;
         border-bottom: 2px solid var(--bs-primary);
         background: linear-gradient(90deg, rgba(var(--bs-primary-rgb), 0.12), transparent);
-        border-bottom: 2px solid #198754;
-        background: linear-gradient(90deg, rgba(25, 135, 84, 0.12), transparent);
         cursor: pointer;
         user-select: none;
 
         &:hover,
         &:focus-visible {
-            background: linear-gradient(90deg, rgba(25, 135, 84, 0.22), transparent);
+            background: linear-gradient(90deg, rgba(var(--bs-primary-rgb), 0.22), transparent);
             outline: none;
         }
     }
@@ -38,7 +36,7 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        color: #0f5132;
+        color: var(--bs-primary);
         line-height: 0;
     }
 
