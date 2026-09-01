@@ -11,7 +11,7 @@ import { IResponse } from '@src/app/models/http-response.model';
 })
 export class MaintenanceEntry {
   private readonly _http: HttpClient = inject(HttpClient);
-  private readonly _baseUrl: string = 'alerts';
+  private readonly _baseUrl: string = 'maintenance-entry';
 
   private readonly _coreService = inject(CoreFacadeService);
   protected readonly encodeKey = this._coreService.utils.encodeKey;

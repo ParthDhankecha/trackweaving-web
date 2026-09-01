@@ -14,6 +14,7 @@ export type AccessAction = 'create' | 'read' | 'update' | 'delete';
 
 export type AccessModule =
     | 'default'
+    | 'alert_config'//owner admin only(to access alert config - it's not a part of access module)
     | 'machine_group'
     | 'machine_configure'
     | 'maintenance_category'
@@ -22,6 +23,7 @@ export type AccessModule =
     | 'shift_wise_comment'
     | 'part_change_entry'
     | 'user'
+    | 'operator'
     | 'report';
 
 export type IUserAccess = Partial<Record<AccessModule, AccessAction[]>>;

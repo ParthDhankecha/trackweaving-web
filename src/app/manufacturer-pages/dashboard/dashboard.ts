@@ -1,8 +1,8 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { interval, of } from 'rxjs';
+import { interval } from 'rxjs';
 
 import { Header } from '@src/app/layouts/header/header';
 import { Footer } from '@src/app/layouts/footer/footer';
@@ -29,6 +29,7 @@ interface IManufacturerDashboardNavState {
     FormsModule,
     NgClass,
     NgTemplateOutlet,
+    DecimalPipe,
     Header,
     Footer,
     ModalLayer,
@@ -60,7 +61,6 @@ export class ManufacturerDashboard extends Dashboard implements OnInit, OnDestro
 
   override ngOnInit(): void {
     this.loadWorkspaceOptions();
-    this.loadMachineGroups();
     this.getMachineLogs();
     this.refreshSub = interval(this.config.refreshInterval * 1000).subscribe(() => {
       this.getMachineLogs();
@@ -75,7 +75,6 @@ export class ManufacturerDashboard extends Dashboard implements OnInit, OnDestro
         this.workspaceOptions = res.data || [];
         if (!this.selectedWorkspaceId && this.workspaceOptions.length) {
           this.selectedWorkspaceId = this.workspaceOptions[0]._id;
-          this.loadMachineGroups();
           this.getMachineLogs();
         }
       },
@@ -91,14 +90,6 @@ export class ManufacturerDashboard extends Dashboard implements OnInit, OnDestro
       limit: payload.limit,
       ...(this.selectedMachineType && { machineType: this.selectedMachineType })
     });
-  }
-
-  protected override fetchMachineGroups() {
-    if (!this.selectedWorkspaceId) {
-      return of({ code: 'OK', data: [] } as IResponse);
-    }
-
-    return this._apiFs.manufacturerPortal.getMachineGroupOptions(this.selectedWorkspaceId);
   }
 
   protected override onTotalStopsClick(machineLog: IMachineLog): void {

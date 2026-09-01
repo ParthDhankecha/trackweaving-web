@@ -35,6 +35,30 @@
     }
 }
 
+table.is-scrolled-x {
+
+    thead,
+    tbody {
+        .machine-column {
+            position: sticky;
+            left: -1px;
+            z-index: 1;
+        }
+    }
+
+    tbody {
+        .machine-column {
+            background: #f1f1f1 !important;
+        }
+        
+        .custom-tr-bg {
+            .machine-column {
+                background: #fff !important;
+            }
+        }
+    }
+}
+
 .custom-tr-bg {
     td {
         background: #0000000d !important;

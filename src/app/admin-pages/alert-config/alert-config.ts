@@ -135,6 +135,7 @@ export class AlertConfigPage implements OnInit {
     });
   }
 
+
   protected onWorkspaceChannelToggle(event: Event, key: AlertKey, channel: AlertChannelKey): void {
     if (this.isReqAlive || !this.workspaceId) return;
 
@@ -246,6 +247,7 @@ export class AlertConfigPage implements OnInit {
     });
   }
 
+
   protected getUserConfigValue(row: any, key: AlertKey, field: 'thresholds' | 'minutes'): string {
     if (field === 'thresholds') {
       return row?.alerts?.beamLeft?.thresholds || '';
@@ -316,8 +318,15 @@ export class AlertConfigPage implements OnInit {
   protected onUserChannelToggle(event: Event, row: any, key: AlertKey, channel: AlertChannelKey): void {
     if (this.isReqAlive || !row?.user?._id) return;
 
-    event?.stopPropagation();
     event?.preventDefault();
+    if (!this.workspaceAlerts[key]?.[channel]) {
+      event?.stopPropagation();
+      this._coreService.utils.showToaster(
+        EToasterType.Warning,
+        'Workspace alert is disabled, please enable it to set user alert.'
+      );
+      return;
+    }
 
     const index = this.userConfigs.findIndex(u => u.user?._id === row.user._id);
     if (index === -1) return;
@@ -367,6 +376,7 @@ export class AlertConfigPage implements OnInit {
       }
     });
   }
+
 
   protected onOpenResetConfirm(row: any): void {
     if (!row?.hasOverride) return;

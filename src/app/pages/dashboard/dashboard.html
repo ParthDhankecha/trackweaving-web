@@ -51,16 +51,30 @@
         @if (isGroupedView) {
         <div class="d-flex flex-column gap-3 px-1">
             @for (group of groupedMachineLogs; track group.key) {
-            <section class="dashboard-group">
-                <header class="dashboard-group__header">
+            <section class="dashboard-group" [class.dashboard-group--collapsed]="isGroupCollapsed(group.key)">
+                <header class="dashboard-group__header" role="button" tabindex="0"
+                    (click)="toggleGroupCollapse(group.key)" (keydown.enter)="toggleGroupCollapse(group.key)"
+                    (keydown.space)="$event.preventDefault(); toggleGroupCollapse(group.key)">
                     <div class="dashboard-group__identity">
-                        <h6 class="dashboard-group__title mb-0">{{ group.label }}</h6>
-                        <span class="dashboard-group__count">{{ group.metrics.count }}</span>
+                        <span class="dashboard-group__toggle" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                                class="dashboard-group__chevron"
+                                [class.dashboard-group__chevron--collapsed]="isGroupCollapsed(group.key)">
+                                <path
+                                    d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06z" />
+                            </svg>
+                        </span>
+                        <h6 class="dashboard-group__title mb-0">
+                            {{ group.label }}
+                        </h6>
+                        <span class="dashboard-group__count">
+                            {{ group.metrics.count }}
+                        </span>
 
                         <span class="dashboard-group__divider"></span>
 
                         <div class="dashboard-group__metric">
-                            <strong>{{ group.metrics.efficiency }}%</strong>
+                            <strong>{{group.metrics.efficiency}}%</strong>
                             <small>Efficiency</small>
                         </div>
                         <div class="dashboard-group__metric">
@@ -77,19 +91,24 @@
                         </div>
                     </div>
                 </header>
+                @if (!isGroupCollapsed(group.key)) {
                 <div class="d-grid m-0" [class]="rowClass" [class.g-2]="!isDenseLayout" [class.gap-2]="!isDenseLayout"
                     [class.row-gap-2]="!isDenseLayout">
                     @for (machineLog of group.machines; track $index) {
                     <div (dblclick)="doubleClickOnMachineCard(machineLog)">
                         @if (isDenseLayout) {
-                        <ng-container
-                            *ngTemplateOutlet="denseMachineCardTemplate; context: { $implicit: machineLog }" />
+                        <ng-container *ngTemplateOutlet="denseMachineCardTemplate; context: {
+                            $implicit: machineLog
+                        }" />
                         } @else {
-                        <ng-container *ngTemplateOutlet="machineCardTemplate; context: { $implicit: machineLog }" />
+                        <ng-container *ngTemplateOutlet="machineCardTemplate; context: {
+                            $implicit: machineLog
+                        }" />
                         }
                     </div>
                     }
                 </div>
+                }
             </section>
             }
         </div>
@@ -175,7 +194,9 @@
             [class.dense-card--running]="!machineLog.currentStop">
             <header class="dense-card__header">
                 <span class="dense-card__code">{{ machineLog.machineCode }}</span>
-                <span class="dense-card__quality">{{ machineLog.quality || '' }}{{machineLog.reed ? (' ' + machineLog.reed + ')') : ''}}</span>
+                <span class="dense-card__quality">
+                    {{ machineLog.quality || '' }}{{machineLog.reed ? (' ' + machineLog.reed + ')') : ''}}
+                </span>
             </header>
 
             <div class="dense-card__stop" [class.blink-bg]="machineLog.currentStop">
@@ -203,7 +224,8 @@
 
                 <div class="dense-card__col">
                     @for (item of denseMetricKeys.rightKeys; track item.key) {
-                    <div class="dense-card__row" [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
+                    <div class="dense-card__row"
+                        [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                         @if (metricDisplayMode === 'icon') {
                         <span class="dense-card__icon" aria-hidden="true">
                             <ng-container *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
@@ -221,7 +243,7 @@
                 <div class="dense-card__progress progress" role="progressbar">
                     <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
                         [style.width.%]="(machineLog?.efficiency === 0 ? 100 : machineLog?.efficiency) || 0">
-                        {{ machineLog?.efficiency || 0 }}%
+                        {{(machineLog?.efficiency|number:'1.0-0')??0}}%
                     </div>
                 </div>
                 <div class="dense-card__duration">
@@ -292,12 +314,12 @@
                     <div class="row p-0 m-0">
                         <div class="col-6 p-0 pe-1 d-flex flex-column gap-1">
                             @for(item of machineCardKeyObj.leftKeys; track item){
-                            <div
-                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
+                            <div class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
                                 [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                                 <div class="rounded-1 w-auto flex-shrink-0" style="padding: 0.125em;">
-                                    <ng-container
-                                        *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
+                                    <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
+                                        $implicit: item.key
+                                    }" />
                                 </div>
                                 <div class="px-1 box-content">
                                     <small class="lh-1 text-capitalize fw-semibold box-content">
@@ -314,12 +336,12 @@
                         </div>
                         <div class="col-6 p-0 ps-1 d-flex flex-column gap-1">
                             @for(item of machineCardKeyObj.rightKeys; track item){
-                            <div
-                                class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
+                            <div class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
                                 [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                                 <div class="rounded-1 w-auto " style="padding: 0.125em;">
-                                    <ng-container
-                                        *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
+                                    <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
+                                        $implicit: item.key
+                                    }" />
                                 </div>
                                 <div class="px-1 box-content">
                                     <small class="lh-1 text-capitalize fw-semibold box-content">
@@ -343,7 +365,7 @@
                         role="progressbar">
                         <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
                             [style.width.%]="(machineLog?.efficiency===0?100:machineLog?.efficiency) || 0">
-                            {{machineLog?.efficiency || 0}}%
+                            {{(machineLog?.efficiency|number:'1.0-0')??0}}%
                         </div>
                     </div>
                 </div>
@@ -535,7 +557,7 @@
     <div class="d-flex gap-2">
         <div class="flex-shrink-0 d-flex flex-column text-center text-primary">
             <h4 class="m-0">
-                {{data?.liveMetrics?.efficiency || '0'}}%
+                {{data?.liveMetrics?.efficiency??0}}%
             </h4>
             <small>Efficiency</small>
         </div>

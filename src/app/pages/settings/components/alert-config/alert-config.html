@@ -1,0 +1,160 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    @if (isLoading) {
+    <div class="text-center text-muted py-5">
+        Loading alert configuration...
+    </div>
+    } @else {
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <div>
+            <strong class="fs-5 d-block">
+                Alert Configuration
+            </strong>
+            <p class="text-muted small mb-0">
+                App alerts for this mill. If an alert is off here, no user receives it.
+            </p>
+        </div>
+        @if (workspaceName) {
+        <span class="badge text-bg-light border text-dark text-capitalize">
+            {{ workspaceName }}
+        </span>
+        }
+    </div>
+
+    <div class="row g-3 mb-4">
+        @for (item of alertList; track item.key) {
+        <div class="col-12 col-lg-6">
+            <div class="border rounded p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <div class="fw-medium">
+                        {{ item.label }}
+                    </div>
+                    <div class="form-check form-switch m-0 p-0 mh-unset">
+                        <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
+                            [checked]="workspaceAlerts[item.key].notification"
+                            (click)="onWorkspaceToggle($event, item.key)">
+                    </div>
+                </div>
+
+                @if (item.configField) {
+                <div>
+                    <label class="form-label small mb-1">
+                        {{ item.configLabel }}
+                    </label>
+                    <input type="text" class="form-control form-control-sm"
+                        [placeholder]="configValue(defaultAlerts, item.configField!)"
+                        [ngModel]="configValue(workspaceAlerts, item.configField!)"
+                        (ngModelChange)="setWorkspaceConfig(item.key, item.configField!, $event)"
+                        (keydown.enter)="onWorkspaceConfigEnter(item.key)">
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </div>
+
+    <div class="mb-3">
+        <strong class="d-block">
+            User Alerts
+        </strong>
+        <p class="text-muted small mb-0">
+            Per-user app alerts under workspace rules. Users cannot re-enable an alert that is off at mill level.
+        </p>
+    </div>
+
+    <div class="d-flex flex-column gap-3">
+        @for (row of userConfigs; track row.user?._id) {
+        <div class="border rounded p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div class="fw-medium text-capitalize">
+                    User Name: <span class="text-muted">
+                        {{ row.user?.userName || '—' }}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    @if (!row.user?.isActive) {
+                    <span class="badge text-bg-secondary">Inactive</span>
+                    }
+                    @if (row.hasOverride) {
+                    <span class="badge text-bg-warning">Custom</span>
+                    } @else {
+                    <span class="badge text-bg-light border text-muted">Default</span>
+                    }
+                    <button class="btn btn-sm btn-outline-secondary" [disabled]="!row.hasOverride"
+                        (click)="onOpenResetConfirm(row)">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                @for (item of alertList; track item.key) {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="bg-light rounded p-3 h-100">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <div class="fw-medium small">
+                                {{ item.label }}
+                            </div>
+                            <div class="form-check form-switch m-0 p-0 mh-unset">
+                                <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
+                                    [checked]="row.alerts?.[item.key]?.notification"
+                                    (click)="onUserToggle($event, row, item.key)">
+                            </div>
+                        </div>
+
+                        @if (item.configField) {
+                        <div>
+                            <label class="form-label small mb-1">
+                                {{ item.configLabel }}
+                            </label>
+                            <input type="text" class="form-control form-control-sm"
+                                [placeholder]="configValue(defaultAlerts, item.configField!)"
+                                [ngModel]="configValue(row.alerts, item.configField!)"
+                                (ngModelChange)="setUserConfig(row, item.key, item.configField!, $event)"
+                                (keydown.enter)="onUserConfigEnter(row, item.key)">
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        } @empty {
+        <div class="text-center text-muted py-4">
+            No users found in this workspace.
+        </div>
+        }
+    </div>
+    }
+</div>
+
+
+<!-- reset confirm modal -->
+@if (resetConfirmModal.isOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Reset Alert Override
+                </h5>
+                <button type="button" class="btn-close" (click)="closeResetConfirm()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center mb-0">
+                    Reset alert settings for<strong>
+                        {{ resetConfirmModal.data?.user?.userName}}
+                    </strong>to workspace defaults?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeResetConfirm()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmResetOverride()">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

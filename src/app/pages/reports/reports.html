@@ -224,8 +224,8 @@
         </div>
         <!-- Show Report Button -->
         <div class="text-center mb-3 user-select-none" [class.p-2]="isDevice">
-            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()"
-                [disabled]="isReqAlive" [class.disabled]="isReqAlive">
+            <button type="button" class="btn btn-outline-primary" (click)="onShowReport()" [disabled]="isReqAlive"
+                [class.disabled]="isReqAlive">
                 Show Report
             </button>
         </div>
@@ -274,19 +274,37 @@
                         </label>
                     </div>
                     }
-                    <div class="report-header__exports d-flex flex-wrap gap-2 ms-sm-auto">
+                    <div class="report-header__exports d-flex flex-wrap gap-2 ms-sm-auto text-nowrap">
                         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsPDF()">
                             @if (isPdfExporting) {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                             }
-                            Export to PDF
+                            Export PDF
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportAsExcel()">
                             @if (isExcelExporting) {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                             }
-                            Export to Excel
+                            Export Excel
                         </button>
+                        @if (isDevice) {
+                        <div class="d-flex flex-wrap gap-2 flex-grow-1 d-sm-contents">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                (click)="exportAsPDF('share')">
+                                @if (isPdfExporting) {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Share PDF
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                (click)="exportAsExcel('share')">
+                                @if (isExcelExporting) {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Share Excel
+                            </button>
+                        </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -311,7 +329,7 @@
                 </tr>
             </ng-template>
 
-            <div class="table-responsive" [class.px-2]="isDevice">
+            <div class="table-responsive" [class.px-2]="isDevice" (scroll)="onReportTableScroll($event)">
                 @switch(reportData?.reportType){
                 @case('stoppageReport'){
                 <table class="table table-bordered" #reportTable>
@@ -423,35 +441,29 @@
                     <thead class="table-dark text-center align-middle">
                         <tr>
                             <th>Machine</th>
+                            <th>Quality</th>
                             <th>Beam Left (Mtrs)</th>
                             <th>Completion Date</th>
-                            <th>Source</th>
-                            <th>Avg Daily Prod. (Mtrs)</th>
-                            <th>Est. Days Remaining</th>
+                            <th>Days Remaining</th>
                         </tr>
                     </thead>
                     <tbody class="align-middle text-center">
                         @for (row of reportData?.list; track $index; let odd = $odd) {
                         <tr class="small" [class.custom-tr-bg]="odd">
                             <td>{{ row.machineCode || row.machineName || '-' }}</td>
+                            <td>{{ formatQualityReed(row.quality, row.reed) }}</td>
                             <td>{{ row.beamLeft | number:'1.0-2' }}</td>
                             <td class="text-nowrap">
                                 @if (row.beamCompletionDate) {
                                 {{ row.beamCompletionDate | date:'dd-MMM-yyyy' }}
-                                } @else {
-                                -
-                                }
-                            </td>
-                            <td>{{ formatCompletionSource(row.completionSource) }}</td>
-                            <td>
-                                {{ row.avgDailyProduction != null ? (row.avgDailyProduction | number:'1.0-2') : '-' }}
+                                } @else {-}
                             </td>
                             <td>{{ row.estimatedDaysRemaining ?? '-' }}</td>
                         </tr>
                         }
                         @if (!reportData?.list?.length) {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-3">
+                            <td colspan="5" class="text-center text-muted py-3">
                                 No beam completion data found for the selected machines.
                             </td>
                         </tr>
@@ -463,12 +475,14 @@
                 <h5 class="text-capitalize m-0 mb-2">
                     {{ `Quality: ${reportData?.quality || '-'}` }}
                 </h5>
-                <table class="table table-bordered" #reportTable>
+                <table class="table table-bordered" #reportTable [class.is-scrolled-x]="isTableScrolledX">
                     <thead class="table-dark text-center align-middle">
                         <tr>
                             <th rowspan="2">Date</th>
                             <th rowspan="2">Shift</th>
-                            <th rowspan="2">Machine</th>
+                            <th rowspan="2" class="machine-column" #machineCol>
+                                Machine
+                            </th>
                             <th rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
                             <th rowspan="2">Picks</th>
                             <th rowspan="2" class="text-nowrap">Eff. %</th>
@@ -507,7 +521,7 @@
                                 {{ item.shiftLabel }}
                             </td>
                             }
-                            <td>{{data.machineCode}}</td>
+                            <td class="machine-column">{{data.machineCode}}</td>
                             <td>{{data.pieceLengthM|number:'1.0-2'}}</td>
                             <td>{{data.picksCurrentShift}}</td>
                             <td>{{data.efficiencyPercent|number:'1.1-2'}}</td>
@@ -567,12 +581,15 @@
                 </table>
                 }
                 @case ('productionShiftWise') {
-                <table class="table table-bordered shift-wise-production-table" #reportTable>
+                <table class="table table-bordered shift-wise-production-table" #reportTable
+                    [class.is-scrolled-x]="isTableScrolledX">
                     @if (by24Hours){
                     <thead class="table-dark text-center align-middle">
                         <tr>
                             <th rowspan="3">Date</th>
-                            <th rowspan="3">Machine</th>
+                            <th rowspan="3" class="machine-column" #machineCol>
+                                Machine
+                            </th>
                             <th rowspan="3">Quality</th>
                             <th rowspan="3">Shift</th>
                             <th colspan="2" rowspan="2" class="text-nowrap">Prod. [Mtrs]</th>
@@ -613,7 +630,9 @@
                                 {{item.reportDate | date:'dd-MMM-yyyy'}}
                             </td>
                             }
-                            <td rowspan="2">{{data.machineCode}}</td>
+                            <td rowspan="2" class="machine-column">
+                                {{data.machineCode}}
+                            </td>
                             <td rowspan="2">{{data.qualityLabel}}</td>
                             <td>Day</td>
 
@@ -771,7 +790,9 @@
                         <tr>
                             <th rowspan="2">Date</th>
                             <th rowspan="2">Shift</th>
-                            <th rowspan="2">Machine</th>
+                            <th rowspan="2" class="machine-column" #machineCol>
+                                Machine
+                            </th>
                             <th rowspan="2" class="quality-column">
                                 Quality
                             </th>
@@ -825,7 +846,7 @@
                                 {{ item.shiftLabel }}
                             </td>
                             }
-                            <td>
+                            <td class="machine-column">
                                 {{data.machineCode}}
                             </td>
                             <td>

@@ -17,7 +17,9 @@ export const ROUTES = {
         MAINTENANCE_ENTRY: 'maintenance-entry',
         SHIFT_WISE_COMMENT_UPDATE: 'shift-wise-comment-update',
         PARTS_CHANGE_ENTRY: 'parts-change-entry',
+        ALERT_CONFIG: 'alert-config',
         USERS: 'users',
+        OPERATORS: 'operators',
         getFullRoute: (...args: string[]) => `/${ROUTES.BASE}/${ROUTES.SETTINGS.BASE}/${args.join('/')}`
     },
     ADMIN: {
