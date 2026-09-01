@@ -118,7 +118,9 @@
                             Machine Type <span class="text-danger">*</span>
                         </label>
                         <select id="machineType" formControlName="machineType" class="form-select text-capitalize">
-                            <option value="" disabled selected>Select Machine Type</option>
+                            <option value="" disabled selected>
+                                Select Machine Type
+                            </option>
                             @for(mtOption of machineTypeList; track mtOption;){
                             <option [value]="mtOption">
                                 {{mtOption}}
@@ -193,6 +195,31 @@
                         </label>
                         <input type="text" id="reed" formControlName="reed" class="form-control"
                             placeholder="Enter reed">
+                    </div>
+                    <!-- Panna -->
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">
+                            Panna <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex flex-wrap gap-3 pt-1">
+                            @for (opt of pannaOptions; track opt.value) {
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" [id]="'admin-panna-' + opt.value"
+                                    [value]="opt.value" formControlName="panna">
+                                <label class="form-check-label text-capitalize" [for]="'admin-panna-' + opt.value">
+                                    {{ opt.label }}
+                                </label>
+                            </div>
+                            }
+                        </div>
+
+                        @if(panna && panna.touched && panna.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(panna.errors['required']){
+                            <span>Panna is required.</span>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
             </div>

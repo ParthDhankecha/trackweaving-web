@@ -57,7 +57,7 @@
                                 </span>
                                 <div class="form-check form-switch m-0 p-0 mh-unset">
                                     <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
-                                        [checked]="workspaceAlerts[item.key]?.[channel.key]"
+                                        [checked]="workspaceAlerts[item.key][channel.key]"
                                         (click)="onWorkspaceChannelToggle($event, item.key, channel.key)">
                                 </div>
                             </div>

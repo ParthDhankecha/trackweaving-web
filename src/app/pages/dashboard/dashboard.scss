@@ -8,6 +8,10 @@
     flex-direction: column;
     gap: 0.5rem;
 
+    &--collapsed {
+        gap: 0;
+    }
+
     &__header {
         display: flex;
         align-items: center;
@@ -17,6 +21,34 @@
         padding: 0.25rem 0.65rem 0.125rem;
         border-bottom: 2px solid #198754;
         background: linear-gradient(90deg, rgba(25, 135, 84, 0.12), transparent);
+        cursor: pointer;
+        user-select: none;
+
+        &:hover,
+        &:focus-visible {
+            background: linear-gradient(90deg, rgba(25, 135, 84, 0.22), transparent);
+            outline: none;
+        }
+    }
+
+    &__toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #0f5132;
+        line-height: 0;
+    }
+
+    &__chevron {
+        width: 1rem;
+        height: 1rem;
+        display: block;
+        transition: transform 0.15s ease;
+
+        &--collapsed {
+            transform: rotate(-90deg);
+        }
     }
 
     &__identity {

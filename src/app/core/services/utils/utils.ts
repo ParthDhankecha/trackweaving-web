@@ -84,6 +84,8 @@ export class Utils {
   can(module: AccessModule, action: AccessAction = 'read'): boolean {
     if (module === 'user' && (action === 'create' || action === 'delete')) {
       return this.isOwner;
+    } else if (module === 'alert_config') {
+      return this.isOwner;
     }
     if (this.isAdmin) return true;
     const access = this._appConfig.access;

@@ -34,7 +34,9 @@ export const APP_PAGE_TITLE = {
         MAINTENANCE_ENTRY: `Maintenance Entry ${TITLE_POSTFIX}`,
         SHIFT_WISE_COMMENT_UPDATE: `Shift Wise Comment Update ${TITLE_POSTFIX}`,
         PARTS_CHANGE_ENTRY: `Parts Change Entry ${TITLE_POSTFIX}`,
-        USERS: `Users ${TITLE_POSTFIX}`
+        ALERT_CONFIG: `Alert Configuration ${TITLE_POSTFIX}`,
+        USERS: `Users ${TITLE_POSTFIX}`,
+        OPERATORS: `Operators ${TITLE_POSTFIX}`
     },
     DESIGN: `Design ${TITLE_POSTFIX}`,
     ADMIN: {

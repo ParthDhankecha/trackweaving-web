@@ -68,9 +68,19 @@ export class Header {
       accessModule: 'part_change_entry'
     },
     {
-      id: 'users', icon: 'users', label: "Users",
+      id: 'alertConfig', icon: 'alert', label: "Alert Configuration",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.ALERT_CONFIG),
+      accessModule: 'alert_config'
+    },
+    {
+      id: 'users', icon: 'users', label: "Manage Users",
       link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.USERS),
       accessModule: 'user'
+    },
+    {
+      id: 'operators', icon: 'users', label: "Manage Operators",
+      link: ROUTES.SETTINGS.getFullRoute(ROUTES.SETTINGS.OPERATORS),
+      accessModule: 'operator'
     },
     {
       id: 'privacyPolicy', icon: 'pp', label: "Privacy Policy", link: `/${ROUTES.PRIVACY_POLICY}`

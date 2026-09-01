@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,7 +16,10 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 
 import { RegisterModalLayer } from '@src/app/shared/directives/register-modal-layer';
 import { IResponse } from '@src/app/models/http-response.model';
-import { EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig, LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS } from '@src/app/models/machine.model';
+import {
+  EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig,
+  LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS
+} from '@src/app/models/machine.model';
 import { IAppConfigData } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
 import { ROUTES } from '@src/app/constants/app.routes';
@@ -27,6 +30,7 @@ import { ROUTES } from '@src/app/constants/app.routes';
   imports: [
     FormsModule,
     NgClass,
+    DecimalPipe,
     NgTemplateOutlet,
     Header,
     Footer,
@@ -89,11 +93,12 @@ export class Dashboard implements OnInit, OnDestroy {
     { key: 'default', label: 'Default' },
     { key: 'group', label: 'By Group' },
     { key: 'efficiency', label: 'By Efficiency' },
+    { key: 'quality', label: 'By Quality' },
+    { key: 'operator', label: 'By Operator' },
   ];
   protected selectedGroupBy: GroupByOption = this.readStoredGroupBy() ?? 'default';
   protected groupedMachineLogs: IMachineLogGroup[] = [];
-  /** machineGroupId → groupName (from machine-group list API) */
-  private machineGroupNameMap = new Map<string, string>();
+  private collapsedGroupKeys = new Set<string>();
 
   /** Shorter labels for dense card metric rows */
   protected readonly denseMetricKeys = {
@@ -117,7 +122,6 @@ export class Dashboard implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Pagination disabled for now — restore for future use
     // this.initLayoutForApi();
-    this.loadMachineGroups();
     this.getMachineLogs();
     this.refreshSub = interval(this.config.refreshInterval * 1000).subscribe(() => {
       this.getMachineLogs();
@@ -259,7 +263,6 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   protected onWorkspaceChange(): void {
-    this.loadMachineGroups();
     this.getMachineLogs();
   }
 
@@ -339,8 +342,22 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.selectedGroupBy === opt) return;
     this.selectedGroupBy = opt;
     this.persistGroupBy(opt);
+    this.collapsedGroupKeys.clear();
     this.applyGrouping();
   }
+
+  protected isGroupCollapsed(key: string): boolean {
+    return this.collapsedGroupKeys.has(key);
+  }
+
+  protected toggleGroupCollapse(key: string): void {
+    if (this.collapsedGroupKeys.has(key)) {
+      this.collapsedGroupKeys.delete(key);
+    } else {
+      this.collapsedGroupKeys.add(key);
+    }
+  }
+
 
   private applyGrouping(): void {
     if (this.selectedGroupBy === 'default') {
@@ -349,10 +366,13 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     let groups: IMachineLogGroup[] = [];
-    if (this.selectedGroupBy === 'group') {
-      groups = this.groupByMachine(this.machineLogs);
-    } else if (this.selectedGroupBy === 'efficiency') {
-      groups = this.groupByEfficiency(this.machineLogs);
+    switch (this.selectedGroupBy) {
+      case 'efficiency': groups = this.groupByEfficiency(this.machineLogs);
+        break;
+      case 'group':
+      case 'operator':
+      case 'quality': groups = this.arrangeByGroup(this.machineLogs, this.selectedGroupBy);
+        break;
     }
 
     // Hide empty groups when any non-default grouping is active
@@ -367,20 +387,23 @@ export class Dashboard implements OnInit, OnDestroy {
       return { efficiency: 0, pick: 0, avgPicks: 0, avgSpeed: 0, count: 0 };
     }
 
-    let efficiencySum = 0;
+    let efficiencySum = 0, efficiencyCount = 0;
     let pickSum = 0;
     let speedSum = 0;
     let running = 0;
 
     for (const m of machines) {
-      efficiencySum += Number(m.efficiency) || 0;
+      if (Number(m.efficiency) > 0) {
+        efficiencySum += Number(m.efficiency);
+        efficiencyCount++;
+      }
       pickSum += Number(m.picks) || 0;
       speedSum += Number(m.speed) || 0;
       if (Number(m.speed) > 0) running++;
     }
 
     return {
-      efficiency: Math.round(efficiencySum / count),
+      efficiency: Math.round(efficiencySum / (efficiencyCount || 1)),
       pick: pickSum,
       avgPicks: Math.round(pickSum / count),
       avgSpeed: running ? Math.round(speedSum / running) : 0,
@@ -388,45 +411,40 @@ export class Dashboard implements OnInit, OnDestroy {
     };
   }
 
-  protected loadMachineGroups(): void {
-    this.fetchMachineGroups().subscribe({
-      next: (res: IResponse) => {
-        if (res.code !== 'OK') return;
 
-        this.machineGroupNameMap.clear();
-        for (const mg of res.data || []) {
-          const id = mg?._id?.toString?.() ?? mg?._id;
-          if (!id) continue;
-          this.machineGroupNameMap.set(id, mg.groupName || 'Untitled Group');
+  private resolveGroupKeyConfig(log: IMachineLog, groupKey: string): { key: string, label: string } {
+    const obj: any = { key: 'ungrouped', label: 'No Group' };
+    switch (groupKey) {
+      case 'group': {
+        if (log.machineGroup) {
+          obj.key = log.machineGroup;
+          obj.label = log.machineGroup;
         }
-
-        // Resolve labels if machine logs already arrived
-        if (this.selectedGroupBy === 'group' && this.machineLogs.length) {
-          this.applyGrouping();
-        }
-      },
-      error: (err: any) => {
-        console.log('Error while fetching machine groups', err);
+        break;
       }
-    });
+      case 'quality': {
+        if (log.quality) {
+          obj.key = log.quality;
+          obj.label = log.quality;
+        }
+        break;
+      }
+      case 'operator': {
+        if (log.operator) {
+          obj.key = log.operator;
+          obj.label = log.operator;
+        }
+        break;
+      }
+    }
+    return obj;
   }
 
-  protected fetchMachineGroups() {
-    return this._apiFs.machineGroup.list();
-  }
-
-  private resolveMachineGroupLabel(groupId: string): string {
-    if (!groupId || groupId === 'ungrouped') return 'No Group';
-    return this.machineGroupNameMap.get(groupId) || 'No Group';
-  }
-
-  private groupByMachine(logs: IMachineLog[]): IMachineLogGroup[] {
+  private arrangeByGroup(logs: IMachineLog[], groupKey: string): IMachineLogGroup[] {
     const map = new Map<string, IMachineLogGroup>();
 
     for (const log of logs) {
-      const rawId = log.machineGroupId?.toString?.() ?? log.machineGroupId;
-      const key = (typeof rawId === 'string' && rawId.trim()) ? rawId.trim() : 'ungrouped';
-      const label = this.resolveMachineGroupLabel(key);
+      const { key, label } = this.resolveGroupKeyConfig(log, groupKey);
       if (!map.has(key)) {
         map.set(key, {
           key,
@@ -622,7 +640,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   protected isLowBeamLeft(machineLog: IMachineLog): boolean {
     const beamLeft = Number(machineLog?.beamLeft);
-    return Number.isFinite(beamLeft) && beamLeft < this.beamLeftMin;
+    if (!Number.isFinite(beamLeft) || beamLeft < 1) return false;
+    return beamLeft < this.beamLeftMin;
   }
 
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {

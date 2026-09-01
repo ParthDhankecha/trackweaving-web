@@ -6,6 +6,8 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
 
+import { PANNA_LABEL_MAP, PANNA_OPTIONS } from '@src/app/constants/machine';
+
 
 @Component({
   selector: 'app-machine-configure',
@@ -27,6 +29,8 @@ export class MachineConfigure {
   protected isUpsertMachineConfigureModalOpen: boolean = false;
 
 
+  protected readonly pannaOptions = PANNA_OPTIONS;
+  protected readonly pannaLabelMap = PANNA_LABEL_MAP;
   protected mcForm: FormGroup = this._fb.group({
     machineName: ['', []],// disable always
     machineCode: ['', [Validators.required, Validators.pattern('^M[0-9]+$')]],
@@ -34,6 +38,7 @@ export class MachineConfigure {
     maxSpeedLimit: [null, [Validators.min(0)]],
     quality: ['', []],
     reed: ['', []],
+    panna: [null, [Validators.required]],
   });
 
 
@@ -101,8 +106,16 @@ export class MachineConfigure {
   get reed(): AbstractControl | null {
     return this.mcForm.get('reed');
   }
+  get panna(): AbstractControl | null {
+    return this.mcForm.get('panna');
+  }
   get isAlertActive(): AbstractControl | null {
     return this.mcForm.get('isAlertActive');
+  }
+
+  private normalizePanna(value: unknown): number | null {
+    const n = Number(value);
+    return this.pannaOptions.some(o => o.value === n) ? n : null;
   }
 
   protected onChangeAlert(): void {
@@ -121,6 +134,7 @@ export class MachineConfigure {
       maxSpeedLimit: machineConfigure?.maxSpeedLimit ?? null,
       quality: machineConfigure?.quality ?? '',
       reed: machineConfigure?.reed ?? '',
+      panna: this.normalizePanna(machineConfigure?.panna),
     };
     if (this.isAdmin) obj.isAlertActive = machineConfigure?.isAlertActive ?? false;
 
@@ -140,6 +154,7 @@ export class MachineConfigure {
       maxSpeedLimit: null,
       quality: '',
       reed: '',
+      panna: null,
     };
     if (this.isAdmin) obj.isAlertActive = false;
 
@@ -159,6 +174,7 @@ export class MachineConfigure {
     this.isReqAlive = true;
     const body = { ...this.mcForm.value };
     body.machineGroupId = body.machineGroupId || null;
+    body.panna = this.normalizePanna(body.panna);
 
     this._apiFs.machineConfigure.update(this.upsertMachineConfigureModalData._id, body).subscribe({
       next: (res: IResponse) => {

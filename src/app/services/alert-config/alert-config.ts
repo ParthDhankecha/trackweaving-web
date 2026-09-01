@@ -27,22 +27,41 @@ export type AlertKey = keyof Required<AlertFlags>;
 export class AlertConfig {
 
   private readonly _http: HttpClient = inject(HttpClient);
-  private readonly _baseUrl: string = 'admin/alert-config';
+  private readonly _adminBaseUrl: string = 'admin/alert-config';
+  private readonly _baseUrl: string = 'alert-config';
 
 
   getByWorkspace(workspaceId: string): Observable<IResponse> {
-    return this._http.get(`${this._baseUrl}/workspace/${workspaceId}`);
+    return this._http.get(`${this._adminBaseUrl}/workspace/${workspaceId}`);
   }
 
   upsertWorkspace(workspaceId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {
-    return this._http.put(`${this._baseUrl}/workspace/${workspaceId}`, { alerts });
+    return this._http.put(`${this._adminBaseUrl}/workspace/${workspaceId}`, { alerts });
   }
 
   upsertUser(userId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {
-    return this._http.put(`${this._baseUrl}/user/${userId}`, { alerts });
+    return this._http.put(`${this._adminBaseUrl}/user/${userId}`, { alerts });
   }
 
   resetUserOverride(userId: string): Observable<IResponse> {
+    return this._http.delete(`${this._adminBaseUrl}/user/${userId}`);
+  }
+
+
+  /*  client APIs  */
+  getDetails(): Observable<IResponse> {
+    return this._http.get(this._baseUrl);
+  }
+
+  saveWorkspace(alerts: Partial<AlertFlags>): Observable<IResponse> {
+    return this._http.put(this._baseUrl, { alerts });
+  }
+
+  saveUser(userId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {
+    return this._http.put(`${this._baseUrl}/user/${userId}`, { alerts });
+  }
+
+  resetUser(userId: string): Observable<IResponse> {
     return this._http.delete(`${this._baseUrl}/user/${userId}`);
   }
 }
