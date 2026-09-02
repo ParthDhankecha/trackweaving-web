@@ -205,15 +205,47 @@ export class Reports {
 
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
   @ViewChild('machineCol', { static: false }) machineCol!: ElementRef<HTMLTableCellElement>;
+  @ViewChild('reportTableScroll', { static: false }) reportTableScroll!: ElementRef<HTMLElement>;
 
 
+  private machineColumnInitialLeft: number = 0;
   protected isTableScrolledX: boolean = false;
-  protected onReportTableScroll(event: Event): void {
-    const column = this.machineCol?.nativeElement;
-    if (!column) return;
+  private refreshStickyState(options: { delay?: number; force?: boolean } = {}): void {
+    const { delay = 10, force = false } = options;
 
-    const container = event.target as HTMLElement;
-    this.isTableScrolledX = column.getBoundingClientRect().left <= container.getBoundingClientRect().left;
+    // Sticky `left` is based on the column's natural offset. Measure only after
+    // sticky is off and the real scroll container (not the <table>) is at 0.
+    this.isTableScrolledX = false;
+    this.resetReportTableScroll();
+
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        this.resetReportTableScroll();
+
+        const table = this.reportTable?.nativeElement;
+        const machine = this.machineCol?.nativeElement;
+        if (!table || !machine) return;
+
+        if (this.machineColumnInitialLeft === 0 || force) {
+          const tableRect = table.getBoundingClientRect();
+          const machineRect = machine.getBoundingClientRect();
+          this.machineColumnInitialLeft = machineRect.left - tableRect.left + 1;
+        }
+      });
+    }, delay);
+  }
+  private resetReportTableScroll(): void {
+    const container = this.reportTableScroll?.nativeElement;
+    if (container) container.scrollLeft = 0;
+  }
+  protected onReportTableScroll(event: Event): void {
+    const container = event.currentTarget as HTMLElement;
+    if (!container) return;
+
+    const isScrolled = container.scrollLeft > this.machineColumnInitialLeft;
+    if (isScrolled !== this.isTableScrolledX) {
+      this.isTableScrolledX = isScrolled;
+    }
   }
 
 
@@ -658,6 +690,7 @@ export class Reports {
       this.stoppageViewMode = 'machineWise';
       this.by24Hours = false;
       this.reportDataBy24Hours = null;
+      this.machineColumnInitialLeft = 0;
     });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
@@ -872,6 +905,8 @@ export class Reports {
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;
             this.reportData.showBeamCompletionDateColumn = this.showBeamCompletionDateColumn;
+
+            this.refreshStickyState();
           }
         }
       },
@@ -898,7 +933,11 @@ export class Reports {
   protected reportDataBy24Hours: any = null;
   protected onBy24HoursChange(enabled: boolean): void {
     if (!this.reportData || this.reportData.reportType !== 'productionShiftWise') return;
-    if (this.reportDataBy24Hours !== null) return;
+
+    if (!enabled || this.reportDataBy24Hours !== null) {
+      this.refreshStickyState({ force: true });
+      return;
+    }
 
     const { list, ...rest } = this.reportData;
     this.reportDataBy24Hours = {
@@ -981,6 +1020,7 @@ export class Reports {
     }
 
     this.reportDataBy24Hours.list = result;
+    this.refreshStickyState({ force: true });
   }
 
   private mergeMachineDayNight(entry: Record<string, any>): any {

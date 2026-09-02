@@ -35,25 +35,39 @@
     }
 }
 
-table.is-scrolled-x {
+.table-responsive {
+    table.is-scrolled-x {
 
-    thead,
-    tbody {
-        .machine-column {
-            position: sticky;
-            left: -1px;
-            z-index: 1;
+        thead,
+        tbody {
+            .machine-column {
+                position: sticky;
+                left: -1px;
+                z-index: 1;
+            }
+        }
+
+        tbody {
+            .machine-column {
+                background: #f1f1f1 !important;
+            }
+
+            .custom-tr-bg {
+                .machine-column {
+                    background: #fff !important;
+                }
+            }
         }
     }
 
-    tbody {
-        .machine-column {
-            background: #f1f1f1 !important;
-        }
-        
-        .custom-tr-bg {
-            .machine-column {
-                background: #fff !important;
+    &.device-table {
+        table.is-scrolled-x {
+
+            thead,
+            tbody {
+                .machine-column {
+                    left: calc(-0.5rem - 2px);
+                }
             }
         }
     }
