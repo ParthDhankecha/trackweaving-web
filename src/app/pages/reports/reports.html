@@ -329,7 +329,8 @@
                 </tr>
             </ng-template>
 
-            <div class="table-responsive" [class.px-2]="isDevice" (scroll)="onReportTableScroll($event)">
+            <div class="table-responsive" [class.px-2]="isDevice" (scroll)="onReportTableScroll($event)"
+                [class.device-table]="isDevice" #reportTableScroll>
                 @switch(reportData?.reportType){
                 @case('stoppageReport'){
                 <table class="table table-bordered" #reportTable>
