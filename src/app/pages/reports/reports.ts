@@ -286,6 +286,7 @@ export class Reports {
     // clear all local storage items & set new token
     localStorage.clear();
     localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
+    this._coreService.utils.enterDeviceSession();
     if (state) {
       try {
         Object.assign(this.navState, state);

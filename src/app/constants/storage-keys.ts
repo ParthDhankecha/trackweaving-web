@@ -15,6 +15,7 @@ export default class StorageKeys {
     /** sessionStorage */
     static readonly SST = {
         // Selected Language
-        LANG: `${_prefix}lang`
+        LANG: `${_prefix}lang`,
+        DEVICE_SESSION: `${_prefix}device_session`
     };
 }

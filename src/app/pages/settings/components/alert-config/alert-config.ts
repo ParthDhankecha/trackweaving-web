@@ -16,6 +16,7 @@ type AlertItem = {
   label: string;
   configField?: ConfigField;
   configLabel?: string;
+  placeholder?: string;
 };
 
 
@@ -38,19 +39,20 @@ export class AlertConfig implements OnInit {
       key: 'beamLeft',
       label: 'Beam Left',
       configField: 'thresholds',
-      configLabel: 'Beam thresholds (meters, comma separated)'
+      configLabel: 'Beam thresholds',
+      placeholder: 'meters, comma separated (e.g. 1000,900,800)'
     },
     {
       key: 'machineStopped',
       label: 'Machine Stopped',
       configField: 'minutes',
-      configLabel: 'Stop alert minutes (comma separated)'
+      configLabel: 'Stop alert minutes',
+      placeholder: 'comma separated (e.g. 10,20,30)'
     }
   ];
 
   protected workspaceName: string = '';
   protected workspaceAlerts!: Required<AlertFlags>;
-  protected defaultAlerts!: Required<AlertFlags>;
   protected userConfigs: any[] = [];
 
   protected isLoading: boolean = false;
@@ -67,17 +69,6 @@ export class AlertConfig implements OnInit {
   }
 
 
-  private mergeAlerts(source: Partial<AlertFlags> = {}): Required<AlertFlags> {
-    const merged = { ...this.defaultAlerts };
-    for (const item of this.alertList) {
-      merged[item.key] = {
-        ...this.defaultAlerts[item.key],
-        ...(source[item.key] || {})
-      };
-    }
-    return merged;
-  }
-
   private loadAlertConfig(showLoader: boolean = true): void {
     if (showLoader) this.isLoading = true;
 
@@ -85,13 +76,10 @@ export class AlertConfig implements OnInit {
       next: (res: IResponse) => {
         this.isLoading = false;
         if (res.code === 'OK') {
-          this.defaultAlerts = res.data?.defaultAlerts;
-          this.workspaceName = res.data?.workspaceName || '';
-          this.workspaceAlerts = this.mergeAlerts(res.data?.workspaceAlerts);
-          this.userConfigs = (res.data?.userConfigs || []).map((row: any) => ({
-            ...row,
-            alerts: this.mergeAlerts(row.alerts)
-          }));
+          const data = res.data;
+          this.workspaceName = data?.workspaceName || '';
+          this.workspaceAlerts = data?.workspaceAlerts;
+          this.userConfigs = data?.userConfigs || [];
         }
       },
       error: (err: any) => {

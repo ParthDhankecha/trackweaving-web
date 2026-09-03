@@ -27,7 +27,7 @@ export const authTokenInjectorInterceptor: HttpInterceptorFn = (req: HttpRequest
   return next(req).pipe(tap({
     error: (err) => {
       if (err instanceof HttpErrorResponse) {
-        if (err.status === 401) {
+        if (err.status === 401 && !_coreService.utils.isDeviceSession) {
           if (isManufacturerRoute && _coreService.utils.isManufacturerAuthenticated) {
             _coreService.utils.logoutManufacturer();
           } else if (!isManufacturerRoute && (_coreService.utils.isAuthenticated || req.url.includes(`/${ROUTES.AUTH.BASE}/`))) {
