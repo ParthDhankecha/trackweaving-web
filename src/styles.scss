@@ -12,6 +12,10 @@
 html {
     color-scheme: only light;
     background-color: #fff;
+
+    &:has(.report-container-device) {
+        background: transparent !important;
+    }
 }
 
 body {

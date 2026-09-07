@@ -300,7 +300,7 @@
             </div>
             <!-- Card Body -->
             <div class="p-1 w-100">
-                <div class="d-flex align-items-center gap-2 rounded-2 border border-primary py-0 px-2 mb-1"
+                <div class="d-flex align-items-center gap-2 rounded-2 border border-secondary py-0 px-2 mb-1"
                     [class.blink-bg]="machineLog.currentStop">
                     <small class="col text-capitalize fw-semibold box-content">
                         Current Stop
@@ -310,63 +310,30 @@
                     </small>
                 </div>
 
-                <div class="container-fluid p-0">
-                    <div class="row p-0 m-0">
-                        <div class="col-6 p-0 pe-1 d-flex flex-column gap-1">
-                            @for(item of machineCardKeyObj.leftKeys; track item){
-                            <div class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
-                                [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
-                                <div class="rounded-1 w-auto flex-shrink-0" style="padding: 0.125em;">
-                                    <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
-                                        $implicit: item.key
-                                    }" />
-                                </div>
-                                <div class="px-1 box-content">
-                                    <small class="lh-1 text-capitalize fw-semibold box-content">
-                                        {{item?.label}}
-                                    </small>
-                                </div>
-                                <div class="flex-grow-1 px-1 text-end">
-                                    <small class="lh-1 text-primary fw-semibold box-content">
-                                        {{machineLog[item.key] || 0}}
-                                    </small>
-                                </div>
-                            </div>
-                            }
-                        </div>
-                        <div class="col-6 p-0 ps-1 d-flex flex-column gap-1">
-                            @for(item of machineCardKeyObj.rightKeys; track item){
-                            <div class="flex-shrink-0 d-flex gap-1 bg-light-subtle rounded-2 border border-primary box-content"
-                                [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
-                                <div class="rounded-1 w-auto " style="padding: 0.125em;">
-                                    <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
-                                        $implicit: item.key
-                                    }" />
-                                </div>
-                                <div class="px-1 box-content">
-                                    <small class="lh-1 text-capitalize fw-semibold box-content">
-                                        {{item?.label}}
-                                    </small>
-                                </div>
-                                <div class="flex-grow-1 px-1 text-end">
-                                    <small class="lh-1 text-primary fw-semibold box-content">
-                                        {{machineLog[item.key] || 0}}
-                                    </small>
-                                </div>
-                            </div>
-                            }
-                        </div>
+                <div class="machine-metrics">
+                    @for (item of machineCardKeys; track item.key) {
+                    <div class="d-flex align-items-center gap-1 rounded-1 box-content"
+                        [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
+                        <span class="flex-shrink-0" aria-hidden="true" style="padding: 0.125em;">
+                            <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
+                                $implicit: item.key
+                            }" />
+                        </span>
+                        <small class="lh-1 text-capitalize fw-semibold box-content">
+                            {{ item.label }}
+                        </small>
+                        <small class="flex-grow-1 px-1 text-end lh-1 text-primary fw-semibold box-content">
+                            {{ machineLog[item.key] || 0 }}
+                        </small>
                     </div>
+                    }
                 </div>
 
-                <div class="w-100 px-2">
-                    <!-- Progress Bar -->
-                    <div class="progress rounded-2 mt-2 mb-1" style="height: 1.4em; font-size: 0.8em;"
-                        role="progressbar">
-                        <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
-                            [style.width.%]="(machineLog?.efficiency===0?100:machineLog?.efficiency) || 0">
-                            {{(machineLog?.efficiency|number:'1.0-0')??0}}%
-                        </div>
+                <!-- Progress Bar -->
+                <div class="progress rounded-pill mt-2" style="height: 1.4em; font-size: 0.8em;" role="progressbar">
+                    <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
+                        [style.width.%]="(machineLog?.efficiency===0?100:machineLog?.efficiency) || 0">
+                        {{(machineLog?.efficiency|number:'1.0-0')??0}}%
                     </div>
                 </div>
             </div>
