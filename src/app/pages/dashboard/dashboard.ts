@@ -180,21 +180,14 @@ export class Dashboard implements OnInit, OnDestroy {
 
 
   protected machineLogs: IMachineLog[] = [];
-  protected machineCardKeyObj: {
-    leftKeys: { key: string, label: string }[],
-    rightKeys: { key: any, label: string }[]
-  } = {
-    leftKeys: [
-      { key: 'picks', label: 'Picks' },
-      { key: 'speed', label: 'Speed' },
-      { key: 'pieceLengthM', label: 'Mtrs' }
-    ],
-    rightKeys: [
-      { key: 'runTime', label: 'Run Time' },
-      { key: 'beamLeft', label: 'Beam Left' },
-      { key: 'setPicks', label: 'Set Picks' }
-    ]
-  } as const;
+  protected readonly machineCardKeys: { key: string; label: string }[] = [
+    { key: 'picks', label: 'Picks' },
+    { key: 'speed', label: 'Speed' },
+    { key: 'pieceLengthM', label: 'Mtrs' },
+    { key: 'runTime', label: 'Run Time' },
+    { key: 'beamLeft', label: 'Beam Left' },
+    { key: 'setPicks', label: 'Set Picks' },
+  ];
   protected liveMetrics: Record<string, any> = {};
   protected totalMachines: number = 0;
   // Pagination disabled for now — restore for future use

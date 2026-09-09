@@ -196,6 +196,24 @@
                         <input type="text" id="reed" formControlName="reed" class="form-control"
                             placeholder="Enter reed">
                     </div>
+                    <!-- Cards -->
+                    @if(isMachineTypeRapier){
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label">
+                            Cards
+                        </label>
+                        <input type="number" id="cards" formControlName="cards" class="form-control"
+                            placeholder="Enter cards">
+
+                        @if(cards && cards.touched && cards.errors){
+                        <div class="invalid-feedback d-block">
+                            @if(cards.errors['min']){
+                            <span>Cards must be 0 or greater.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    }
                     <!-- Panna -->
                     <div class="col-12 col-md-6 mb-3">
                         <label class="form-label">

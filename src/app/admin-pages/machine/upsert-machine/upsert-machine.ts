@@ -46,6 +46,7 @@ export class UpsertMachine {
     quality: ['', []],
     reed: ['', []],
     panna: [null, [Validators.required]],
+    cards: [null, [Validators.min(0)]],
   });
   protected isEyeOpen: boolean = false;
 
@@ -111,6 +112,7 @@ export class UpsertMachine {
         quality: this.machineData?.quality || '',
         reed: this.machineData?.reed || '',
         panna: this.normalizePanna(this.machineData?.panna),
+        cards: this.machineData?.cards ?? null,
       });
     }
   }
@@ -154,6 +156,9 @@ export class UpsertMachine {
   get panna(): AbstractControl | null {
     return this.machineForm.get('panna');
   }
+  get cards(): AbstractControl | null {
+    return this.machineForm.get('cards');
+  }
 
 
   private normalizePanna(value: unknown): number | null {
@@ -161,6 +166,9 @@ export class UpsertMachine {
     return this.pannaOptions.some(o => o.value === n) ? n : null;
   }
 
+  protected get isMachineTypeRapier(): boolean {
+    return this.machineType?.value === 'rapier';
+  }
 
 
   private cacheSearchTerms: string = '';
@@ -194,6 +202,9 @@ export class UpsertMachine {
       panna: this.normalizePanna(restFields.panna),
       workspaceId: workspace._id
     };
+    if (!this.isMachineTypeRapier) {
+      delete body.cards;
+    }
 
     this.isReqAlive = true;
     if (!this.isEditMode) {

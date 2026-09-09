@@ -4,13 +4,14 @@
         Loading alert configuration...
     </div>
     } @else {
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
             <strong class="fs-5 d-block">
                 Alert Configuration
             </strong>
             <p class="text-muted small mb-0">
-                App alerts for this mill. If an alert is off here, no user receives it.
+                App alerts for this mill. If an alert is off here, no user receives it. Press Enter to save threshold
+                values.
             </p>
         </div>
         @if (workspaceName) {
@@ -20,34 +21,34 @@
         }
     </div>
 
-    <div class="row g-3 mb-4">
-        @for (item of alertList; track item.key) {
-        <div class="col-12 col-lg-6">
-            <div class="border rounded p-3 h-100">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                    <div class="fw-medium">
-                        {{ item.label }}
-                    </div>
-                    <div class="form-check form-switch m-0 p-0 mh-unset">
-                        <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
-                            [checked]="workspaceAlerts[item.key].notification"
-                            (click)="onWorkspaceToggle($event, item.key)">
-                    </div>
+    <div class="alert-list border rounded mb-4">
+        @for (item of alertItems; track item.key) {
+        <div class="alert-row">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div class="fw-medium">
+                    {{ item.title }}
                 </div>
+                <div class="form-check form-switch m-0 p-0 mh-unset flex-shrink-0">
+                    <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
+                        [checked]="workspaceAlerts[item.key]?.notification"
+                        (click)="onWorkspaceToggle($event, item.key)">
+                </div>
+            </div>
 
-                @if (item.configField) {
-                <div>
-                    <label class="form-label small mb-1">
-                        {{ item.configLabel }}
+            @if (item.fields.length) {
+            <div class="row g-2 mt-2">
+                @for (field of item.fields; track field.key) {
+                <div [class]="item.colClass">
+                    <label class="form-label small text-muted mb-1">
+                        {{ field.title }}
                     </label>
-                    <input type="text" class="form-control form-control-sm"
-                        [placeholder]="configValue(defaultAlerts, item.configField!)"
-                        [ngModel]="configValue(workspaceAlerts, item.configField!)"
-                        (ngModelChange)="setWorkspaceConfig(item.key, item.configField!, $event)"
-                        (keydown.enter)="onWorkspaceConfigEnter(item.key)">
+                    <input type="text" class="form-control form-control-sm" [placeholder]="field.placeholder"
+                        [title]="field.placeholder" [(ngModel)]="workspaceAlerts[item.key][field.key]"
+                        (keydown.enter)="onWorkspaceSave(item.key)">
                 </div>
                 }
             </div>
+            }
         </div>
         }
     </div>
@@ -63,12 +64,11 @@
 
     <div class="d-flex flex-column gap-3">
         @for (row of userConfigs; track row.user?._id) {
-        <div class="border rounded p-3">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div class="border rounded">
+            <div
+                class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 border-bottom bg-light">
                 <div class="fw-medium text-capitalize">
-                    User Name: <span class="text-muted">
-                        {{ row.user?.userName || '—' }}
-                    </span>
+                    {{ row.user?.userName || '—' }}
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     @if (!row.user?.isActive) {
@@ -86,34 +86,34 @@
                 </div>
             </div>
 
-            <div class="row g-3">
-                @for (item of alertList; track item.key) {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="bg-light rounded p-3 h-100">
-                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                            <div class="fw-medium small">
-                                {{ item.label }}
-                            </div>
-                            <div class="form-check form-switch m-0 p-0 mh-unset">
-                                <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
-                                    [checked]="row.alerts?.[item.key]?.notification"
-                                    (click)="onUserToggle($event, row, item.key)">
-                            </div>
+            <div class="alert-list">
+                @for (item of alertItems; track item.key) {
+                <div class="alert-row">
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <div class="fw-medium small">
+                            {{ item.title }}
                         </div>
+                        <div class="form-check form-switch m-0 p-0 mh-unset flex-shrink-0">
+                            <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
+                                [checked]="row.alerts?.[item.key]?.notification"
+                                (click)="onUserToggle($event, row, item.key)">
+                        </div>
+                    </div>
 
-                        @if (item.configField) {
-                        <div>
-                            <label class="form-label small mb-1">
-                                {{ item.configLabel }}
+                    @if (item.fields.length) {
+                    <div class="row g-2 mt-2">
+                        @for (field of item.fields; track field.key) {
+                        <div [class]="item.colClass">
+                            <label class="form-label small text-muted mb-1">
+                                {{ field.title }}
                             </label>
-                            <input type="text" class="form-control form-control-sm"
-                                [placeholder]="configValue(defaultAlerts, item.configField!)"
-                                [ngModel]="configValue(row.alerts, item.configField!)"
-                                (ngModelChange)="setUserConfig(row, item.key, item.configField!, $event)"
-                                (keydown.enter)="onUserConfigEnter(row, item.key)">
+                            <input type="text" class="form-control form-control-sm" [placeholder]="field.placeholder"
+                                [title]="field.placeholder" [(ngModel)]="row.alerts[item.key][field.key]"
+                                (keydown.enter)="onUserSave(row, item.key)">
                         </div>
                         }
                     </div>
+                    }
                 </div>
                 }
             </div>

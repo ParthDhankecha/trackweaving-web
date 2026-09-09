@@ -370,8 +370,8 @@
                             }
                             }
                             <td>{{ row.stopReason }}</td>
-                            <td class="text-nowrap">{{ row.from | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
-                            <td class="text-nowrap">{{ row.to | date:'dd-MMM-yyyy hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.from | date:'hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.to | date:'hh:mm:ss a' }}</td>
                             <td class="text-nowrap">{{ row.stopTime }}</td>
                         </tr>
                         }@empty {

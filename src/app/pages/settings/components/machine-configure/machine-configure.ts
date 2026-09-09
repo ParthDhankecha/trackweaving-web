@@ -39,6 +39,7 @@ export class MachineConfigure {
     quality: ['', []],
     reed: ['', []],
     panna: [null, [Validators.required]],
+    cards: [null, [Validators.min(0)]],
   });
 
 
@@ -112,11 +113,19 @@ export class MachineConfigure {
   get isAlertActive(): AbstractControl | null {
     return this.mcForm.get('isAlertActive');
   }
+  get cards(): AbstractControl | null {
+    return this.mcForm.get('cards');
+  }
 
   private normalizePanna(value: unknown): number | null {
     const n = Number(value);
     return this.pannaOptions.some(o => o.value === n) ? n : null;
   }
+
+  protected get isMachineTypeRapier(): boolean {
+    return this.upsertMachineConfigureModalData?.machineType === 'rapier';
+  }
+
 
   protected onChangeAlert(): void {
     this.isAlertActive?.patchValue(!this.isAlertActive.value);
@@ -135,6 +144,7 @@ export class MachineConfigure {
       quality: machineConfigure?.quality ?? '',
       reed: machineConfigure?.reed ?? '',
       panna: this.normalizePanna(machineConfigure?.panna),
+      cards: machineConfigure?.cards ?? null,
     };
     if (this.isAdmin) obj.isAlertActive = machineConfigure?.isAlertActive ?? false;
 
@@ -155,6 +165,7 @@ export class MachineConfigure {
       quality: '',
       reed: '',
       panna: null,
+      cards: null,
     };
     if (this.isAdmin) obj.isAlertActive = false;
 
@@ -175,6 +186,9 @@ export class MachineConfigure {
     const body = { ...this.mcForm.value };
     body.machineGroupId = body.machineGroupId || null;
     body.panna = this.normalizePanna(body.panna);
+    if (!this.isMachineTypeRapier) {
+      delete body.cards;
+    }
 
     this._apiFs.machineConfigure.update(this.upsertMachineConfigureModalData._id, body).subscribe({
       next: (res: IResponse) => {

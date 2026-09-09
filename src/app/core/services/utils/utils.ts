@@ -22,6 +22,22 @@ export class Utils {
   protected readonly _router = inject(Router); // Inject the Router service
   private readonly _appConfig = inject(AppConfig);
 
+
+  get isDeviceSession(): boolean {
+    try {
+      return sessionStorage.getItem(StorageKeys.SST.DEVICE_SESSION) === 'device_only';
+    } catch {
+      return false;
+    }
+  }
+  enterDeviceSession(): void {
+    try {
+      sessionStorage.setItem(StorageKeys.SST.DEVICE_SESSION, 'device_only');
+    } catch { }
+    this.decodeTokenData = null;
+  }
+
+
   get encodeKey(): string {
     return `${window.screen.height}${window.screen.width}${window.screen.colorDepth}${new Date().getTime()}`;
   }
@@ -122,6 +138,8 @@ export class Utils {
   }
 
   logout(): void {
+    if (this.isDeviceSession) return;
+
     localStorage.clear();
     const baseKey = this.isSuperAdmin ? 'ADMIN' : 'AUTH';
     this.decodeTokenData = null;
