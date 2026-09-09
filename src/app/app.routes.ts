@@ -6,6 +6,7 @@ import { APP_PAGE_TITLE, LANDING_SEO } from './constants/app-config';
 import { Landing } from './pages/landing/landing';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { Dashboard } from './pages/dashboard/dashboard';
+import { CustomDashboard } from './pages/custom-dashboard/custom-dashboard';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { TermsAndCondition } from './pages/terms-and-condition/terms-and-condition';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy';
@@ -36,6 +37,12 @@ export const routes: Routes = [
         path: ROUTES.DASHBOARD,
         title: APP_PAGE_TITLE.DASHBOARD,
         component: Dashboard,
+        canActivate: [authGuard],
+    },
+    {// full-screen TV / Andon board for the weaving floor
+        path: ROUTES.CUSTOM_DASHBOARD,
+        title: APP_PAGE_TITLE.CUSTOM_DASHBOARD,
+        component: CustomDashboard,
         canActivate: [authGuard],
     },
     {

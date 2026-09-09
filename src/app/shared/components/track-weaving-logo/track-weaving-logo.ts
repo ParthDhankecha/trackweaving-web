@@ -8,4 +8,5 @@ import { Component, Input } from '@angular/core';
 export class TrackWeavingLogo {
   @Input() size = 40;
   @Input() framed = true;
+  @Input() white = false;
 }

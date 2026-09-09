@@ -1,0 +1,14 @@
+<div class="line-row" [class]="performanceClass" [class.line-row--top]="isTop">
+    <div class="line-row__label-col">
+        @if (isTop) {
+            <span class="line-row__badge">🏆 TOP LINE</span>
+        }
+        <span class="line-row__label">{{ lineLabel }}</span>
+    </div>
+
+    <div class="line-row__track">
+        <div class="line-row__fill" [style.width.%]="line.efficiency"></div>
+    </div>
+
+    <span class="line-row__value">{{ line.efficiency }}%</span>
+</div>

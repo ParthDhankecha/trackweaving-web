@@ -1,0 +1,26 @@
+<div class="section-select" [class.section-select--overlay]="overlay">
+    <div class="section-select__panel">
+        @if (overlay) {
+            <button type="button" class="section-select__close" (click)="dismissed.emit()" aria-label="Close">✕</button>
+        }
+
+        <app-track-weaving-logo [size]="64" [framed]="true"></app-track-weaving-logo>
+
+        <h1 class="section-select__title">Select Section</h1>
+        <p class="section-select__subtitle">Choose the factory section this display should show</p>
+
+        <div class="section-select__options">
+            @for (section of sections; track section) {
+                <button
+                    type="button"
+                    class="section-select__btn"
+                    [class.is-current]="currentSection === section"
+                    (click)="choose(section)"
+                >
+                    <span class="section-select__btn-label">SECTION</span>
+                    <span class="section-select__btn-value">{{ section }}</span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
