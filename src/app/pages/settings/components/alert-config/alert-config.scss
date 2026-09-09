@@ -1,3 +1,17 @@
 .mh-unset {
     min-height: unset !important;
 }
+
+.alert-list {
+    .alert-row {
+        padding: 0.75rem 1rem;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+    }
+}
+
+.form-control {
+    min-width: 0;
+}

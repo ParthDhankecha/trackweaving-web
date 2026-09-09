@@ -10,12 +10,31 @@ export type AlertChannelFlags = {
   whatsapp?: boolean;
 };
 
+export type AlertConfigFieldSchema = {
+  title: string;
+  placeholder?: string;
+  required?: boolean;
+};
+
+export type AlertSchemaEntry = {
+  title: string;
+  fields?: Record<string, AlertConfigFieldSchema>;
+};
+
+export type AlertConfigSchema = Record<string, AlertSchemaEntry>;
+
 export type AlertFlags = {
   pickChange?: AlertChannelFlags;
   maxSpeed?: AlertChannelFlags;
   lowSpeed?: AlertChannelFlags;
   beamLeft?: AlertChannelFlags & { thresholds?: string };
-  machineStopped?: AlertChannelFlags & { minutes?: string };
+  machineStopped?: AlertChannelFlags & {
+    minutes?: string;
+    warpMinutes?: string;
+    weftMinutes?: string;
+    feederMinutes?: string;
+    otherMinutes?: string;
+  };
 };
 
 export type AlertChannelKey = keyof AlertChannelFlags;

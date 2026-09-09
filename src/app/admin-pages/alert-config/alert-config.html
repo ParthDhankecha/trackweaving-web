@@ -33,6 +33,7 @@
                     <h5 class="mb-1">Workspace Defaults</h5>
                     <p class="text-muted small mb-0">
                         Master switches for this workspace. If an alert is off here, no user receives it.
+                        Press Enter to save threshold values.
                     </p>
                 </div>
                 @if (workspaceName) {
@@ -42,41 +43,43 @@
                 }
             </div>
 
-            <div class="row g-3">
-                @for (item of alertKeys; track item.key) {
-                <div class="col-12 col-lg-6">
-                    <div class="border rounded p-3 h-100">
-                        <div class="fw-medium mb-2">
-                            {{ item.label }}
+            <div class="alert-list border rounded">
+                @for (item of alertItems; track item.key) {
+                <div class="alert-row">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="fw-medium">
+                            {{ item.title }}
                         </div>
-                        <div class="d-flex flex-wrap gap-3 mb-2">
+                        <div class="d-flex flex-wrap gap-3">
                             @for (channel of channelKeys; track channel.key) {
                             <div class="d-flex align-items-center gap-2">
                                 <span class="small text-muted">
-                                    {{ channel.label }}
+                                    {{ channel.title }}
                                 </span>
                                 <div class="form-check form-switch m-0 p-0 mh-unset">
                                     <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
-                                        [checked]="workspaceAlerts[item.key][channel.key]"
-                                        (click)="onWorkspaceChannelToggle($event, item.key, channel.key)">
+                                        [checked]="workspaceAlerts[item.key]?.[channel.key]"
+                                        (click)="onWorkspaceChannelToggle($event, item, channel)">
                                 </div>
                             </div>
                             }
                         </div>
+                    </div>
 
-                        @if (item.configField) {
-                        <div class="mt-2">
-                            <label class="form-label small mb-1">
-                                {{ item.configLabel }}
+                    @if (item.fields.length) {
+                    <div class="row g-2 mt-2">
+                        @for (field of item.fields; track field.key) {
+                        <div [class]="item.colClass">
+                            <label class="form-label small text-muted mb-1">
+                                {{ field.title }}
                             </label>
-                            <input type="text" class="form-control form-control-sm"
-                                [placeholder]="getConfigPlaceholder(item)"
-                                [ngModel]="getWorkspaceConfigValue(item.key, item.configField!)"
-                                (ngModelChange)="setWorkspaceConfigValue(item.key, item.configField!, $event)"
-                                (keydown.enter)="onWorkspaceConfigEnter(item.key, item.configField!)">
+                            <input type="text" class="form-control form-control-sm" [placeholder]="field.placeholder"
+                                [title]="field.placeholder" [(ngModel)]="workspaceAlerts[item.key][field.key]"
+                                (keydown.enter)="onWorkspaceSave(item)">
                         </div>
                         }
                     </div>
+                    }
                 </div>
                 }
             </div>
@@ -95,15 +98,12 @@
             </div>
 
             <div class="d-flex flex-column gap-3">
-                @for (row of userConfigs; track row.user?._id; let i = $index) {
-                <div class="border rounded p-3">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-                        <div>
-                            <div class="fw-medium text-capitalize">
-                                User Name: <span class="text-muted">
-                                    {{ row.user?.userName || '—' }}
-                                </span>
-                            </div>
+                @for (row of userConfigs; track row.user?._id) {
+                <div class="border rounded">
+                    <div
+                        class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 border-bottom bg-light">
+                        <div class="fw-medium text-capitalize">
+                            {{ row.user?.userName || row.user?.fullname || '—' }}
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             @if (!row.user?.isActive) {
@@ -121,41 +121,44 @@
                         </div>
                     </div>
 
-                    <div class="row g-3">
-                        @for (item of alertKeys; track item.key) {
-                        <div class="col-12 col-md-6 col-xl-4">
-                            <div class="bg-light rounded p-3 h-100">
-                                <div class="fw-medium small mb-2">
-                                    {{ item.label }}
+                    <div class="alert-list">
+                        @for (item of alertItems; track item.key) {
+                        <div class="alert-row">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <div class="fw-medium small">
+                                    {{ item.title }}
                                 </div>
-                                <div class="d-flex flex-wrap gap-3 mb-2">
+                                <div class="d-flex flex-wrap gap-3">
                                     @for (channel of channelKeys; track channel.key) {
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="small text-muted">
-                                            {{ channel.label }}
+                                            {{ channel.title }}
                                         </span>
                                         <div class="form-check form-switch m-0 p-0 mh-unset">
                                             <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
                                                 [checked]="row.alerts?.[item.key]?.[channel.key]"
-                                                (click)="onUserChannelToggle($event, row, item.key, channel.key)">
+                                                (click)="onUserChannelToggle($event, row, item, channel)">
                                         </div>
                                     </div>
                                     }
                                 </div>
+                            </div>
 
-                                @if (item.configField) {
-                                <div class="mt-2">
-                                    <label class="form-label small mb-1">
-                                        {{ item.configLabel }}
+                            @if (item.fields.length) {
+                            <div class="row g-2 mt-2">
+                                @for (field of item.fields; track field.key) {
+                                <div [class]="item.colClass">
+                                    <label class="form-label small text-muted mb-1">
+                                        {{ field.title }}
                                     </label>
                                     <input type="text" class="form-control form-control-sm"
-                                        [placeholder]="getConfigPlaceholder(item)"
-                                        [ngModel]="getUserConfigValue(row, item.key, item.configField!)"
-                                        (ngModelChange)="setUserConfigValue(row, item.key, item.configField!, $event)"
-                                        (keydown.enter)="onUserConfigEnter(row, item.key, item.configField!)">
+                                        [placeholder]="field.placeholder" [title]="field.placeholder"
+                                        [(ngModel)]="row.alerts[item.key][field.key]"
+                                        (keydown.enter)="onUserSave(row, item)">
                                 </div>
                                 }
                             </div>
+                            }
                         </div>
                         }
                     </div>
