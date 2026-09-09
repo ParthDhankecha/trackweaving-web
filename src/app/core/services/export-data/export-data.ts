@@ -9,6 +9,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { saveAs } from 'file-saver';
 import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
 
+export type TExportAction = 'download' | 'share';
 
 @Injectable({
   providedIn: 'root'
@@ -17,16 +18,20 @@ export class ExportData {
   /**
    * EXPORT TO EXCEL (.xlsx) (using SheetJS)
    */
-  async exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx', isDevice: boolean = false): Promise<void> {
+  async exportTableToExcel(tableElement: HTMLTableElement, filename: string = 'shift-report.xlsx', options?: { isDevice: boolean, action?: TExportAction }): Promise<void> {
     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(tableElement, {
       raw: true
     });
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
-    if (isDevice) {
+    if (options?.isDevice) {
       const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
-      (window as any).FlutterDownload?.postMessage(JSON.stringify({ base64: wbout, ext: 'xlsx' }));
+      (window as any).FlutterDownload?.postMessage(JSON.stringify({
+        base64: wbout,
+        ext: 'xlsx',
+        action: options?.action || 'download'
+      }));
     } else {
       const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       saveAs(new Blob([wbout], { type: 'application/octet-stream' }), filename);
@@ -36,7 +41,7 @@ export class ExportData {
   /**
    * EXPORT TO PDF (using pdfMake)
    */
-  async exportTableToPDF(reportData: any, isDevice: boolean = false): Promise<void> {
+  async exportTableToPDF(reportData: any, options?: { isDevice: boolean, action?: TExportAction }): Promise<void> {
     const title = reportData.reportTitle || 'Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
@@ -48,7 +53,7 @@ export class ExportData {
     const isPortrait = isStoppageReport || isBeamProductionReport || isBeamCompletionDateReport;
 
     const tableColspan = isBy24Hours ? (4 + ((reportData.shiftColumns?.length ?? 0) * 2) + (showBeamCompletionDate ? 1 : 0))
-      : (isBeamCompletionDateReport ? 6 : (isPortrait ? 7 : (showBeamCompletionDate ? 12 : 11) + stopColumns.length * 2 + 2));
+      : (isBeamCompletionDateReport ? 5 : (isPortrait ? 7 : (showBeamCompletionDate ? 12 : 11) + stopColumns.length * 2 + 2));
 
     const content: any[] = [
       { text: title, style: 'header' },
@@ -98,7 +103,7 @@ export class ExportData {
         table: {
           headerRows: isBy24Hours ? 3 : (isPortrait ? 1 : 2),
           widths: isBeamCompletionDateReport
-            ? ['auto', 'auto', 'auto', 'auto', 'auto', 'auto']
+            ? ['auto', 'auto', 'auto', 'auto', 'auto']
             : (isPortrait ? ['auto', 'auto', 'auto', '*', '*', '*', 'auto'] : Array(tableColspan).fill('auto')),
           body: bodyData
         },
@@ -151,10 +156,14 @@ export class ExportData {
       }
     };
 
-    if (isDevice) {
+    if (options?.isDevice) {
       // use save as pdf to save the pdf file
       pdfMake.createPdf(docDefinition).getBase64((base64: string) => {
-        (window as any).FlutterDownload?.postMessage(JSON.stringify({ base64: base64, ext: 'pdf' }));
+        (window as any).FlutterDownload?.postMessage(JSON.stringify({
+          base64: base64,
+          ext: 'pdf',
+          action: options?.action || 'download'
+        }));
       });
     } else {
       pdfMake.createPdf(docDefinition).open();
@@ -775,11 +784,10 @@ export class ExportData {
   protected buildBeamCompletionDateTableBody(reportData: any) {
     const body: any[] = [[
       { text: 'Machine', style: 'tableHeader' },
+      { text: 'Quality', style: 'tableHeader' },
       { text: 'Beam Left (Mtrs)', style: 'tableHeader' },
       { text: 'Completion Date', style: 'tableHeader' },
-      { text: 'Source', style: 'tableHeader' },
-      { text: 'Avg Daily Prod. (Mtrs)', style: 'tableHeader' },
-      { text: 'Est. Days Remaining', style: 'tableHeader' }
+      { text: 'Days Remaining', style: 'tableHeader' }
     ]];
 
     const rows = reportData.list || [];
@@ -787,24 +795,14 @@ export class ExportData {
       const cellStyle = index % 2 === 0 ? 'contentCell' : 'contentCellBg';
       body.push([
         { text: row.machineCode || row.machineName || '-', style: cellStyle },
+        { text: formatQualityReed(row.quality, row.reed), style: cellStyle },
         { text: this.num(row.beamLeft), style: cellStyle },
         { text: row.beamCompletionDate ? this.formatDate(row.beamCompletionDate) : '-', style: cellStyle },
-        { text: this.formatCompletionSource(row.completionSource), style: cellStyle },
-        { text: row.avgDailyProduction != null ? this.num(row.avgDailyProduction) : '-', style: cellStyle },
         { text: row.estimatedDaysRemaining ?? '-', style: cellStyle }
       ]);
     });
 
     return body;
-  }
-
-  protected formatCompletionSource(source?: string | null): string {
-    switch (source) {
-      case 'device': return 'Device';
-      case 'estimated': return 'Estimated';
-      case 'completed': return 'Completed';
-      default: return '-';
-    }
   }
 
   protected formatDateTime(dateStr: string): string {

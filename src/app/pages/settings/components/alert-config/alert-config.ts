@@ -1,6 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
@@ -8,51 +7,37 @@ import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
 import { AlertConfigSchema } from '@src/app/services/alert-config/alert-config';
-import { ROUTES } from '@src/app/constants/app.routes';
 
 
 type AlertField = { key: string; title: string; placeholder: string };
 type AlertItem = { key: string; title: string; fields: AlertField[]; colClass: string };
-type AlertChannel = { key: string; title: string };
 
 
 @Component({
-  selector: 'app-alert-config',
+  selector: 'app-client-alert-config',
   imports: [FormsModule],
   templateUrl: './alert-config.html',
   styleUrl: './alert-config.scss'
 })
-export class AlertConfigPage implements OnInit {
+export class AlertConfig implements OnInit {
 
   protected readonly _apiFs = inject(ApiFacadeService);
   protected readonly _coreService = inject(CoreFacadeService);
-  private readonly _route = inject(ActivatedRoute);
-  private readonly _router = inject(Router);
 
-
-  protected channelKeys: AlertChannel[] = [];
   protected alertItems: AlertItem[] = [];
-  protected workspaceId: string | null = null;
-  protected workspaceName: string = '';
+  protected workspaceName: string | null = null;
   protected workspaceAlerts: Record<string, any> = {};
   protected userConfigs: any[] = [];
   protected isLoading: boolean = false;
   protected isReqAlive: boolean = false;
-  protected missingWorkspaceId: boolean = false;
-  protected resetConfirmModal: { isOpen: boolean; data: any } = { isOpen: false, data: null };
+  protected resetConfirmModal: { isOpen: boolean; data: any } = {
+    isOpen: false,
+    data: null
+  };
 
 
   ngOnInit(): void {
-    this.workspaceId = this._route.snapshot.paramMap.get('workspaceId');
-    if (!this.workspaceId) {
-      this.missingWorkspaceId = true;
-      return;
-    }
     this.load();
-  }
-
-  protected goBackToWorkspaces(): void {
-    this._router.navigate([ROUTES.ADMIN.getFullRoute(ROUTES.ADMIN.WORKSPACE)]);
   }
 
 
@@ -61,24 +46,16 @@ export class AlertConfigPage implements OnInit {
   }
 
 
-  private payload(item: AlertItem, entry: Record<string, any> = {}): Record<string, any> {
-    const body: Record<string, any> = {};
+  private payload(key: string, entry: Record<string, any> = {}): Record<string, any> {
+    const fields = this.alertItems.find(item => item.key === key)?.fields || [];
+    const body: Record<string, any> = { notification: !!entry['notification'] };
 
-    for (const channel of this.channelKeys) {
-      if (typeof entry[channel.key] === 'boolean') body[channel.key] = entry[channel.key];
-    }
-    for (const field of item.fields) {
+    for (const field of fields) {
       if (typeof entry[field.key] === 'string') body[field.key] = entry[field.key];
     }
-    return { [item.key]: body };
+    return { [key]: body };
   }
 
-  private setChannels(channels: Record<string, { title: string }> = {}): void {
-    this.channelKeys = Object.entries(channels).map(([key, item]) => ({
-      key,
-      title: item.title
-    }));
-  }
 
   private setSchema(schema: AlertConfigSchema = {}): void {
     this.alertItems = Object.entries(schema).map(([key, item]) => {
@@ -99,19 +76,17 @@ export class AlertConfigPage implements OnInit {
   }
 
   private load(showLoader = true): void {
-    if (!this.workspaceId) return;
     if (showLoader) this.isLoading = true;
 
-    this._apiFs.alertConfig.getByWorkspace(this.workspaceId).subscribe({
+    this._apiFs.alertConfig.getDetails().subscribe({
       next: (res: IResponse) => {
         this.isLoading = false;
         if (res.code !== 'OK') return;
 
         const data = res.data;
         this.setSchema(data?.schema);
-        this.setChannels(data?.channelKeys);
-        this.workspaceName = data?.workspace?.firmName || '';
-        this.workspaceAlerts = data?.workspaceConfig?.alerts || {};
+        this.workspaceName = data?.workspaceName || '';
+        this.workspaceAlerts = data?.workspaceAlerts || {};
         this.userConfigs = data?.userConfigs || [];
       },
       error: (err: any) => {
@@ -141,55 +116,53 @@ export class AlertConfigPage implements OnInit {
   }
 
 
-  protected onWorkspaceChannelToggle(event: Event, item: AlertItem, channel: AlertChannel): void {
-    if (this.isReqAlive || !this.workspaceId) return;
+  protected onWorkspaceToggle(event: Event, key: string): void {
+    if (this.isReqAlive) return;
     event.preventDefault();
 
-    const key = item.key;
-    const previous = !!this.workspaceAlerts[key]?.[channel.key];
-    this.workspaceAlerts[key] = { ...this.workspaceAlerts[key], [channel.key]: !previous };
+    const previous = !!this.workspaceAlerts[key]?.notification;
+    this.workspaceAlerts[key] = { ...this.workspaceAlerts[key], notification: !previous };
     this.save(
-      this._apiFs.alertConfig.upsertWorkspace(this.workspaceId, this.payload(item, this.workspaceAlerts[key])),
-      `Workspace ${item.title} ${channel.title} alert ${!previous ? 'enabled' : 'disabled'}.`,
-      () => { this.workspaceAlerts[key] = { ...this.workspaceAlerts[key], [channel.key]: previous }; }
+      this._apiFs.alertConfig.saveWorkspace(this.payload(key, this.workspaceAlerts[key])),
+      'Workspace alert updated successfully.',
+      () => { this.workspaceAlerts[key] = { ...this.workspaceAlerts[key], notification: previous }; }
     );
   }
 
-  protected onWorkspaceSave(item: AlertItem): void {
-    if (this.isReqAlive || !this.workspaceId) return;
+  protected onWorkspaceSave(key: string): void {
+    if (this.isReqAlive) return;
     this.save(
-      this._apiFs.alertConfig.upsertWorkspace(this.workspaceId, this.payload(item, this.workspaceAlerts[item.key])),
-      `Custom workspace ${item.title} alert updated.`
+      this._apiFs.alertConfig.saveWorkspace(this.payload(key, this.workspaceAlerts[key])),
+      'Custom workspace alert updated successfully.'
     );
   }
 
 
-  protected onUserChannelToggle(event: Event, row: any, item: AlertItem, channel: AlertChannel): void {
+  protected onUserToggle(event: Event, row: any, key: string): void {
     if (this.isReqAlive || !row?.user?._id) return;
     event.preventDefault();
 
-    const key = item.key;
-    if (!this.workspaceAlerts[key]?.[channel.key]) {
+    if (!this.workspaceAlerts[key]?.notification) {
       event.stopPropagation();
-      this.toast(EToasterType.Warning, 'Workspace alert is disabled, please enable it to set user alert.');
+      this.toast(EToasterType.Warning, 'Workspace alerts are disabled, please enable them to set user alerts.');
       return;
     }
 
-    const previous = !!row.alerts?.[key]?.[channel.key];
+    const previous = !!row.alerts?.[key]?.notification;
     row.hasOverride = true;
-    row.alerts[key] = { ...row.alerts[key], [channel.key]: !previous };
+    row.alerts[key] = { ...row.alerts[key], notification: !previous };
     this.save(
-      this._apiFs.alertConfig.upsertUser(row.user._id, this.payload(item, row.alerts[key])),
-      `${item.title} ${channel.title} alert ${!previous ? 'enabled' : 'disabled'} for ${row.user?.userName || row.user?.fullname}.`,
-      () => { row.alerts[key] = { ...row.alerts[key], [channel.key]: previous }; }
+      this._apiFs.alertConfig.saveUser(row.user._id, this.payload(key, row.alerts[key])),
+      'User alert updated successfully.',
+      () => { row.alerts[key] = { ...row.alerts[key], notification: previous }; }
     );
   }
 
-  protected onUserSave(row: any, item: AlertItem): void {
+  protected onUserSave(row: any, key: string): void {
     if (this.isReqAlive || !row?.user?._id) return;
     this.save(
-      this._apiFs.alertConfig.upsertUser(row.user._id, this.payload(item, row.alerts[item.key])),
-      `Custom ${item.title} alert updated for ${row.user?.userName || row.user?.fullname}.`
+      this._apiFs.alertConfig.saveUser(row.user._id, this.payload(key, row.alerts[key])),
+      'Custom user alert updated successfully.'
     );
   }
 
@@ -203,16 +176,14 @@ export class AlertConfigPage implements OnInit {
   }
 
   protected confirmResetOverride(): void {
-    const row = this.resetConfirmModal.data;
-    const userId = row?.user?._id;
+    const userId = this.resetConfirmModal.data?.user?._id;
     if (this.isReqAlive || !userId) return;
 
     this.isReqAlive = true;
-    this._apiFs.alertConfig.resetUserOverride(userId).subscribe({
+    this._apiFs.alertConfig.resetUser(userId).subscribe({
       next: (res: IResponse) => {
         this.isReqAlive = false;
         if (res.code !== 'OK') return;
-        this.toast(EToasterType.Success, `Alert override reset for ${row.user?.userName || row.user?.fullname}.`);
         this.closeResetConfirm();
         this.load();
       },

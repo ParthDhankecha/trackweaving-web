@@ -1,5 +1,4 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
@@ -10,7 +9,7 @@ import { ROUTES } from '@src/app/constants/app.routes';
 
 @Component({
   selector: 'app-manufacturer-overview',
-  imports: [DecimalPipe],
+  imports: [],
   templateUrl: './overview.html',
   styleUrl: './overview.scss'
 })

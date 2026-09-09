@@ -74,6 +74,8 @@ export interface IMachineLog {
     reed?: string;
     machineType?: MachineType;
     machineGroupId?: string | null;
+    machineGroup?: string | null;
+    operator?: string | null;
     efficiency: number;
     picks: number;
     speed: number;
@@ -126,7 +128,7 @@ export type LayoutOption = 'default' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3' | '
 
 export type MetricDisplayMode = 'icon' | 'label';
 
-export type GroupByOption = 'default' | 'group' | 'efficiency';
+export type GroupByOption = 'default' | 'group' | 'efficiency' | 'quality' | 'operator';
 
 export interface IMachineLogGroup {
     key: string;

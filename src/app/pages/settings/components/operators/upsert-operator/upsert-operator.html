@@ -1,0 +1,120 @@
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <form [formGroup]="operatorForm" (ngSubmit)="onSubmit()" class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">
+                    {{ isEditMode ? 'Edit' : 'Create' }} Operator
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseOrCancel()"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="operatorName" class="form-label">
+                            Operator Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="operatorName" formControlName="operatorName" class="form-control"
+                            placeholder="Enter operator name">
+
+                        @if (operatorName && operatorName.touched && operatorName.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (operatorName.errors['required']) {
+                            <span>Operator name is required.</span>
+                            }
+                            @if (operatorName.errors['maxlength']) {
+                            <span>
+                                Operator name cannot exceed
+                                {{ operatorName.errors['maxlength'].requiredLength }} characters.
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <span class="form-label d-block">
+                            Shift <span class="text-danger">*</span>
+                        </span>
+                        <div class="d-flex flex-wrap gap-3">
+                            @for (option of shiftOptions; track option.value) {
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" id="operator-shift-{{option.value}}"
+                                    formControlName="shift" [value]="option.value" (change)="onShiftChange()">
+                                <label class="form-check-label" for="operator-shift-{{option.value}}">
+                                    {{ option.label }}
+                                </label>
+                            </div>
+                            }
+                        </div>
+                        @if (shift && shift.touched && shift.errors) {
+                        <div class="invalid-feedback d-block">
+                            @if (shift.errors['required']) {
+                            <span>Shift is required.</span>
+                            }
+                        </div>
+                        }
+                    </div>
+
+                    <div class="col-12 mb-1">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <span class="form-label mb-0">
+                                Machines
+                            </span>
+                            @if (machineList.length) {
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" [checked]="isAllMachinesSelected"
+                                    id="selectAllOperatorMachines" (change)="onToggleMachine($event)">
+                                <label class="form-check-label" for="selectAllOperatorMachines">
+                                    Select all
+                                </label>
+                            </div>
+                            }
+                        </div>
+                        <div class="row gy-2 gx-4">
+                            @for (machine of machineList; track machine._id) {
+                            <div class="col-auto">
+                                <div class="form-check" [class.already-assigned]="isAlreadyAssigned(machine._id)">
+                                    <input class="form-check-input" type="checkbox"
+                                        id="operator-machine-{{machine._id}}" [checked]="isMachineSelected(machine._id)"
+                                        (change)="onToggleMachine($event, machine._id)">
+                                    <label class="form-check-label text-capitalize"
+                                        for="operator-machine-{{machine._id}}">
+                                        {{ machine.machineCode }}
+                                    </label>
+                                </div>
+                            </div>
+                            } @empty {
+                            <div class="col-12 text-muted small">
+                                No machines available.
+                            </div>
+                            }
+                        </div>
+
+                        @if (alreadyAssignedMachineCodes.length) {
+                        <div class="alert alert-danger py-2 px-3 small mt-3 mb-0">
+                            <div class="fw-semibold mb-1">
+                                Already assigned to another operator for this shift
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                @for (code of alreadyAssignedMachineCodes; track code) {
+                                <span class="badge text-bg-danger text-capitalize">{{ code }}</span>
+                                }
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseOrCancel()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="isReqAlive">
+                    {{ isEditMode ? 'Update' : 'Create' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

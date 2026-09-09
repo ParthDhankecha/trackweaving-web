@@ -10,6 +10,8 @@ import { MaintenanceEntry } from './components/maintenance-entry/maintenance-ent
 import { ShiftWiseComments } from './components/shift-wise-comments/shift-wise-comments';
 import { PartsChangeEntry } from './components/parts-change-entry/parts-change-entry';
 import { Users } from './components/users/users';
+import { Operators } from './components/operators/operators';
+import { AlertConfig } from './components/alert-config/alert-config';
 import { PageNotFound } from '@src/app/shared/components/page-not-found/page-not-found';
 
 import { accessGuard } from '@src/app/core/guards/access-guard';
@@ -59,11 +61,25 @@ export const routes: Routes = [
         data: { accessModules: ['part_change_entry'] }
     },
     {
+        path: ROUTES.SETTINGS.ALERT_CONFIG,
+        title: APP_PAGE_TITLE.SETTINGS.ALERT_CONFIG,
+        component: AlertConfig,
+        canActivate: [accessGuard],
+        data: { accessModules: ['alert_config'] }
+    },
+    {
         path: ROUTES.SETTINGS.USERS,
         title: APP_PAGE_TITLE.SETTINGS.USERS,
         component: Users,
         canActivate: [accessGuard],
         data: { accessModules: ['user'] }
+    },
+    {
+        path: ROUTES.SETTINGS.OPERATORS,
+        title: APP_PAGE_TITLE.SETTINGS.OPERATORS,
+        component: Operators,
+        canActivate: [accessGuard],
+        data: { accessModules: ['operator'] }
     },
     {
         path: ROUTES.PAGE_NOT_FOUND,

@@ -22,6 +22,8 @@ interface IReportNavState {
   workspaceId?: string;
 }
 
+type TExportAction = 'download' | 'share';
+
 
 @Component({
   selector: 'app-reports',
@@ -45,10 +47,9 @@ export class Reports {
   protected readonly _route = inject(ActivatedRoute);
   private readonly _ngZone = inject(NgZone);
   /** Captured at construction — `getCurrentNavigation()` is only available then. */
-  private readonly navState: IReportNavState | null =
+  private readonly navState: IReportNavState =
     (this._router.currentNavigation()?.extras?.state as IReportNavState | undefined)
-    ?? (history.state as IReportNavState | null)
-    ?? null;
+    ?? (history.state as IReportNavState) ?? {};
 
   protected readonly _fb = inject(FormBuilder);
 
@@ -201,7 +202,51 @@ export class Reports {
     );
   }
 
+
   @ViewChild('reportTable', { static: false }) reportTable!: ElementRef<HTMLTableElement>;
+  @ViewChild('machineCol', { static: false }) machineCol!: ElementRef<HTMLTableCellElement>;
+  @ViewChild('reportTableScroll', { static: false }) reportTableScroll!: ElementRef<HTMLElement>;
+
+
+  private machineColumnInitialLeft: number = 0;
+  protected isTableScrolledX: boolean = false;
+  private refreshStickyState(options: { delay?: number; force?: boolean } = {}): void {
+    const { delay = 10, force = false } = options;
+
+    // Sticky `left` is based on the column's natural offset. Measure only after
+    // sticky is off and the real scroll container (not the <table>) is at 0.
+    this.isTableScrolledX = false;
+    this.resetReportTableScroll();
+
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        this.resetReportTableScroll();
+
+        const table = this.reportTable?.nativeElement;
+        const machine = this.machineCol?.nativeElement;
+        if (!table || !machine) return;
+
+        if (this.machineColumnInitialLeft === 0 || force) {
+          const tableRect = table.getBoundingClientRect();
+          const machineRect = machine.getBoundingClientRect();
+          this.machineColumnInitialLeft = machineRect.left - tableRect.left + 1;
+        }
+      });
+    }, delay);
+  }
+  private resetReportTableScroll(): void {
+    const container = this.reportTableScroll?.nativeElement;
+    if (container) container.scrollLeft = 0;
+  }
+  protected onReportTableScroll(event: Event): void {
+    const container = event.currentTarget as HTMLElement;
+    if (!container) return;
+
+    const isScrolled = container.scrollLeft > this.machineColumnInitialLeft;
+    if (isScrolled !== this.isTableScrolledX) {
+      this.isTableScrolledX = isScrolled;
+    }
+  }
 
 
   protected machinesLoaded = false;
@@ -214,8 +259,8 @@ export class Reports {
 
     if (this.isDevice) {
       // WebView invokes this outside NgZone; wrap so the view updates.
-      (window as any).setDeviceToken = (token: string) => {
-        this._ngZone.run(() => this.setDeviceToken(token));
+      (window as any).setDeviceToken = (token: string, state?: IReportNavState) => {
+        this._ngZone.run(() => this.setDeviceToken(token, state));
       };
     } else {
       this.initialize();
@@ -235,12 +280,18 @@ export class Reports {
     }
   }
 
-  setDeviceToken(token: string): void {
+  setDeviceToken(token: string, state?: IReportNavState): void {
     if (typeof token !== 'string' || !token?.trim()) return;
 
     // clear all local storage items & set new token
     localStorage.clear();
     localStorage.setItem(StorageKeys.ACCESS_TOKEN, token.trim());
+    this._coreService.utils.enterDeviceSession();
+    if (state) {
+      try {
+        Object.assign(this.navState, state);
+      } catch (error) { }
+    }
     // initialize the page
     this.initialize();
   }
@@ -343,6 +394,7 @@ export class Reports {
     this.machineGroupList = [];
     this.qualityList = [];
     this.reportData = null;
+    this.isTableScrolledX = false;
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
     this.stoppageViewMode = 'machineWise';
@@ -628,19 +680,18 @@ export class Reports {
       takeUntil(this.subscriptionHandler$)
     ).subscribe(() => {
       this.syncReportTypeValidators();
-      const now = moment();
-      if (this.isStoppageReport) {
-        this.startDate?.patchValue(now.clone().startOf('month').format('YYYY-MM-DD'), { emitEvent: false });
-      } else {
-        this.startDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
-        this.endDate?.patchValue(now.format('YYYY-MM-DD'), { emitEvent: false });
-      }
+
+      const today = moment().format('YYYY-MM-DD');
+      this.startDate?.patchValue(today, { emitEvent: false });
+      this.endDate?.patchValue(today, { emitEvent: false });
       this.reportData = null;
+      this.isTableScrolledX = false;
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
       this.stoppageViewMode = 'machineWise';
       this.by24Hours = false;
       this.reportDataBy24Hours = null;
+      this.machineColumnInitialLeft = 0;
     });
     this.groupByMachine?.valueChanges.pipe(
       debounceTime(10),
@@ -821,6 +872,7 @@ export class Reports {
         this.isReqAlive = false;
         if (res.code === 'OK') {
           this.reportData = res.data || {};
+          this.isTableScrolledX = false;
           this.reportData.reportTitle = this.reportTypeOptions.find(rt => rt.id === filter.reportType)?.label || 'Report';
           this.reportData.reportType = filter.reportType;
           this.reportData.fromDate = filter.startDate;
@@ -854,12 +906,15 @@ export class Reports {
             this.updateReportStopColumns(list);
             this.reportData.stopColumns = this.reportStopColumns;
             this.reportData.showBeamCompletionDateColumn = this.showBeamCompletionDateColumn;
+
+            this.refreshStickyState();
           }
         }
       },
       error: (err: any) => {
         this.isReqAlive = false;
         this.reportData = null;
+        this.isTableScrolledX = false;
         this.reportStopColumns = [];
         this.showBeamCompletionDateColumn = false;
         this.stoppageTableRows = [];
@@ -875,20 +930,15 @@ export class Reports {
     return this._apiFs.reports.generateReport(payload);
   }
 
-  protected formatCompletionSource(source?: string | null): string {
-    switch (source) {
-      case 'device': return 'Device';
-      case 'estimated': return 'Estimated';
-      case 'completed': return 'Completed';
-      default: return '-';
-    }
-  }
-
 
   protected reportDataBy24Hours: any = null;
   protected onBy24HoursChange(enabled: boolean): void {
     if (!this.reportData || this.reportData.reportType !== 'productionShiftWise') return;
-    if (this.reportDataBy24Hours !== null) return;
+
+    if (!enabled || this.reportDataBy24Hours !== null) {
+      this.refreshStickyState({ force: true });
+      return;
+    }
 
     const { list, ...rest } = this.reportData;
     this.reportDataBy24Hours = {
@@ -971,6 +1021,7 @@ export class Reports {
     }
 
     this.reportDataBy24Hours.list = result;
+    this.refreshStickyState({ force: true });
   }
 
   private mergeMachineDayNight(entry: Record<string, any>): any {
@@ -1039,7 +1090,7 @@ export class Reports {
 
 
   protected isPdfExporting: boolean = false;
-  protected exportAsPDF(): void {
+  protected exportAsPDF(action?: TExportAction): void {
     if (!this.reportTable?.nativeElement || this.isPdfExporting) return;
 
     if (this.by24Hours) {
@@ -1050,25 +1101,34 @@ export class Reports {
         ...this.reportDataBy24Hours,
         isBy24Hours: true,
         reportTitle: `${this.reportData?.reportTitle || 'Report'} (By 24 Hours)`,
-      }, this.isDevice).finally(() => {
+      }, {
+        isDevice: this.isDevice,
+        action: this.isDevice ? action : undefined
+      }).finally(() => {
         this.isPdfExporting = false;
       });
       return;
     }
 
     this.isPdfExporting = true;
-    this._coreService.exportData.exportTableToPDF(this.reportData, this.isDevice).finally(() => {
+    this._coreService.exportData.exportTableToPDF(this.reportData, {
+      isDevice: this.isDevice,
+      action: this.isDevice ? action : undefined
+    }).finally(() => {
       this.isPdfExporting = false;
     });
   }
 
   protected isExcelExporting: boolean = false;
-  protected exportAsExcel(): void {
+  protected exportAsExcel(action?: TExportAction): void {
     if (!this.reportTable?.nativeElement || this.isExcelExporting) return;
 
     this.isExcelExporting = true;
     const filename = `${String(this.reportData?.reportTitle || 'report').toLowerCase().replace(/ +/g, '_')}_${moment().format('YYYYMMDD_HHmmss')}.xlsx`;
-    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, this.isDevice).finally(() => {
+    this._coreService.exportData.exportTableToExcel(this.reportTable.nativeElement, filename, {
+      isDevice: this.isDevice,
+      action: this.isDevice ? action : undefined
+    }).finally(() => {
       this.isExcelExporting = false;
     });
   }

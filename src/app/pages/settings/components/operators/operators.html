@@ -1,0 +1,125 @@
+<div class="container-xxl p-3 my-4 bg-white shadow-sm rounded-2 border">
+    <div class="table-responsive">
+        <table class="table caption-top table-striped table-hover">
+            <caption>
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 column-gap-3">
+                        <strong class="text-capitialise fs-5">
+                            Operators
+                        </strong>
+                        <app-entries-per-page-selector [pageSize]="pageSize" selectClass="form-select-sm"
+                            (pageSizeChange)="onEntriesPerPageChange($event)" />
+                    </div>
+                    @if(hasCreateAccess){
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+                        (click)="onOpenUpsertModal()">
+                        <svg height="18" width="18" viewBox="0 0 48 48" class="flex-shrink-0">
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="8" x2="40" y1="24" y2="24" />
+                            <line fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="4"
+                                stroke-linecap="round" x1="24" x2="24" y1="8" y2="40" />
+                        </svg>
+                        <span class="text-nowrap">
+                            New Operator
+                        </span>
+                    </button>
+                    }
+                </div>
+            </caption>
+            <thead class="table-dark bg-opacity-50">
+                <tr>
+                    <th scope="col" class="w-1-percent">#</th>
+                    <th scope="col" class="text-nowrap">
+                        Operator Name
+                    </th>
+                    <th scope="col" class="text-nowrap">
+                        Shift
+                    </th>
+                    <th scope="col">
+                        Machines
+                    </th>
+                    @if(hasAnyActionAccess){
+                    <th scope="col" class="w-1-percent">
+                        Action
+                    </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for(item of operatorList; track item._id; let i=$index;){
+                <tr>
+                    <th scope="row">
+                        {{ (currentPage - 1) * pageSize + i + 1 }}
+                    </th>
+                    <td class="text-capitalize">
+                        {{item?.operatorName}}
+                    </td>
+                    <td>
+                        {{item?.displayShift}}
+                    </td>
+                    <td>
+                        {{item?.displayMachines}}
+                    </td>
+                    @if(hasAnyActionAccess){
+                    <td class="text-nowrap">
+                        @if(hasUpdateAccess){
+                        <button class="btn btn-outline-primary btn-sm me-1" (click)="onOpenUpsertModal(item)">
+                            Edit
+                        </button>
+                        }
+                        @if(hasDeleteAccess){
+                        <button class="btn btn-outline-danger btn-sm" (click)="onOpenDeleteModal(item)">
+                            Delete
+                        </button>
+                        }
+                    </td>
+                    }
+                </tr>
+                }@empty {
+                <tr>
+                    <td [attr.colspan]="hasAnyActionAccess ? 5 : 4" class="text-muted small text-center">
+                        No records found.
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    <app-pagination class="d-block" [pageSize]="pageSize" [totalEntries]="totalEntries" [currentPage]="currentPage"
+        (pageChange)="onPageChange($event)" />
+</div>
+
+
+<!-- Upsert Operator Modal -->
+@if (isUpsertOperatorModalOpen) {
+<app-upsert-operator [operatorData]="upsertOperatorModalData" (close)="onCloseUpsertModal()"
+    (upsert)="upsertOperatorModalEvent($event)" />
+}
+<!-- Delete Operator Modal -->
+@if (isDeleteModalOpen) {
+<div class="modal d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">
+                    Delete Operator
+                </h1>
+                <button type="button" class="btn-close" (click)="onCloseDeleteModal()"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete
+                <strong>{{ deleteOperatorData?.operatorName }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary me-3" (click)="onCloseDeleteModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" [disabled]="isReqAlive" (click)="onConfirmDelete()">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

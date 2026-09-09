@@ -6,6 +6,9 @@ import { EToasterType } from '@src/app/models/utils.model';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { SearchInput } from '@src/app/shared/components/search-input/search-input';
 
+import APP_REGEXP from '@src/app/constants/app-regexp';
+import { PANNA_OPTIONS } from '@src/app/constants/machine';
+
 
 @Component({
   selector: 'app-upsert-machine',
@@ -31,18 +34,19 @@ export class UpsertMachine {
   @Output('upsert') upsert: EventEmitter<any> = new EventEmitter<any>();
 
 
+  protected readonly pannaOptions = PANNA_OPTIONS;
   protected machineForm: FormGroup = this._fb.group({
     machineCode: ['', [Validators.required, Validators.pattern('^M[0-9]+$')]],
     machineName: ['', [Validators.required, Validators.maxLength(100)]],
-    ip: ['', [Validators.required, Validators.pattern(
-      /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/
-    )]],
+    ip: ['', [Validators.required, Validators.pattern(APP_REGEXP.IP_ADDRESS.REGEXP)]],
     workspace: ['', [Validators.required]],
     deviceType: ['', [Validators.required]],
     displayType: ['', [Validators.required]],
     machineType: ['', [Validators.required]],
     quality: ['', []],
     reed: ['', []],
+    panna: [null, [Validators.required]],
+    cards: [null, [Validators.min(0)]],
   });
   protected isEyeOpen: boolean = false;
 
@@ -109,6 +113,8 @@ export class UpsertMachine {
         machineType: this.machineData?.machineType || '',
         quality: this.machineData?.quality || '',
         reed: this.machineData?.reed || '',
+        panna: this.normalizePanna(this.machineData?.panna),
+        cards: this.machineData?.cards ?? null,
       });
     }
   }
@@ -149,7 +155,22 @@ export class UpsertMachine {
   get workspace(): AbstractControl | null {
     return this.machineForm.get('workspace');
   }
+  get panna(): AbstractControl | null {
+    return this.machineForm.get('panna');
+  }
+  get cards(): AbstractControl | null {
+    return this.machineForm.get('cards');
+  }
 
+
+  private normalizePanna(value: unknown): number | null {
+    const n = Number(value);
+    return this.pannaOptions.some(o => o.value === n) ? n : null;
+  }
+
+  protected get isMachineTypeRapier(): boolean {
+    return this.machineType?.value === 'rapier';
+  }
 
 
   private cacheSearchTerms: string = '';
@@ -180,8 +201,12 @@ export class UpsertMachine {
     const { workspace, ...restFields } = this.machineForm.value;
     const body = {
       ...restFields,
+      panna: this.normalizePanna(restFields.panna),
       workspaceId: workspace._id
     };
+    if (!this.isMachineTypeRapier) {
+      delete body.cards;
+    }
 
     this.isReqAlive = true;
     if (!this.isEditMode) {

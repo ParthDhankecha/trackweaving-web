@@ -1,0 +1,10 @@
+.already-assigned {
+    .form-check-label {
+        color: var(--bs-danger);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--bs-danger);
+        border-color: var(--bs-danger);
+    }
+}
