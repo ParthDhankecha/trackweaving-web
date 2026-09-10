@@ -1,0 +1,139 @@
+:host { display: block; }
+
+.pi-watch {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+
+.pi-watch__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+
+    h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #043A54;
+    }
+
+    p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #6b7280;
+    }
+}
+
+.pi-watch__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+
+    select { width: auto; min-width: 110px; }
+}
+
+.pi-badge {
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: #fff7ed;
+    color: #b45309;
+
+    &.is-critical {
+        background: #fef2f2;
+        color: #b42318;
+    }
+
+    &.is-watch {
+        background: #fff7ed;
+        color: #b45309;
+    }
+}
+
+.pi-watch__table {
+    font-size: 13px;
+
+    th {
+        color: #6b7280;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    td { vertical-align: middle; }
+
+    tbody tr:not(.pi-watch__detail) {
+        cursor: pointer;
+
+        &:hover { background: #f8fafc; }
+        &.is-open { background: #f4f8fa; }
+    }
+
+    .is-bad { color: #b45309; font-weight: 700; white-space: nowrap; }
+}
+
+.pi-watch__detail td {
+    background: #fafbfc;
+    padding: 12px 14px 16px;
+}
+
+.pi-watch__why {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #374151;
+
+    span {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: 2px;
+    }
+}
+
+.pi-watch__chart svg {
+    display: block;
+    width: min(100%, 420px);
+    height: 88px;
+}
+
+.pi-watch__days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.pi-watch__normal {
+    margin: 8px 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #043A54;
+}
+
+.pi-more {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #043A54;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.pi-empty {
+    padding: 18px 12px;
+    text-align: center;
+    color: #6b7280;
+    border: 1px dashed #e5e7eb;
+    border-radius: 8px;
+}

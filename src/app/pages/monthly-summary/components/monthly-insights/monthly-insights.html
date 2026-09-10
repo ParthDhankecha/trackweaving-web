@@ -1,0 +1,21 @@
+<div class="ms-card">
+    <h2 class="ms-title">TrackWeaving Insights</h2>
+    <p class="ms-subtitle">Key observations from this month's machine data</p>
+
+    <div class="insight-grid">
+        @for (insight of insights; track insight.id) {
+        <article class="insight-card">
+            <h3>{{ insight.title }}</h3>
+            <p>
+                @for (segment of insight.segments; track $index) {
+                    @if (segment.emphasize) {
+                    <strong>{{ segment.text }}</strong>
+                    } @else {
+                    <span>{{ segment.text }}</span>
+                    }
+                }
+            </p>
+        </article>
+        }
+    </div>
+</div>

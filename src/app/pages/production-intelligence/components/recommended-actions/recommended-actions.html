@@ -1,0 +1,22 @@
+<section class="pi-actions">
+    <div class="pi-actions__head">
+        <h3>Recommended Actions</h3>
+        <p>Start with these actions for the biggest production impact</p>
+    </div>
+
+    @if (!cards.length) {
+    <div class="pi-empty">No specific actions for the selected filters.</div>
+    } @else {
+    <div class="pi-actions__grid">
+        @for (card of cards; track $index) {
+        <article class="pi-action">
+            <span>{{ $index + 1 }}</span>
+            <h4>{{ card.title }}</h4>
+            @for (line of card.lines; track $index) {
+            <p>{{ line }}</p>
+            }
+        </article>
+        }
+    </div>
+    }
+</section>

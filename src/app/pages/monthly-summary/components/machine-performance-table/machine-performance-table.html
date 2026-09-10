@@ -1,0 +1,64 @@
+<div class="ms-card">
+    <div class="table-head">
+        <div>
+            <h2 class="ms-title">Machine Performance</h2>
+            <p class="ms-subtitle">Search, filter and sort every loom for the selected month</p>
+        </div>
+        <input type="search" class="form-control form-control-sm table-search" placeholder="Search machine..."
+            [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" />
+    </div>
+
+    <div class="filter-row">
+        @for (filter of filters; track filter.id) {
+        <button type="button" class="btn btn-sm"
+            [class.btn-primary]="activeFilter === filter.id"
+            [class.btn-outline-primary]="activeFilter !== filter.id"
+            (click)="onFilter(filter.id)">
+            {{ filter.label }}
+        </button>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-sm ms-table mb-0">
+            <thead>
+                <tr>
+                    <th (click)="onSort('name')">Machine {{ sortMark('name') }}</th>
+                    <th (click)="onSort('productionMeters')">Production {{ sortMark('productionMeters') }}</th>
+                    <th (click)="onSort('efficiency')">Efficiency {{ sortMark('efficiency') }}</th>
+                    <th (click)="onSort('averageRpm')">Avg RPM {{ sortMark('averageRpm') }}</th>
+                    <th (click)="onSort('runningTimeMinutes')">Running Time {{ sortMark('runningTimeMinutes') }}</th>
+                    <th (click)="onSort('downtimeMinutes')">Downtime {{ sortMark('downtimeMinutes') }}</th>
+                    <th (click)="onSort('topStopReason')">Top Stop Reason {{ sortMark('topStopReason') }}</th>
+                    <th (click)="onSort('performance')">Performance {{ sortMark('performance') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (machine of visibleMachines; track machine.id) {
+                <tr>
+                    <td class="fw-semibold">{{ machine.name }}</td>
+                    <td>{{ formatMeters(machine.productionMeters) }}</td>
+                    <td>{{ formatPercent(machine.efficiency) }}</td>
+                    <td>{{ machine.averageRpm }}</td>
+                    <td>{{ formatHoursMinutes(machine.runningTimeMinutes) }}</td>
+                    <td class="col-downtime">{{ formatHoursMinutes(machine.downtimeMinutes) }}</td>
+                    <td>{{ machine.topStopReason }}</td>
+                    <td>
+                        <span class="perf-pill"
+                            [class.perf-pill--excellent]="machine.performance === 'excellent'"
+                            [class.perf-pill--good]="machine.performance === 'good'"
+                            [class.perf-pill--average]="machine.performance === 'average'"
+                            [class.perf-pill--needsAttention]="machine.performance === 'needsAttention'">
+                            {{ performanceLabel(machine.performance) }}
+                        </span>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No machines match the current filters.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

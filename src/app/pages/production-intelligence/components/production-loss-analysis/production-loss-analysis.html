@@ -1,0 +1,47 @@
+<section class="pi-loss">
+    <div class="pi-loss__head">
+        <h3>Where Production Was Lost</h3>
+        <p>Machines and stop reasons responsible for the biggest production impact</p>
+    </div>
+
+    <div class="pi-loss__grid">
+        <div>
+            <h4>Highest Loss Machines</h4>
+            @for (row of machines; track row.machineId) {
+            <article class="pi-bar-row">
+                <div class="pi-bar-row__meta">
+                    <strong>{{ row.machineName }}</strong>
+                    <span>{{ formatMeters(row.estimatedLossMeters) }}</span>
+                </div>
+                <div class="pi-bar">
+                    <i [style.width.%]="machineBar(row.estimatedLossMeters)"></i>
+                </div>
+                <small>{{ row.downtimeMinutes }} min downtime · Main: {{ row.mainReason }}</small>
+            </article>
+            } @empty {
+            <div class="pi-empty">No production loss recorded.</div>
+            }
+            @if (hiddenCount && !showAll) {
+            <button type="button" class="pi-more" (click)="showAll = true">View Complete Ranking</button>
+            }
+        </div>
+
+        <div>
+            <h4>Biggest Loss Reasons</h4>
+            @for (reason of reasons; track reason.reason) {
+            <article class="pi-bar-row">
+                <div class="pi-bar-row__meta">
+                    <strong>{{ reason.reason }}</strong>
+                    <span>{{ formatMeters(reason.estimatedLossMeters) }} estimated loss</span>
+                </div>
+                <div class="pi-bar">
+                    <i [style.width.%]="reasonBar(reason)"></i>
+                </div>
+                <small>{{ reason.durationMinutes }} min</small>
+            </article>
+            } @empty {
+            <div class="pi-empty">No stop-reason loss for the selected period.</div>
+            }
+        </div>
+    </div>
+</section>

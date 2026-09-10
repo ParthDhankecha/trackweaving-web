@@ -1,0 +1,13 @@
+<div class="ms-card">
+    <h2 class="ms-title">Priority for Next Month</h2>
+    <p class="ms-subtitle">Actionable recommendations for factory management</p>
+
+    <ol class="priority-list">
+        @for (item of recommendations; track $index) {
+        <li>
+            <span class="priority-index">{{ $index + 1 }}</span>
+            <span>{{ item }}</span>
+        </li>
+        }
+    </ol>
+</div>

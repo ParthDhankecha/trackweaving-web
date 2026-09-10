@@ -1,0 +1,39 @@
+<div class="monthly-summary">
+    @if (isLoading && !summary) {
+    <div class="ms-state">Loading monthly summary...</div>
+    } @else if (!summary) {
+    <div class="ms-state">No data available for the selected month.</div>
+    } @else {
+    <section class="kpi-grid" aria-label="Executive summary">
+        @for (card of summary.kpiCards; track card.key) {
+        <app-summary-kpi-card [card]="card" />
+        }
+    </section>
+
+    <section class="highlight-banner" aria-label="Monthly performance highlight">
+        <p class="highlight-banner__headline">{{ summary.highlight.headline }}</p>
+        <p class="highlight-banner__support">{{ summary.highlight.supporting }}</p>
+    </section>
+
+    <app-performance-trend-chart [days]="summary.dailyPerformance" [monthLabel]="summary.month.label"
+        [summary]="summary.dailySummary" />
+
+    <div class="two-col">
+        <app-downtime-analysis [reasons]="summary.downtimeReasons" />
+        <app-production-loss [loss]="summary.productionLoss" />
+    </div>
+
+    <app-stop-reason-table [reasons]="summary.downtimeReasons" />
+
+    <div class="two-col">
+        <app-machine-ranking [machines]="summary.topMachines" variant="top" />
+        <app-machine-ranking [machines]="summary.bottomMachines" variant="attention" />
+    </div>
+
+    <app-machine-performance-table [machines]="summary.machines" />
+    <app-shift-comparison [shifts]="summary.shifts" />
+    <app-monthly-comparison [rows]="summary.monthComparison" />
+    <app-monthly-insights [insights]="summary.insights" />
+    <app-priority-actions [recommendations]="summary.recommendations" />
+    }
+</div>

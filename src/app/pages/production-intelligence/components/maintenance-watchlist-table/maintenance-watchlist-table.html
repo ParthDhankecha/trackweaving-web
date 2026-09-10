@@ -1,0 +1,88 @@
+<section class="pi-watch">
+    <div class="pi-watch__head">
+        <div>
+            <h3>Maintenance Watchlist</h3>
+            <p>Machines showing worsening patterns over time</p>
+        </div>
+        <div class="pi-watch__tools">
+            <select class="form-select form-select-sm" [disabled]="isLoading" [value]="report.trendDays"
+                (change)="onTrendChange($event)">
+                @for (option of trendOptions; track option.id) {
+                <option [value]="option.id">{{ option.label }}</option>
+                }
+            </select>
+            <span class="pi-badge is-critical">{{ report.maintenanceWatchlist.criticalCount }} Critical</span>
+            <span class="pi-badge is-watch">{{ report.maintenanceWatchlist.watchCount }} Watch</span>
+        </div>
+    </div>
+
+    @if (!report.maintenanceWatchlist.machines.length) {
+    <div class="pi-empty">No developing machine issues found for the selected trend window.</div>
+    } @else {
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 pi-watch__table">
+            <thead>
+                <tr>
+                    <th>Machine</th>
+                    <th>Developing Issue</th>
+                    <th>Current</th>
+                    <th>Normal</th>
+                    <th>Change</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (machine of visibleMachines; track machine.machineId) {
+                <tr (click)="toggleRow(machine)" [class.is-open]="expandedId === machine.machineId">
+                    <td class="fw-semibold">{{ machine.machineName }}</td>
+                    <td>{{ machine.primaryTrend }}</td>
+                    <td>{{ watchCurrent(machine) }}</td>
+                    <td>{{ watchNormal(machine) }}</td>
+                    <td [class.is-bad]="watchChangeIsBad(machine) && watchChange(machine) !== '—'">
+                        {{ watchChange(machine) }}
+                    </td>
+                    <td>
+                        <span class="pi-badge" [class.is-critical]="machine.status === 'critical'"
+                            [class.is-watch]="machine.status === 'watch'">
+                            {{ machine.status === 'critical' ? 'Critical' : 'Watch' }}
+                        </span>
+                    </td>
+                </tr>
+                @if (expandedId === machine.machineId) {
+                <tr class="pi-watch__detail">
+                    <td colspan="6">
+                        <p class="pi-watch__why"><span>Why Watchlist?</span>{{ machine.explanation }}</p>
+                        <div class="pi-watch__chart">
+                            <svg viewBox="0 0 360 88" aria-hidden="true">
+                                <polyline [attr.points]="trendLinePoints(chartPoints(machine))" fill="none"
+                                    stroke="#043A54" stroke-width="2.5" />
+                            </svg>
+                            <div class="pi-watch__days">
+                                @for (point of chartPoints(machine); track point.date) {
+                                <span>
+                                    {{ shortChartDate(point.date) }}
+                                    {{ point.efficiency > 0 ? formatPercent(point.efficiency) : '—' }}
+                                </span>
+                                }
+                            </div>
+                            <p class="pi-watch__normal">Normal: {{ watchNormal(machine) }}</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                (click)="$event.stopPropagation(); viewDetails.emit(machine)">
+                                View Details
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (hiddenCount && !showAll) {
+    <button type="button" class="pi-more" (click)="showAll = true">
+        View All {{ report.maintenanceWatchlist.machines.length }} Watchlist Machines
+    </button>
+    }
+    }
+</section>

@@ -1,0 +1,67 @@
+:host { display: block; height: 100%; }
+
+.ms-card {
+    height: 100%;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(4, 58, 84, 0.04);
+    padding: 18px 20px;
+}
+
+.ms-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #043A54;
+}
+
+.ms-subtitle {
+    margin: 4px 0 16px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.reason-row {
+    margin-bottom: 16px;
+
+    &:last-child { margin-bottom: 0; }
+}
+
+.reason-row__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.reason-row__name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.reason-row__values {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: #6b7280;
+
+    strong {
+        color: #043A54;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.reason-row__track {
+    height: 10px;
+    background: #f3f4f6;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.reason-row__fill {
+    height: 100%;
+    background: #043A54;
+    border-radius: 99px;
+}

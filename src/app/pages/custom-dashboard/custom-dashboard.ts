@@ -8,7 +8,7 @@ import { StoppedMachineCard } from './components/stopped-machine-card/stopped-ma
 
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
-import { CustomDashboardResponse, EfficiencyLine, SectionKey, StoppedMachine, parseStopTimeToSeconds } from '@src/app/models/custom-dashboard.model';
+import { CustomDashboardResponse, EfficiencyLine, SectionKey, StoppedMachine } from '@src/app/models/custom-dashboard.model';
 import { StoppedMachineRotator } from './stopped-machine-rotator';
 import StorageKeys from '@src/app/constants/storage-keys';
 
@@ -161,34 +161,10 @@ export class CustomDashboard implements OnInit, OnDestroy {
         if (res.code !== 'OK') return;
 
         this.data = res.data;
-        this.data!.stoppedMachineList = [
-          { "machineCode": "M1", "lineKey": "Line 1", "stopTime": "00:00:42", "efficiency": 78, "stopReason": "feeler" },
-          { "machineCode": "M2", "lineKey": "Line 1", "stopTime": "00:01:18", "efficiency": 81, "stopReason": "warp" },
-          { "machineCode": "M3", "lineKey": "Line 2", "stopTime": "00:00:19", "efficiency": 69, "stopReason": "packageSensor" },
-          { "machineCode": "M4", "lineKey": "Line 2", "stopTime": "00:02:05", "efficiency": 74, "stopReason": "leno" },
-          { "machineCode": "M5", "lineKey": "Line 3", "stopTime": "00:01:01", "efficiency": 86, "stopReason": "warp" },
-          { "machineCode": "M6", "lineKey": "Line 3", "stopTime": "00:00:08", "efficiency": 91, "stopReason": "feeler" },
-          { "machineCode": "M7", "lineKey": "Line 4", "stopTime": "00:02:21", "efficiency": 62, "stopReason": "leno" },
-          { "machineCode": "M8", "lineKey": "Line 4", "stopTime": "00:00:55", "efficiency": 83, "stopReason": "packageSensor" },
-          { "machineCode": "M9", "lineKey": "Line 5", "stopTime": "00:01:44", "efficiency": 71, "stopReason": "warp" },
-          { "machineCode": "M10", "lineKey": "Line 5", "stopTime": "01:02:05", "efficiency": 88, "stopReason": "feeler" }
-        ];
+        this.data!.stoppedMachineList = res.data?.stoppedMachineList || [];
         this.connectionInterrupted = false;
         this.loading = false;
-        // this.applyStoppedMachines(res.data?.stoppedMachineList || []);
-        this.applyStoppedMachines([
-          { "machineCode": "M1", "lineKey": "Line 1", "stopTime": "00:00:42", "efficiency": 78, "stopReason": "feeler" },
-          { "machineCode": "M2", "lineKey": "Line 1", "stopTime": "00:01:18", "efficiency": 81, "stopReason": "warp" },
-          { "machineCode": "M3", "lineKey": "Line 2", "stopTime": "00:00:19", "efficiency": 69, "stopReason": "packageSensor" },
-          { "machineCode": "M4", "lineKey": "Line 2", "stopTime": "00:02:05", "efficiency": 74, "stopReason": "leno" },
-          { "machineCode": "M5", "lineKey": "Line 3", "stopTime": "00:01:01", "efficiency": 86, "stopReason": "warp" },
-          { "machineCode": "M6", "lineKey": "Line 3", "stopTime": "00:00:08", "efficiency": 91, "stopReason": "feeler" },
-          { "machineCode": "M7", "lineKey": "Line 4", "stopTime": "00:02:21", "efficiency": 62, "stopReason": "leno" },
-          { "machineCode": "M8", "lineKey": "Line 4", "stopTime": "00:00:55", "efficiency": 83, "stopReason": "packageSensor" },
-          { "machineCode": "M9", "lineKey": "Line 5", "stopTime": "00:01:44", "efficiency": 71, "stopReason": "warp" },
-          { "machineCode": "M10", "lineKey": "Line 5", "stopTime": "01:02:05", "efficiency": 88, "stopReason": "feeler" }
-        ]
-    );
+        this.applyStoppedMachines(res.data?.stoppedMachineList || []);
       },
       error: () => {
         // Keep showing the last known-good data; just flag the connection as unstable.
@@ -199,13 +175,8 @@ export class CustomDashboard implements OnInit, OnDestroy {
   }
 
   private applyStoppedMachines(list: StoppedMachine[]): void {
-    const sorted = [...list].sort((a, b) => this.stopSeconds(b) - this.stopSeconds(a));
-    this._rotator.setItems(sorted);
+    this._rotator.syncByKey(list, machine => machine.machineCode);
     this.currentStoppedPair = this._rotator.currentPage;
-  }
-
-  private stopSeconds(machine: StoppedMachine): number {
-    return typeof machine.stopSeconds === 'number' ? machine.stopSeconds : parseStopTimeToSeconds(machine.stopTime);
   }
 
   private advanceRotation(): void {

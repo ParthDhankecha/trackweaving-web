@@ -1,0 +1,31 @@
+<div class="ms-card">
+    <h2 class="ms-title">Compared to Last Month</h2>
+    <p class="ms-subtitle">{{ subtitle }}</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-sm ms-table mb-0">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>{{ previousLabel }}</th>
+                    <th>{{ currentLabel }}</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (row of rows; track row.metric) {
+                <tr>
+                    <td class="fw-semibold">{{ row.metric }}</td>
+                    <td>{{ row.previousValue }}</td>
+                    <td>{{ row.currentValue }}</td>
+                    <td>
+                        <span [class.is-positive]="row.isPositive" [class.is-negative]="!row.isPositive">
+                            {{ formatChangeLabel(row.changePercent) }}
+                        </span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

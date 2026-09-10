@@ -1,0 +1,77 @@
+<div class="trend-card">
+    <div class="trend-card__header">
+        <div>
+            <h2 class="ms-title">Production &amp; Efficiency Trend</h2>
+            <p class="ms-subtitle">Daily factory performance during {{ monthLabel }}</p>
+        </div>
+        <div class="trend-legend">
+            <span class="trend-legend__item"><i class="swatch swatch--bar"></i> Production</span>
+            <span class="trend-legend__item"><i class="swatch swatch--line"></i> Efficiency</span>
+        </div>
+    </div>
+
+    @if (summary) {
+    <div class="trend-stats">
+        <div>
+            <span class="trend-stats__label">Best Day</span>
+            <strong>{{ shortDate(summary.bestDay) }}</strong>
+            <span>{{ formatMeters(summary.bestDay.productionMeters) }}</span>
+        </div>
+        <div>
+            <span class="trend-stats__label">Lowest Day</span>
+            <strong>{{ shortDate(summary.lowestDay) }}</strong>
+            <span>{{ formatMeters(summary.lowestDay.productionMeters) }}</span>
+        </div>
+        <div>
+            <span class="trend-stats__label">Average Daily Production</span>
+            <strong>{{ formatMeters(summary.averageDailyProduction) }}</strong>
+        </div>
+    </div>
+    }
+
+    <div class="trend-chart" #chartHost (mouseleave)="clearHover()">
+        <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" [attr.width]="width" height="320" role="img"
+            aria-label="Daily production and efficiency chart">
+            @for (tick of yTicks; track tick.label) {
+            <line [attr.x1]="pad.left" [attr.x2]="width - pad.right" [attr.y1]="tick.y" [attr.y2]="tick.y"
+                class="grid-line" />
+            <text [attr.x]="pad.left - 8" [attr.y]="tick.y + 4" class="axis-label axis-label--left">{{ tick.label }}</text>
+            }
+            @for (tick of y2Ticks; track tick.label) {
+            <text [attr.x]="width - pad.right + 8" [attr.y]="tick.y + 4" class="axis-label axis-label--right">{{ tick.label }}</text>
+            }
+
+            @for (point of points; track point.day.date) {
+            <rect [attr.x]="point.barX" [attr.y]="point.barY" [attr.width]="point.barWidth"
+                [attr.height]="point.barHeight" class="prod-bar"
+                [class.is-active]="hovered?.date === point.day.date" />
+            }
+
+            <path [attr.d]="linePath" class="eff-line" />
+
+            @for (point of points; track point.day.date) {
+            <circle [attr.cx]="point.x" [attr.cy]="point.lineY" r="3" class="eff-dot"
+                [class.is-active]="hovered?.date === point.day.date" />
+            <rect [attr.x]="point.x - (point.barWidth * 1.4)" [attr.y]="pad.top"
+                [attr.width]="point.barWidth * 2.8" [attr.height]="innerHeight" class="hover-slot"
+                (mousemove)="onHover(point, $event)" />
+            @if (point.day.day === 1 || point.day.day % 5 === 0 || point.day.day === days.length) {
+            <text [attr.x]="point.x" [attr.y]="height - 12" class="axis-label axis-label--x">{{ point.day.day }}</text>
+            }
+            }
+
+            <text [attr.x]="pad.left" [attr.y]="14" class="axis-title">Production (m)</text>
+            <text [attr.x]="width - pad.right" [attr.y]="14" class="axis-title axis-title--right">Efficiency %</text>
+        </svg>
+
+        @if (hovered) {
+        <div class="trend-tooltip" [style.left.px]="tooltipLeft" [style.top.px]="tooltipTop">
+            <strong>{{ formatDayLabel(hovered) }}</strong>
+            <div>Production: {{ formatMeters(hovered.productionMeters) }}</div>
+            <div>Efficiency: {{ formatPercent(hovered.efficiency) }}</div>
+            <div>Average RPM: {{ hovered.averageRpm }}</div>
+            <div>Downtime: {{ formatHoursMinutes(hovered.downtimeMinutes) }}</div>
+        </div>
+        }
+    </div>
+</div>

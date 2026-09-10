@@ -1,0 +1,31 @@
+<div class="ms-card">
+    <h2 class="ms-title">Stop Reason Analysis</h2>
+    <p class="ms-subtitle">Duration carries more weight than occurrence count</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-sm ms-table mb-0">
+            <thead>
+                <tr>
+                    <th>Stop Reason</th>
+                    <th>Occurrences</th>
+                    <th>Total Duration</th>
+                    <th>Avg Stop Duration</th>
+                    <th>Downtime %</th>
+                    <th>Estimated Production Loss</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (reason of reasons; track reason.reason) {
+                <tr>
+                    <td class="fw-semibold">{{ reason.reason }}</td>
+                    <td>{{ reason.occurrences.toLocaleString('en-IN') }}</td>
+                    <td class="col-duration">{{ formatHoursMinutes(reason.durationMinutes) }}</td>
+                    <td>{{ formatMinutesSeconds(reason.avgStopSeconds) }}</td>
+                    <td>{{ formatPercent(reason.downtimePercent, 0) }}</td>
+                    <td>{{ formatMeters(reason.estimatedLossMeters) }}</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

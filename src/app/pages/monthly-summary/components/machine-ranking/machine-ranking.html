@@ -1,0 +1,27 @@
+<div class="ms-card" [class.ms-card--attention]="variant === 'attention'">
+    <h2 class="ms-title">{{ title }}</h2>
+    <p class="ms-subtitle">{{ subtitle }}</p>
+
+    <div class="rank-list">
+        @for (machine of machines; track machine.id) {
+        <div class="rank-row" [class.rank-row--attention]="variant === 'attention'">
+            <div class="rank-row__main">
+                <div>
+                    <strong>{{ machine.name }}</strong>
+                    @if (variant === 'attention' && machine.majorIssue) {
+                    <div class="rank-row__issue">Major Issue: {{ machine.majorIssue }}</div>
+                    }
+                    @if (variant === 'attention' && machine.vsFactoryAveragePercent !== undefined && machine.vsFactoryAveragePercent < 0) {
+                    <div class="rank-row__gap">{{ formatPercent(abs(machine.vsFactoryAveragePercent)) }} below factory average</div>
+                    }
+                </div>
+                <span class="rank-row__eff">{{ formatPercent(machine.efficiency) }}</span>
+            </div>
+            <div class="rank-row__meta">
+                <span>{{ formatMeters(machine.productionMeters) }}</span>
+                <span>{{ formatHoursMinutes(machine.downtimeMinutes) }} downtime</span>
+            </div>
+        </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,55 @@
+:host { display: block; }
+
+.ms-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(4, 58, 84, 0.04);
+    padding: 18px 20px;
+}
+
+.ms-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #043A54;
+}
+
+.ms-subtitle {
+    margin: 4px 0 16px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.insight-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #f8fafc;
+
+    h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #043A54;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.55;
+    }
+
+    strong { color: #043A54; }
+}
+
+@media (max-width: 767.98px) {
+    .insight-grid { grid-template-columns: 1fr; }
+}

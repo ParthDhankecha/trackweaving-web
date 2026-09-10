@@ -1,0 +1,33 @@
+<section class="pi-snap">
+    <div class="pi-snap__head">
+        <div>
+            <h2>Production Intelligence</h2>
+            <p>Know what needs attention and where production is being lost</p>
+        </div>
+        <strong>{{ report.periodLabel }}</strong>
+    </div>
+
+    <div class="pi-kpis" aria-label="Factory snapshot">
+        <article class="pi-kpi is-primary">
+            <span>Production</span>
+            <strong>{{ formatMeters(report.summary.totalProductionMeters) }}</strong>
+        </article>
+        <article class="pi-kpi is-primary">
+            <span>Efficiency</span>
+            <strong>{{ formatPercent(report.summary.overallEfficiency) }}</strong>
+        </article>
+        <article class="pi-kpi is-neutral">
+            <span>Downtime</span>
+            <strong>{{ formatHoursMinutes(report.summary.totalDowntimeMinutes) }}</strong>
+        </article>
+        <article class="pi-kpi is-warning">
+            <span>Estimated Loss</span>
+            <strong>{{ formatMeters(report.summary.estimatedProductionLoss) }}</strong>
+        </article>
+        <article class="pi-kpi" [class.is-warning]="attentionTone === 'warning'"
+            [class.is-critical]="attentionTone === 'critical'" [class.is-primary]="attentionTone === 'ok'">
+            <span>Machines Need Attention</span>
+            <strong>{{ report.summary.machinesNeedingAction }}</strong>
+        </article>
+    </div>
+</section>

@@ -1,0 +1,68 @@
+:host {
+    display: block;
+}
+
+.monthly-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.highlight-banner {
+    background: #fff;
+    border: 1px solid #d7e3ea;
+    border-left: 4px solid #043A54;
+    border-radius: 10px;
+    padding: 16px 18px;
+}
+
+.highlight-banner__headline {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #043A54;
+    line-height: 1.45;
+}
+
+.highlight-banner__support {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.ms-state {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 48px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+@media (max-width: 1399.98px) {
+    .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 991.98px) {
+    .two-col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 767.98px) {
+    .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+}
