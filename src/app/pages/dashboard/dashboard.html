@@ -188,6 +188,24 @@
         }
     </ng-template>
 
+    <!-- Attention reason badges -->
+    <ng-template #attentionBadgesTemplate let-machineLog let-compact="compact">
+        @if (selectedGroupBy === 'attention' && hasAttentionIndicator(machineLog)) {
+        <div class="attention-badges" [class.attention-badges--compact]="compact">
+            @for (badge of attentionReasonBadges(machineLog); track badge.title) {
+            <span class="attention-badges__reason" [ngClass]="attentionGroupBadgeClass(machineLog)"
+                [attr.aria-label]="badge.title" tabindex="0"
+                (mouseenter)="showAttentionTooltip($event, badge.title)"
+                (mouseleave)="hideAttentionTooltip()"
+                (focus)="showAttentionTooltip($event, badge.title)"
+                (blur)="hideAttentionTooltip()">
+                {{ badge.short }}
+            </span>
+            }
+        </div>
+        }
+    </ng-template>
+
     <!-- Dense auto-fill card (50+ machines) -->
     <ng-template #denseMachineCardTemplate let-machineLog>
         <article class="dense-card user-select-none c-pointer" [class.dense-card--stopped]="machineLog.currentStop"
@@ -198,6 +216,8 @@
                     {{ machineLog.quality || '' }}{{machineLog.reed ? (' ' + machineLog.reed + ')') : ''}}
                 </span>
             </header>
+
+            <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: { $implicit: machineLog, compact: true }" />
 
             <div class="dense-card__stop" [class.blink-bg]="machineLog.currentStop">
                 <span class="dense-card__stop-label">Stop</span>
@@ -300,6 +320,7 @@
             </div>
             <!-- Card Body -->
             <div class="p-1 w-100">
+                <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: { $implicit: machineLog, compact: false }" />
                 <div class="d-flex align-items-center gap-2 rounded-2 border border-secondary py-0 px-2 mb-1"
                     [class.blink-bg]="machineLog.currentStop">
                     <small class="col text-capitalize fw-semibold box-content">
@@ -515,6 +536,13 @@
             } -->
         </div>
     </app-footer>
+
+    @if (attentionTooltip.visible) {
+    <div class="attention-reason-tooltip" [style.top.px]="attentionTooltip.top"
+        [style.left.px]="attentionTooltip.left" role="tooltip">
+        {{ attentionTooltip.text }}
+    </div>
+    }
 </div>
 
 

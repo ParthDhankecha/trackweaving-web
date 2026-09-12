@@ -53,6 +53,82 @@
         }
     </div>
 
+    <div class="attention-config border rounded mb-4">
+        <div class="attention-config__header">
+            <div>
+                <strong class="fs-5 d-block">Machine Attention Criteria</strong>
+                <p class="text-muted small mb-0">
+                    Set thresholds for Fix Now, Needs Attention, and Watch groups on the dashboard.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted">Enabled</span>
+                    <div class="form-check form-switch m-0 p-0 mh-unset">
+                        <input class="form-check-input fs-5 m-0" type="checkbox" role="switch"
+                            [checked]="workspaceMachineAttention.enabled"
+                            (click)="onAttentionEnabledToggle($event)">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                    (click)="onOpenRestoreDefaultsConfirm()">
+                    Restore TrackWeaving Defaults
+                </button>
+            </div>
+        </div>
+
+        <div class="attention-config__panels">
+            @for (groupKey of attentionGroupKeys; track groupKey) {
+            <section class="attention-panel" [ngClass]="attentionGroupPanelClass(groupKey)">
+                <header class="attention-panel__header">
+                    <span class="attention-panel__emoji" aria-hidden="true">{{ attentionGroupEmoji(groupKey) }}</span>
+                    <div>
+                        <h6 class="attention-panel__title mb-0">{{ attentionGroupTitle(groupKey) }}</h6>
+                        <p class="attention-panel__desc mb-0">{{ attentionGroupDescription(groupKey) }}</p>
+                    </div>
+                </header>
+
+                <div class="attention-panel__body">
+                    @for (entry of attentionCriteriaEntries(groupKey); track entry.key) {
+                    <div class="attention-criterion" [class.attention-criterion--disabled]="!getAttentionCriterion(groupKey, entry.key).enabled">
+                        <div class="attention-criterion__top">
+                            <div class="attention-criterion__title">{{ entry.meta.title }}</div>
+                            <div class="form-check form-switch m-0 p-0 mh-unset flex-shrink-0">
+                                <input class="form-check-input fs-6 m-0" type="checkbox" role="switch"
+                                    [checked]="getAttentionCriterion(groupKey, entry.key).enabled"
+                                    (click)="onAttentionCriterionToggle(groupKey, entry.key, $event)">
+                            </div>
+                        </div>
+                        <div class="attention-criterion__rule">
+                            <span class="attention-criterion__desc">{{ entry.meta.description }}</span>
+                            @for (field of entry.meta.fields; track field; let idx = $index) {
+                            <input type="number" class="form-control form-control-sm attention-threshold-input"
+                                [ngModel]="attentionCriterionField(groupKey, entry.key, field)"
+                                (ngModelChange)="setAttentionCriterionField(groupKey, entry.key, field, $event)"
+                                (keydown.enter)="onAttentionSave()"
+                                [disabled]="!getAttentionCriterion(groupKey, entry.key).enabled">
+                            @if (idx === 0 && entry.meta.unit) {
+                            <span class="attention-criterion__unit">{{ entry.meta.unit }}</span>
+                            }
+                            @if (idx === 1 && entry.meta.unit2) {
+                            <span class="attention-criterion__unit">{{ entry.meta.unit2 }}</span>
+                            }
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </section>
+            }
+        </div>
+
+        <div class="attention-config__footer">
+            <button type="button" class="btn btn-sm btn-primary" [disabled]="isReqAlive" (click)="onAttentionSave()">
+                Save Attention Criteria
+            </button>
+        </div>
+    </div>
+
     <div class="mb-3">
         <strong class="d-block">
             User Alerts
@@ -127,6 +203,28 @@
     }
 </div>
 
+
+@if (restoreDefaultsConfirmOpen) {
+<div class="modal fade show d-block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Restore TrackWeaving Defaults</h5>
+                <button type="button" class="btn-close" (click)="closeRestoreDefaultsConfirm()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center mb-0">
+                    Reset all machine attention criteria to TrackWeaving defaults?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeRestoreDefaultsConfirm()">Cancel</button>
+                <button type="button" class="btn btn-primary" (click)="restoreAttentionDefaults()">Restore</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
 
 <!-- reset confirm modal -->
 @if (resetConfirmModal.isOpen) {

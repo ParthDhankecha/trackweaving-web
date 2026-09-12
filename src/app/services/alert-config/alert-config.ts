@@ -40,6 +40,42 @@ export type AlertFlags = {
 export type AlertChannelKey = keyof AlertChannelFlags;
 export type AlertKey = keyof Required<AlertFlags>;
 
+export type MachineAttentionCriterion = {
+  enabled?: boolean;
+  minutes?: number;
+  below?: number;
+  count?: number;
+  windowMinutes?: number;
+  belowExpectedPercent?: number;
+  durationMinutes?: number;
+  differencePercent?: number;
+  [key: string]: boolean | number | undefined;
+};
+
+export type MachineAttentionGroupConfig = Record<string, MachineAttentionCriterion>;
+
+export type MachineAttentionGroupKey = 'fixnow' | 'needsattention' | 'watch';
+
+export type MachineAttentionConfig = {
+  enabled?: boolean;
+  fixnow?: MachineAttentionGroupConfig;
+  needsattention?: MachineAttentionGroupConfig;
+  watch?: MachineAttentionGroupConfig;
+};
+
+export type MachineAttentionSchemaEntry = {
+  title: string;
+  criteria: Record<string, {
+    title: string;
+    description: string;
+    unit?: string;
+    unit2?: string;
+    fields: string[];
+  }>;
+};
+
+export type MachineAttentionSchema = Record<string, MachineAttentionSchemaEntry>;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -72,8 +108,18 @@ export class AlertConfig {
     return this._http.get(this._baseUrl);
   }
 
-  saveWorkspace(alerts: Partial<AlertFlags>): Observable<IResponse> {
-    return this._http.put(this._baseUrl, { alerts });
+  saveWorkspace(
+    alerts: Partial<AlertFlags> = {},
+    machineAttention?: MachineAttentionConfig,
+    options?: { restoreMachineAttentionDefaults?: boolean }
+  ): Observable<IResponse> {
+    const body: Record<string, unknown> = {};
+    if (Object.keys(alerts).length) body['alerts'] = alerts;
+    if (machineAttention) body['machineAttention'] = machineAttention;
+    if (options?.restoreMachineAttentionDefaults) {
+      body['restoreMachineAttentionDefaults'] = true;
+    }
+    return this._http.put(this._baseUrl, body);
   }
 
   saveUser(userId: string, alerts: Partial<AlertFlags>): Observable<IResponse> {

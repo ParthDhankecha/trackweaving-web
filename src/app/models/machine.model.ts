@@ -120,15 +120,42 @@ export interface IMachineLog {
         }
     };
     totalDuration: string; // "HH:mm"
+    attentiongroup?: AttentionGroup;
+    attentionReasons?: IAttentionReason[];
     [key: string]: any;
 };
+
+export const ATTENTION_GROUPS: { key: AttentionGroup; label: string; shortLabel: string; emoji: string }[] = [
+    { key: 'fixnow', label: 'Fix Now', shortLabel: 'Fix Now', emoji: '🔴' },
+    { key: 'needsattention', label: 'Needs Attention', shortLabel: 'Attention', emoji: '🟠' },
+    { key: 'watch', label: 'Watch', shortLabel: 'Watch', emoji: '🟡' },
+    { key: 'good', label: 'Good', shortLabel: 'Good', emoji: '🟢' },
+];
 
 
 export type LayoutOption = 'default' | '2x2' | '3x2' | '4x2' | '4x3' | '5x3' | 'dense';
 
 export type MetricDisplayMode = 'icon' | 'label';
 
-export type GroupByOption = 'default' | 'group' | 'efficiency' | 'quality' | 'operator';
+export type AttentionGroup = 'fixnow' | 'needsattention' | 'watch' | 'good';
+
+export type AttentionReasonCode =
+    | 'LONG_CURRENT_STOP'
+    | 'LOW_EFFICIENCY'
+    | 'REPEATED_STOP'
+    | 'HIGH_RECENT_DOWNTIME'
+    | 'LOW_SPEED'
+    | 'BELOW_FACTORY_AVERAGE';
+
+export interface IAttentionReason {
+    code: AttentionReasonCode | string;
+    label: string;
+    metric: string;
+    value: number;
+    threshold: number;
+}
+
+export type GroupByOption = 'default' | 'group' | 'efficiency' | 'quality' | 'operator' | 'attention';
 
 export interface IMachineLogGroup {
     key: string;

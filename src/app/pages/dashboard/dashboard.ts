@@ -18,7 +18,8 @@ import { RegisterModalLayer } from '@src/app/shared/directives/register-modal-la
 import { IResponse } from '@src/app/models/http-response.model';
 import {
   EMachineStatusIds, getStopColumns as buildStopColumns, IMachineLog, IMachineStatus, LayoutConfig,
-  LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS
+  LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS,
+  ATTENTION_GROUPS, AttentionGroup, IAttentionReason, STOP_KEY_LABELS
 } from '@src/app/models/machine.model';
 import { IAppConfigData } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
@@ -95,6 +96,7 @@ export class Dashboard implements OnInit, OnDestroy {
     { key: 'efficiency', label: 'By Efficiency' },
     { key: 'quality', label: 'By Quality' },
     { key: 'operator', label: 'By Operator' },
+    { key: 'attention', label: 'Attention Needed' },
   ];
   protected selectedGroupBy: GroupByOption = this.readStoredGroupBy() ?? 'default';
   protected groupedMachineLogs: IMachineLogGroup[] = [];
@@ -114,6 +116,15 @@ export class Dashboard implements OnInit, OnDestroy {
     ],
   } as const;
   protected beamLeftMin: number = 1000;
+
+  protected attentionTooltip: { visible: boolean; text: string; top: number; left: number } = {
+    visible: false,
+    text: '',
+    top: 0,
+    left: 0,
+  };
+
+  private attentionTooltipAnchor: DOMRect | null = null;
 
   protected refreshSub!: Subscription;
 
@@ -139,6 +150,11 @@ export class Dashboard implements OnInit, OnDestroy {
 
 
   // Listen to fullscreen change events
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.hideAttentionTooltip();
+  }
+
   @HostListener('document:fullscreenchange', [])
   onFullscreenChange() {
     const isFullscreen = !!document.fullscreenElement;
@@ -200,6 +216,10 @@ export class Dashboard implements OnInit, OnDestroy {
       status: this.selectedMachineStatus.key,
       ...filter
     };
+
+    if (this.selectedGroupBy === 'attention') {
+      payload.includeAttention = true;
+    }
 
     // Pagination disabled for now — restore for future use
     // if (!this.isDefaultLayout && !this.isDenseLayout) this.setPageAndLimit(payload);
@@ -336,7 +356,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.selectedGroupBy = opt;
     this.persistGroupBy(opt);
     this.collapsedGroupKeys.clear();
-    this.applyGrouping();
+    this.getMachineLogs();
   }
 
   protected isGroupCollapsed(key: string): boolean {
@@ -365,6 +385,8 @@ export class Dashboard implements OnInit, OnDestroy {
       case 'group':
       case 'operator':
       case 'quality': groups = this.arrangeByGroup(this.machineLogs, this.selectedGroupBy);
+        break;
+      case 'attention': groups = this.groupByAttention(this.machineLogs);
         break;
     }
 
@@ -454,6 +476,111 @@ export class Dashboard implements OnInit, OnDestroy {
       if (b.key === 'ungrouped') return -1;
       return a.label.localeCompare(b.label);
     });
+  }
+
+  protected hasAttentionIndicator(log: IMachineLog): boolean {
+    const group = log.attentiongroup;
+    return !!group && group !== 'good';
+  }
+
+  protected attentionGroupBadgeClass(log: IMachineLog): string {
+    switch (log.attentiongroup) {
+      case 'fixnow': return 'attention-badge--fixnow';
+      case 'needsattention': return 'attention-badge--needsattention';
+      case 'watch': return 'attention-badge--watch';
+      default: return '';
+    }
+  }
+
+  protected attentionReasonBadges(log: IMachineLog): { short: string; title: string }[] {
+    return (log.attentionReasons ?? []).map(reason => ({
+      short: this.formatAttentionReasonShort(reason),
+      title: reason.label,
+    }));
+  }
+
+  protected showAttentionTooltip(event: MouseEvent | FocusEvent, text: string): void {
+    const el = event.currentTarget as HTMLElement | null;
+    if (!el) return;
+
+    this.attentionTooltipAnchor = el.getBoundingClientRect();
+    this.attentionTooltip = { visible: true, text, top: -9999, left: -9999 };
+    setTimeout(() => this.positionAttentionTooltip(), 0);
+  }
+
+  protected hideAttentionTooltip(): void {
+    this.attentionTooltip.visible = false;
+    this.attentionTooltipAnchor = null;
+  }
+
+  private positionAttentionTooltip(): void {
+    const anchor = this.attentionTooltipAnchor;
+    if (!anchor || !this.attentionTooltip.visible) return;
+
+    const tipEl = document.querySelector('.attention-reason-tooltip') as HTMLElement | null;
+    if (!tipEl) return;
+
+    const padding = 8;
+    const gap = 6;
+    const width = tipEl.offsetWidth;
+    const height = tipEl.offsetHeight;
+
+    let top = anchor.bottom + gap;
+    let left = anchor.left + anchor.width / 2 - width / 2;
+
+    if (left < padding) left = padding;
+    if (left + width > window.innerWidth - padding) {
+      left = window.innerWidth - padding - width;
+    }
+    if (top + height > window.innerHeight - padding) {
+      top = anchor.top - gap - height;
+    }
+    if (top < padding) top = padding;
+
+    this.attentionTooltip = {
+      ...this.attentionTooltip,
+      top,
+      left,
+    };
+  }
+
+  protected formatAttentionReasonShort(reason: IAttentionReason): string {
+    switch (reason.code) {
+      case 'LONG_CURRENT_STOP':
+        return `Stop ${reason.value}m`;
+      case 'LOW_EFFICIENCY':
+        return `Eff ${reason.value}%`;
+      case 'REPEATED_STOP': {
+        const key = String(reason.metric || '').replace(/StopCount$/i, '');
+        const label = STOP_KEY_LABELS[key] || (key ? key.toUpperCase() : 'Stop');
+        return `${label} ×${reason.value}`;
+      }
+      case 'HIGH_RECENT_DOWNTIME':
+        return `Down ${reason.value}m`;
+      case 'LOW_SPEED':
+        return `Spd −${reason.value}%`;
+      case 'BELOW_FACTORY_AVERAGE':
+        return `−${reason.value}% avg`;
+      default:
+        return reason.label.length > 20 ? `${reason.label.slice(0, 18)}…` : reason.label;
+    }
+  }
+
+  private groupByAttention(logs: IMachineLog[]): IMachineLogGroup[] {
+    const groups = ATTENTION_GROUPS.map(group => ({
+      key: group.key,
+      label: `${group.emoji} ${group.label.toUpperCase()}`,
+      machines: [] as IMachineLog[],
+      metrics: { efficiency: 0, pick: 0, avgPicks: 0, avgSpeed: 0, count: 0 },
+    }));
+
+    for (const log of logs) {
+      const groupKey = (log.attentiongroup || 'good') as AttentionGroup;
+      const group = groups.find(g => g.key === groupKey) ?? groups[groups.length - 1];
+      group.machines.push(log);
+    }
+
+    return groups;
   }
 
   private groupByEfficiency(logs: IMachineLog[]): IMachineLogGroup[] {

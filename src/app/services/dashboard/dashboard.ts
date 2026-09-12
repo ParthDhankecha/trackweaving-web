@@ -21,7 +21,7 @@ export class Dashboard {
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
-  getList(payload: { status: EMachineStatusIds }): Observable<IResponse> {
+  getList(payload: { status: EMachineStatusIds; includeAttention?: boolean; groupBy?: string }): Observable<IResponse> {
     return this._http.post(`${this._baseUrl}/list`, payload);
   }
 

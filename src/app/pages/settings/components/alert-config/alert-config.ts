@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -6,7 +7,13 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
-import { AlertConfigSchema } from '@src/app/services/alert-config/alert-config';
+import {
+  AlertConfigSchema,
+  MachineAttentionConfig,
+  MachineAttentionCriterion,
+  MachineAttentionGroupKey,
+  MachineAttentionSchema,
+} from '@src/app/services/alert-config/alert-config';
 
 
 type AlertField = { key: string; title: string; placeholder: string };
@@ -15,7 +22,7 @@ type AlertItem = { key: string; title: string; fields: AlertField[]; colClass: s
 
 @Component({
   selector: 'app-client-alert-config',
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass],
   templateUrl: './alert-config.html',
   styleUrl: './alert-config.scss'
 })
@@ -34,6 +41,10 @@ export class AlertConfig implements OnInit {
     isOpen: false,
     data: null
   };
+  protected machineAttentionSchema: MachineAttentionSchema = {};
+  protected workspaceMachineAttention: MachineAttentionConfig = { enabled: true };
+  protected attentionGroupKeys: MachineAttentionGroupKey[] = ['fixnow', 'needsattention', 'watch'];
+  protected restoreDefaultsConfirmOpen = false;
 
 
   ngOnInit(): void {
@@ -87,6 +98,8 @@ export class AlertConfig implements OnInit {
         this.setSchema(data?.schema);
         this.workspaceName = data?.workspaceName || '';
         this.workspaceAlerts = data?.workspaceAlerts || {};
+        this.machineAttentionSchema = data?.machineAttentionSchema || {};
+        this.workspaceMachineAttention = data?.workspaceMachineAttention || { enabled: true };
         this.userConfigs = data?.userConfigs || [];
       },
       error: (err: any) => {
@@ -173,6 +186,123 @@ export class AlertConfig implements OnInit {
 
   protected closeResetConfirm(): void {
     this.resetConfirmModal = { isOpen: false, data: null };
+  }
+
+  protected attentionGroupTitle(groupKey: MachineAttentionGroupKey): string {
+    return this.machineAttentionSchema[groupKey]?.title || groupKey;
+  }
+
+  protected attentionGroupPanelClass(groupKey: MachineAttentionGroupKey): string {
+    return `attention-panel--${groupKey}`;
+  }
+
+  protected attentionGroupEmoji(groupKey: MachineAttentionGroupKey): string {
+    switch (groupKey) {
+      case 'fixnow': return '🔴';
+      case 'needsattention': return '🟠';
+      case 'watch': return '🟡';
+      default: return '';
+    }
+  }
+
+  protected attentionGroupDescription(groupKey: MachineAttentionGroupKey): string {
+    switch (groupKey) {
+      case 'fixnow':
+        return 'Critical issues — machines need immediate supervisor action.';
+      case 'needsattention':
+        return 'Important problems that should be checked soon.';
+      case 'watch':
+        return 'Early signs to monitor before they become bigger issues.';
+      default:
+        return '';
+    }
+  }
+
+  protected attentionCriteriaEntries(groupKey: MachineAttentionGroupKey): { key: string; meta: any }[] {
+    const criteria = this.machineAttentionSchema[groupKey]?.criteria || {};
+    return Object.entries(criteria).map(([key, meta]) => ({ key, meta }));
+  }
+
+  protected getAttentionCriterion(
+    groupKey: MachineAttentionGroupKey,
+    criterionKey: string
+  ): MachineAttentionCriterion {
+    const group = this.workspaceMachineAttention[groupKey] ??= {};
+    return group[criterionKey] ??= { enabled: false };
+  }
+
+  protected attentionCriterionField(
+    groupKey: MachineAttentionGroupKey,
+    criterionKey: string,
+    field: string
+  ): number {
+    const value = this.getAttentionCriterion(groupKey, criterionKey)[field];
+    return typeof value === 'number' ? value : 0;
+  }
+
+  protected setAttentionCriterionField(
+    groupKey: MachineAttentionGroupKey,
+    criterionKey: string,
+    field: string,
+    value: number | string
+  ): void {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    this.getAttentionCriterion(groupKey, criterionKey)[field] = Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  protected onAttentionEnabledToggle(event: Event): void {
+    if (this.isReqAlive) return;
+    event.preventDefault();
+    const previous = !!this.workspaceMachineAttention.enabled;
+    this.workspaceMachineAttention.enabled = !previous;
+    this.saveMachineAttention('Machine attention settings updated.', () => {
+      this.workspaceMachineAttention.enabled = previous;
+    });
+  }
+
+  protected onAttentionCriterionToggle(
+    groupKey: MachineAttentionGroupKey,
+    criterionKey: string,
+    event: Event
+  ): void {
+    if (this.isReqAlive) return;
+    event.preventDefault();
+    const criterion = this.getAttentionCriterion(groupKey, criterionKey);
+    const previous = !!criterion.enabled;
+    criterion.enabled = !previous;
+    this.saveMachineAttention('Attention criterion updated.', () => {
+      criterion.enabled = previous;
+    });
+  }
+
+  protected onAttentionSave(): void {
+    if (this.isReqAlive) return;
+    this.saveMachineAttention('Machine attention criteria saved.');
+  }
+
+  protected onOpenRestoreDefaultsConfirm(): void {
+    this.restoreDefaultsConfirmOpen = true;
+  }
+
+  protected closeRestoreDefaultsConfirm(): void {
+    this.restoreDefaultsConfirmOpen = false;
+  }
+
+  private saveMachineAttention(success: string, onError?: () => void): void {
+    this.save(
+      this._apiFs.alertConfig.saveWorkspace({}, this.workspaceMachineAttention),
+      success,
+      onError
+    );
+  }
+
+  protected restoreAttentionDefaults(): void {
+    if (this.isReqAlive) return;
+    this.save(
+      this._apiFs.alertConfig.saveWorkspace({}, undefined, { restoreMachineAttentionDefaults: true }),
+      'TrackWeaving defaults restored.'
+    );
+    this.closeRestoreDefaultsConfirm();
   }
 
   protected confirmResetOverride(): void {
