@@ -15,6 +15,8 @@ import { Invoice } from './invoice/invoice';
 import { PartsChangeEntry } from './parts-change-entry/parts-change-entry';
 import { ShiftWiseComments } from './shift-wise-comments/shift-wise-comments';
 import { Reports } from './reports/reports';
+import { MonthlySummary } from './monthly-summary/monthly-summary';
+import { ProductionIntelligence } from './production-intelligence/production-intelligence';
 import { Lead } from './lead/lead';
 import { Manufacturer } from './manufacturer/manufacturer';
 import { ManufacturerUser } from './manufacturer-user/manufacturer-user';
@@ -36,6 +38,9 @@ export class ApiFacadeService {
   public readonly dashboard: Dashboard = inject(Dashboard);
   // Inject Reports service
   public readonly reports: Reports = inject(Reports);
+  // Inject Monthly Summary service
+  public readonly monthlySummary: MonthlySummary = inject(MonthlySummary);
+  public readonly productionIntelligence: ProductionIntelligence = inject(ProductionIntelligence);
   // Inject Workspace service
   public readonly workspace: Workspace = inject(Workspace);
   // Inject Users service

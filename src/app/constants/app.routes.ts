@@ -8,6 +8,7 @@ export const ROUTES = {
         getFullRoute: (route: string) => `/${ROUTES.AUTH.BASE}/${route}`
     },
     DASHBOARD: 'dashboard',
+    CUSTOM_DASHBOARD: 'custom-dashboard',
     REPORT: 'report',
     SETTINGS: {
         BASE: 'settings',

@@ -1,0 +1,21 @@
+<div class="ms-card">
+    <h2 class="ms-title">Downtime by Stop Reason</h2>
+    <p class="ms-subtitle">Duration comparison across stop types</p>
+
+    <div class="reason-list">
+        @for (reason of reasons; track reason.reason) {
+        <div class="reason-row">
+            <div class="reason-row__meta">
+                <span class="reason-row__name">{{ reason.reason }}</span>
+                <span class="reason-row__values">
+                    <strong>{{ formatHoursMinutes(reason.durationMinutes) }}</strong>
+                    <span>{{ formatPercent(reason.downtimePercent, 0) }}</span>
+                </span>
+            </div>
+            <div class="reason-row__track">
+                <div class="reason-row__fill" [style.width.%]="reason.downtimePercent"></div>
+            </div>
+        </div>
+        }
+    </div>
+</div>

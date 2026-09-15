@@ -1,0 +1,53 @@
+<div class="kpi-card"
+    [class.kpi-card--production]="card.key === 'production'"
+    [class.kpi-card--efficiency]="card.key === 'efficiency'"
+    [class.kpi-card--picks]="card.key === 'picks'"
+    [class.kpi-card--downtime]="card.key === 'downtime'"
+    [class.kpi-card--rpm]="card.key === 'rpm'"
+    [class.kpi-card--runtime]="card.key === 'runtime'">
+    <div class="kpi-card__icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            @switch (card.icon) {
+            @case ('production') {
+            <path d="M4 19h16" />
+            <path d="M6 16V9" />
+            <path d="M10 16V5" />
+            <path d="M14 16v-6" />
+            <path d="M18 16v-8" />
+            }
+            @case ('efficiency') {
+            <path d="M4 19V5" />
+            <path d="M4 19h16" />
+            <path d="M8 15l3-4 2 2 5-7" />
+            }
+            @case ('picks') {
+            <path d="M4 7h16M4 12h16M4 17h10" />
+            }
+            @case ('downtime') {
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5l3 2" />
+            }
+            @case ('rpm') {
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 6v6l4 2" />
+            }
+            @case ('runtime') {
+            <path d="M5 12h4l2-6 4 12 2-6h4" />
+            }
+            }
+        </svg>
+    </div>
+    <div class="kpi-card__body">
+        <span class="kpi-card__label">{{ card.label }}</span>
+        <strong class="kpi-card__value">{{ card.value }}</strong>
+        @if (card.comparison) {
+        <span class="kpi-card__delta" [class.is-positive]="card.comparison.isPositive"
+            [class.is-negative]="!card.comparison.isPositive">
+            {{ card.comparison.label }}
+        </span>
+        } @else if (card.subtitle) {
+        <span class="kpi-card__delta is-muted">{{ card.subtitle }}</span>
+        }
+    </div>
+</div>

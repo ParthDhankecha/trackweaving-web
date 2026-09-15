@@ -1,0 +1,39 @@
+<div class="ms-card">
+    <h2 class="ms-title">Shift Comparison</h2>
+    <p class="ms-subtitle">How each shift contributed to monthly output</p>
+
+    <div class="shift-grid">
+        @for (shift of shifts; track shift.id) {
+        <div class="shift-card" [class.shift-card--best]="shift.isBest">
+            <div class="shift-card__head">
+                <strong>{{ shift.name }}</strong>
+                @if (shift.isBest) {
+                <span class="best-pill">Best Performing Shift</span>
+                }
+            </div>
+            <div class="shift-card__row"><span>Production</span><strong>{{ formatMeters(shift.productionMeters) }}</strong></div>
+            <div class="shift-card__row"><span>Efficiency</span><strong>{{ formatPercent(shift.efficiency) }}</strong></div>
+            <div class="shift-card__row"><span>Downtime</span><strong>{{ formatHoursMinutes(shift.downtimeMinutes) }}</strong></div>
+            <div class="shift-card__row"><span>Avg RPM</span><strong>{{ shift.averageRpm }}</strong></div>
+        </div>
+        }
+    </div>
+
+    <div class="shift-chart">
+        <div class="shift-chart__legend">
+            <span><i class="swatch swatch--prod"></i> Production</span>
+            <span><i class="swatch swatch--eff"></i> Efficiency</span>
+            <span><i class="swatch swatch--down"></i> Downtime</span>
+        </div>
+        @for (shift of shifts; track shift.id) {
+        <div class="shift-bars">
+            <span class="shift-bars__name">{{ shift.name }}</span>
+            <div class="shift-bars__tracks">
+                <div class="track"><div class="fill fill--prod" [style.width.%]="barWidth(shift.productionMeters, 'productionMeters')"></div></div>
+                <div class="track"><div class="fill fill--eff" [style.width.%]="barWidth(shift.efficiency, 'efficiency')"></div></div>
+                <div class="track"><div class="fill fill--down" [style.width.%]="barWidth(shift.downtimeMinutes, 'downtimeMinutes')"></div></div>
+            </div>
+        </div>
+        }
+    </div>
+</div>

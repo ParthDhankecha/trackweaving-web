@@ -1,0 +1,55 @@
+:host { display: block; }
+
+.ms-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(4, 58, 84, 0.04);
+    padding: 18px 20px;
+}
+
+.ms-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #043A54;
+}
+
+.ms-subtitle {
+    margin: 4px 0 16px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.priority-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.priority-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #111827;
+    line-height: 1.45;
+
+    &:last-child { border-bottom: none; }
+}
+
+.priority-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #043A54;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}

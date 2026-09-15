@@ -12,8 +12,14 @@ import { CommonDropdown } from '@src/app/shared/components/common-dropdown/commo
 
 import { EToasterType } from '@src/app/models/utils.model';
 import { getStopColumnsForTypes, hasStopKey, MachineType, formatQualityReed } from '@src/app/models/machine.model';
+import { COMPARE_OPTIONS, IMonthlySummary, TCompareMode } from '@src/app/models/monthly-summary.model';
+import { IProductionIntelligenceReport, TTrendDays } from '@src/app/models/production-intelligence.model';
+import { IResponse } from '@src/app/models/http-response.model';
 import { ROUTES } from '@src/app/constants/app.routes';
 import StorageKeys from '@src/app/constants/storage-keys';
+import { monthNames, previousMonth } from '../monthly-summary/monthly-summary.utils';
+import { MonthlySummary } from '../monthly-summary/monthly-summary';
+import { ProductionIntelligenceReport } from '../production-intelligence/production-intelligence';
 
 interface IReportNavState {
   reportType?: string;
@@ -33,7 +39,9 @@ type TExportAction = 'download' | 'share';
     DecimalPipe,
     DatePipe,
     NgTemplateOutlet,
-    CommonDropdown
+    CommonDropdown,
+    MonthlySummary,
+    ProductionIntelligenceReport
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
@@ -75,8 +83,14 @@ export class Reports {
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' },
     { id: 'beamProductionReport', label: 'Beam Production Report' },
-    { id: 'beamCompletionDateReport', label: 'Beam Completion Date Report' }
+    { id: 'beamCompletionDateReport', label: 'Beam Completion Date Report' },
+    { id: 'monthlySummary', label: 'Monthly Summary Report' },
+    { id: 'productionIntelligence', label: 'Production Intelligence Report' }
   ];
+  protected readonly monthOptions = monthNames();
+  protected readonly yearOptions = this.buildYearOptions();
+  protected readonly compareOptions = COMPARE_OPTIONS;
+  private readonly defaultSummaryPeriod = previousMonth(new Date().getFullYear(), new Date().getMonth() + 1);
   protected readonly stopTimeOptions: { id: string, label: string, value: number }[] = [
     { id: '5', label: '5 mins', value: 5 },
     { id: '10', label: '10 mins', value: 10 },
@@ -96,6 +110,9 @@ export class Reports {
     selectAll: [false, []],
     machineIds: [null, [Validators.required]],
     quality: ['', []],
+    summaryMonth: [this.defaultSummaryPeriod.month, []],
+    summaryYear: [this.defaultSummaryPeriod.year, []],
+    compareWith: ['previousMonth' as TCompareMode, []],
   });
 
   protected rawMachineList: any[] = [];
@@ -105,6 +122,9 @@ export class Reports {
   private subscriptionHandler$ = new Subject<void>();
 
   protected reportData: any;
+  protected monthlySummary: IMonthlySummary | null = null;
+  protected productionIntelligence: IProductionIntelligenceReport | null = null;
+  protected intelligenceTrendDays: TTrendDays = 7;
   protected reportStopColumns: { key: string; label: string }[] = [];
   protected showBeamCompletionDateColumn = false;
   protected stoppageTableRows: any[] = [];
@@ -121,6 +141,21 @@ export class Reports {
     return this.stoppageViewMode === 'timeWise';
   }
 
+  protected get visibleReportTypeOptions(): { id: string, label: string }[] {
+    if (this.showFactoryFilter) {
+      return this.reportTypeOptions.filter(type => type.id !== 'monthlySummary' && type.id !== 'productionIntelligence');
+    }
+    return this.reportTypeOptions;
+  }
+
+  protected get isMonthlySummaryReport(): boolean {
+    return this.reportType?.value === 'monthlySummary';
+  }
+
+  protected get isProductionIntelligenceReport(): boolean {
+    return this.reportType?.value === 'productionIntelligence';
+  }
+
   protected get isStoppageReport(): boolean {
     return this.reportType?.value === 'stoppageReport';
   }
@@ -134,7 +169,7 @@ export class Reports {
   }
 
   protected get isDateRangeReport(): boolean {
-    return !this.isBeamCompletionDateReport;
+    return !this.isBeamCompletionDateReport && !this.isMonthlySummaryReport;
   }
 
   protected get isQualityWiseReport(): boolean {
@@ -150,7 +185,7 @@ export class Reports {
   }
 
   protected get showMachineSelection(): boolean {
-    return !this.isQualityWiseReport;
+    return !this.isQualityWiseReport && !this.isMonthlySummaryReport;
   }
 
   protected get isCustomStopTime(): boolean {
@@ -394,6 +429,8 @@ export class Reports {
     this.machineGroupList = [];
     this.qualityList = [];
     this.reportData = null;
+    this.monthlySummary = null;
+    this.productionIntelligence = null;
     this.isTableScrolledX = false;
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
@@ -427,6 +464,7 @@ export class Reports {
 
     if (reportType && this.reportTypeOptions.some(o => o.id === reportType)) {
       this.reportType?.patchValue(reportType, { emitEvent: false });
+      this.applyDefaultDatesForReportType(reportType);
       if (reportType === 'stoppageReport') {
         // custom stop time filter
         this.stopTimeFilter?.patchValue(this.stopTimeCustomId, { emitEvent: false });
@@ -474,6 +512,15 @@ export class Reports {
   }
   get quality(): AbstractControl | null {
     return this.filterForm.get('quality');
+  }
+  get summaryMonth(): AbstractControl | null {
+    return this.filterForm.get('summaryMonth');
+  }
+  get summaryYear(): AbstractControl | null {
+    return this.filterForm.get('summaryYear');
+  }
+  get compareWith(): AbstractControl | null {
+    return this.filterForm.get('compareWith');
   }
   get stopTimeFilter(): AbstractControl | null {
     return this.filterForm.get('stopTimeFilter');
@@ -528,16 +575,27 @@ export class Reports {
     };
   }
 
+  private applyDefaultDatesForReportType(reportType = this.reportType?.value): void {
+    const date = reportType === 'productionIntelligence'
+      ? moment().subtract(1, 'day').format('YYYY-MM-DD')
+      : moment().format('YYYY-MM-DD');
+    this.startDate?.patchValue(date, { emitEvent: false });
+    this.endDate?.patchValue(date, { emitEvent: false });
+  }
+
   protected syncReportTypeValidators(): void {
     if (this.isQualityWiseReport) {
       this.machineIds?.clearValidators();
       this.quality?.setValidators([Validators.required]);
+    } else if (this.isMonthlySummaryReport) {
+      this.machineIds?.clearValidators();
+      this.quality?.clearValidators();
     } else {
       this.quality?.clearValidators();
       this.machineIds?.setValidators([Validators.required]);
     }
 
-    if (this.isBeamCompletionDateReport) {
+    if (this.isBeamCompletionDateReport || this.isMonthlySummaryReport) {
       this.startDate?.clearValidators();
       this.endDate?.clearValidators();
     } else {
@@ -681,10 +739,13 @@ export class Reports {
     ).subscribe(() => {
       this.syncReportTypeValidators();
 
-      const today = moment().format('YYYY-MM-DD');
-      this.startDate?.patchValue(today, { emitEvent: false });
-      this.endDate?.patchValue(today, { emitEvent: false });
+      this.applyDefaultDatesForReportType();
+      this.summaryMonth?.patchValue(this.defaultSummaryPeriod.month, { emitEvent: false });
+      this.summaryYear?.patchValue(this.defaultSummaryPeriod.year, { emitEvent: false });
       this.reportData = null;
+      this.monthlySummary = null;
+      this.productionIntelligence = null;
+      this.intelligenceTrendDays = 7;
       this.isTableScrolledX = false;
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
@@ -816,9 +877,27 @@ export class Reports {
     if (this.isReqAlive) return;
     if (this.showFactoryFilter && !this.selectedWorkspaceId) return;
 
+    if (this.isMonthlySummaryReport) {
+      if (this.filterForm.invalid) {
+        this.filterForm.markAllAsTouched();
+        return;
+      }
+      this.loadMonthlySummary();
+      return;
+    }
+
     if (!this.isQualityWiseReport) {
       const machineIds = this.rawMachineList.filter(m => m.selected).map(m => m._id);
       this.machineIds?.patchValue(machineIds.length > 0 ? machineIds : null);
+    }
+
+    if (this.isProductionIntelligenceReport) {
+      if (this.filterForm.invalid) {
+        this.filterForm.markAllAsTouched();
+        return;
+      }
+      this.loadProductionIntelligence();
+      return;
     }
 
     if (this.isStoppageReport) {
@@ -872,6 +951,8 @@ export class Reports {
         this.isReqAlive = false;
         if (res.code === 'OK') {
           this.reportData = res.data || {};
+          this.monthlySummary = null;
+          this.productionIntelligence = null;
           this.isTableScrolledX = false;
           this.reportData.reportTitle = this.reportTypeOptions.find(rt => rt.id === filter.reportType)?.label || 'Report';
           this.reportData.reportType = filter.reportType;
@@ -914,6 +995,8 @@ export class Reports {
       error: (err: any) => {
         this.isReqAlive = false;
         this.reportData = null;
+        this.monthlySummary = null;
+        this.productionIntelligence = null;
         this.isTableScrolledX = false;
         this.reportStopColumns = [];
         this.showBeamCompletionDateColumn = false;
@@ -928,6 +1011,84 @@ export class Reports {
 
   protected fetchGenerateReport(payload: any) {
     return this._apiFs.reports.generateReport(payload);
+  }
+
+  private loadMonthlySummary(): void {
+    this.isReqAlive = true;
+    this.monthlySummary = null;
+    this.productionIntelligence = null;
+    this.reportData = null;
+    this._apiFs.monthlySummary.getMonthlySummary({
+      year: Number(this.summaryYear?.value),
+      month: Number(this.summaryMonth?.value),
+      compareWith: this.compareWith?.value
+    }).pipe(takeUntil(this.subscriptionHandler$)).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this.monthlySummary = res.data as IMonthlySummary;
+        } else {
+          this.monthlySummary = null;
+          this._coreService.utils.showToaster(EToasterType.Danger, res.message || 'Failed to load monthly summary');
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        this.monthlySummary = null;
+        const msg = err?.error?.message || 'Failed to load monthly summary';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+  private loadProductionIntelligence(keepCurrent = false): void {
+    const filter = this.filterForm.value;
+    const shiftCb = filter.shift === 'all'
+      ? (val: any) => val.id !== 'all'
+      : (val: any) => val.id === filter.shift;
+
+    this.isReqAlive = true;
+    if (!keepCurrent) this.productionIntelligence = null;
+    this.monthlySummary = null;
+    this.reportData = null;
+    this._apiFs.productionIntelligence.getProductionIntelligence({
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+      shift: this.shiftOptions.filter(shiftCb).map(o => o.val),
+      machineIds: this.rawMachineList.filter(m => m.selected).map(m => m._id),
+      trendDays: this.intelligenceTrendDays
+    }).pipe(takeUntil(this.subscriptionHandler$)).subscribe({
+      next: (res: IResponse) => {
+        this.isReqAlive = false;
+        if (res.code === 'OK') {
+          this.productionIntelligence = res.data as IProductionIntelligenceReport;
+        } else {
+          this.productionIntelligence = null;
+          this._coreService.utils.showToaster(EToasterType.Danger, res.message || 'Failed to load production intelligence');
+        }
+      },
+      error: (err: any) => {
+        this.isReqAlive = false;
+        this.productionIntelligence = null;
+        const msg = err?.error?.message || 'Failed to load production intelligence';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+  protected onIntelligenceTrendDaysChange(days: TTrendDays): void {
+    if (this.intelligenceTrendDays === days || this.isReqAlive) return;
+    this.intelligenceTrendDays = days;
+    if (this.filterForm.invalid) {
+      this.filterForm.markAllAsTouched();
+      return;
+    }
+    this.loadProductionIntelligence(true);
+  }
+
+  private buildYearOptions(): number[] {
+    const current = new Date().getFullYear();
+    return [current - 2, current - 1, current];
   }
 
 

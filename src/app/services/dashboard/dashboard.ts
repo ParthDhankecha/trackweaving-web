@@ -6,6 +6,7 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { HttpClient } from '../http-client/http-client';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EMachineStatusIds } from '@src/app/models/machine.model';
+import { SectionKey } from '@src/app/models/custom-dashboard.model';
 
 
 @Injectable({
@@ -14,12 +15,22 @@ import { EMachineStatusIds } from '@src/app/models/machine.model';
 export class Dashboard {
   private readonly _http: HttpClient = inject(HttpClient);
   private readonly _baseUrl: string = 'machine-logs';
+  private readonly _dashboardUrl: string = 'dashboard';
 
   private readonly _coreService = inject(CoreFacadeService);
   protected readonly encodeKey = this._coreService.utils.encodeKey;
 
 
-  getList(payload: { status: EMachineStatusIds }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/list`, payload);
+  getList(payload: { status: EMachineStatusIds; includeAttention?: boolean; groupBy?: string }): Observable<IResponse> {
+    return this._http.post(`${this._dashboardUrl}/list`, payload);
+  }
+
+  /** Fetches the TV/Andon custom dashboard snapshot for a factory section. */
+  getCustom(payload: { section: SectionKey }): Observable<IResponse> {
+    return this._http.post(`${this._dashboardUrl}/custom`, payload);
+  }
+
+  updateBeamLeft(payload: { machineId: string; beamLeft: number; date: string }): Observable<IResponse> {
+    return this._http.put(`${this._baseUrl}/beam-left`, payload);
   }
 }

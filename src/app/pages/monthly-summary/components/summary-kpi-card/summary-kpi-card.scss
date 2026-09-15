@@ -1,0 +1,74 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.kpi-card {
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(4, 58, 84, 0.04);
+}
+
+.kpi-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(4, 58, 84, 0.08);
+    color: #043A54;
+}
+
+.kpi-card--downtime .kpi-card__icon {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+}
+
+.kpi-card--efficiency .kpi-card__icon {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.kpi-card__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kpi-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.02em;
+}
+
+.kpi-card__value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #043A54;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.kpi-card__delta {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+
+    &.is-positive { color: #198754; }
+    &.is-negative { color: #dc3545; }
+    &.is-muted { color: #6b7280; font-weight: 500; }
+}
+
+@media (max-width: 575.98px) {
+    .kpi-card__value { font-size: 22px; }
+}

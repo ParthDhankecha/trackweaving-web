@@ -1,0 +1,85 @@
+@if (showSectionSelector) {
+    <app-section-selector (sectionSelected)="onInitialSectionSelected($event)" />
+} @else {
+    <div class="tv-dashboard">
+        <header class="tv-dashboard__topbar">
+            <div class="tv-dashboard__brand">
+                <app-track-weaving-logo [size]="30" [framed]="false" [white]="true" />
+                <span class="tv-dashboard__brand-name">TrackWeaving</span>
+            </div>
+
+            <div class="tv-dashboard__status">
+                <span class="tv-dashboard__section-live">SECTION {{ selectedSection }} LIVE</span>
+                <span class="tv-dashboard__live-indicator" [class.is-down]="connectionInterrupted">
+                    ● {{ connectionInterrupted ? 'RECONNECTING' : 'LIVE' }}
+                </span>
+            </div>
+
+            <div class="tv-dashboard__actions">
+                <button type="button" class="tv-dashboard__action" (click)="openChangeSectionOverlay()">
+                    Change Section
+                </button>
+                <button type="button" class="tv-dashboard__action" (click)="toggleFullscreen()">
+                    {{ isFullscreen ? 'Restore' : 'Maximize' }}
+                </button>
+            </div>
+        </header>
+
+        @if (loading && !data) {
+            <div class="tv-dashboard__loading">
+                <div class="tv-dashboard__loading-spinner"></div>
+                <div class="tv-dashboard__loading-text">Loading Live Production Data...</div>
+            </div>
+        } @else if (data) {
+            <div class="tv-dashboard__body">
+                <section class="tv-dashboard__left">
+                    <div class="tv-dashboard__summary">
+                        <div class="stat-block">
+                            <span class="stat-block__label">OVERALL</span>
+                            <span class="stat-block__value">{{ data.overallEfficiency }}%</span>
+                        </div>
+
+                        <div class="stat-block" [class.is-selected]="selectedSection === 'A'">
+                            <span class="stat-block__label">SECTION A</span>
+                            <span class="stat-block__value">{{ data.sectionA }}%</span>
+                        </div>
+
+                        <div class="stat-block" [class.is-selected]="selectedSection === 'B'">
+                            <span class="stat-block__label">SECTION B</span>
+                            <span class="stat-block__value">{{ data.sectionB }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="tv-dashboard__scoreboard" [style.--tv-line-count]="data.efficiencyChartList.length || 1">
+                        @for (line of data.efficiencyChartList; track line.lineKey) {
+                            <app-line-efficiency-bar [line]="line" [isTop]="isTopLine(line)" />
+                        }
+                    </div>
+                </section>
+
+                <section class="tv-dashboard__right">
+                    @if (!data.stoppedMachineList.length) {
+                        <div class="all-clear">
+                            <div class="all-clear__icon">✅</div>
+                            <div class="all-clear__title">GREAT WORK!</div>
+                            <div class="all-clear__subtitle">NO LONG STOPPAGES</div>
+                            <div class="all-clear__hint">Keep the machines running.</div>
+                        </div>
+                    } @else {
+                        <app-stopped-machine-card [machine]="currentStoppedPair[0]" />
+                        <app-stopped-machine-card [machine]="currentStoppedPair[1]" />
+                    }
+                </section>
+            </div>
+        }
+    </div>
+
+    @if (isChangeSectionOverlay) {
+        <app-section-selector
+            [overlay]="true"
+            [currentSection]="selectedSection"
+            (sectionSelected)="onSectionChanged($event)"
+            (dismissed)="closeChangeSectionOverlay()"
+        />
+    }
+}

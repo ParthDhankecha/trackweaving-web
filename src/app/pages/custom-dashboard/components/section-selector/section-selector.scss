@@ -1,0 +1,118 @@
+:host {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: block;
+}
+
+.section-select {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 30%, #0d3a52 0%, #04141f 70%);
+
+    &--overlay {
+        background: rgba(2, 10, 16, 0.82);
+        backdrop-filter: blur(4px);
+    }
+
+    &__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(10px, 1.6vh, 36px);
+        padding: clamp(28px, 4vh, 90px) clamp(32px, 6vw, 234px);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    &__close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        cursor: pointer;
+        line-height: 1;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+    }
+
+    &__title {
+        margin: 0;
+        font-size: clamp(30px, 4.2vh, 94px);
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 0.02em;
+        text-align: center;
+    }
+
+    &__subtitle {
+        margin: 0;
+        font-size: clamp(16px, 1.9vh, 44px);
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+    }
+
+    &__options {
+        display: flex;
+        gap: clamp(20px, 3vw, 118px);
+        margin-top: clamp(8px, 1.6vh, 36px);
+    }
+
+    &__btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: clamp(220px, 20vw, 520px);
+        height: clamp(180px, 24vh, 460px);
+        border-radius: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.18);
+        background: linear-gradient(155deg, #0c4a6a, #06283d);
+        color: #ffffff;
+        cursor: pointer;
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+        &-label {
+            font-size: clamp(16px, 1.8vh, 42px);
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        &-value {
+            font-size: clamp(64px, 9vh, 200px);
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            border-color: rgba(96, 205, 255, 0.65);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        &.is-current {
+            border-color: #4ade80;
+            background: linear-gradient(155deg, #0f5c33, #073a20);
+            box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.22);
+        }
+    }
+}

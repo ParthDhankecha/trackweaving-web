@@ -11,11 +11,13 @@ export default class StorageKeys {
     static readonly MFR_USER_INFO = `${_prefix}mfr_user`;
     static readonly DASHBOARD_LAYOUT = `${_prefix}dashboard_layout`;
     static readonly DASHBOARD_GROUP_BY = `${_prefix}dashboard_group_by`;
+    static readonly CUSTOM_DASHBOARD_SECTION = `${_prefix}custom_dashboard_section`;
 
     /** sessionStorage */
     static readonly SST = {
         // Selected Language
         LANG: `${_prefix}lang`,
-        DEVICE_SESSION: `${_prefix}device_session`
+        DEVICE_SESSION: `${_prefix}device_session`,
+        UTM_PARAMS: `${_prefix}utm_params`
     };
 }

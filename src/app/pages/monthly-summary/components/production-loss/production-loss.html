@@ -1,0 +1,25 @@
+<div class="ms-card">
+    <h2 class="ms-title">Production Loss</h2>
+    <p class="ms-subtitle">Where factory output was left on the table</p>
+
+    <div class="loss-grid">
+        <div class="loss-metric">
+            <strong>{{ formatHoursMinutes(loss.totalDowntimeMinutes) }}</strong>
+            <span>Total Downtime</span>
+        </div>
+        <div class="loss-metric">
+            <strong>{{ formatMeters(loss.estimatedLossMeters) }}</strong>
+            <span>Estimated Production Loss</span>
+        </div>
+        <div class="loss-metric">
+            <strong>{{ formatPercent(loss.potentialAdditionalProductionPercent) }}</strong>
+            <span>Potential Additional Production</span>
+        </div>
+        <div class="loss-metric loss-metric--warn">
+            <strong>{{ formatPercent(loss.topProblemMachinesDowntimePercent, 0) }}</strong>
+            <span>Downtime contributed by Top 5 problem machines</span>
+        </div>
+    </div>
+
+    <p class="loss-note">{{ loss.explanation }}</p>
+</div>

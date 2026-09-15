@@ -1,0 +1,59 @@
+<section class="pi-focus">
+    <div class="pi-focus__head">
+        <div>
+            <h3>Priority Machines</h3>
+            <p>Machines requiring the most attention during the selected period</p>
+        </div>
+        <strong>{{ report.priorityMachines.length }} machine{{ report.priorityMachines.length === 1 ? '' : 's' }} need attention</strong>
+    </div>
+
+    @if (insight) {
+    <div class="pi-focus__insight">
+        <span>Top Opportunity</span>
+        {{ insight }}
+    </div>
+    }
+
+    @if (!report.priorityMachines.length) {
+    <div class="pi-empty">No critical or attention machines for the selected period.</div>
+    } @else {
+    <div class="pi-focus__grid" [class.is-three]="visibleMachines.length > 2">
+        @for (machine of visibleMachines; track machine.machineId; let i = $index) {
+        <article class="pi-prio" [class.is-critical]="machine.severity === 'critical'"
+            [class.is-attention]="machine.severity === 'attention'">
+            <div class="pi-prio__top">
+                <span class="pi-prio__rank">#{{ i + 1 }}</span>
+                <strong class="pi-prio__name">{{ machine.machineName }}</strong>
+                <span class="pi-badge" [class.is-critical]="machine.severity === 'critical'">
+                    {{ machine.severity === 'critical' ? 'Critical' : 'Attention' }}
+                </span>
+            </div>
+
+            <div class="pi-prio__loss">{{ formatMeters(machine.estimatedProductionLoss) }} estimated loss</div>
+            <div class="pi-prio__issue">{{ machine.primaryIssue }}</div>
+
+            <p class="pi-prio__metrics">
+                <strong>{{ machine.totalStops }}</strong> Stops
+                <span>|</span>
+                <strong>{{ machine.downtimeMinutes }} min</strong>
+                <span>|</span>
+                <strong>{{ formatPercent(machine.efficiency) }}</strong>
+            </p>
+
+            <p class="pi-prio__why"><span>Why attention?</span>{{ machine.explanation }}</p>
+            <p class="pi-prio__reason">Main reason: <strong>{{ mainStopReason(machine) }}</strong></p>
+
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="viewDetails.emit(machine)">
+                View Machine Details
+            </button>
+        </article>
+        }
+    </div>
+
+    @if (hiddenCount && !showAll) {
+    <button type="button" class="pi-more" (click)="showAll = true">
+        View all {{ report.priorityMachines.length }} priority machines
+    </button>
+    }
+    }
+</section>

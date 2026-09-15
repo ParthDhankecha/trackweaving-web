@@ -15,7 +15,7 @@
 <div class="{{isDevice ? 'report-container-device':'container-fluid px-0 px-md-2'}}" [class.px-3]="showFactoryFilter">
     <div [class]="isDevice ? '' : 'p-3 my-4 bg-white shadow-sm rounded-2 border'">
         @if(!isDevice){
-        <strong class="d-inline-block text-capitialise text-muted fs-5 mb-2" [class.p-2]="isDevice">
+        <strong class="d-inline-block text-capitialise text-muted fs-5" [class.p-2]="isDevice">
             Reports
         </strong>
         }
@@ -35,7 +35,7 @@
                         Report Type:
                     </label>
                     <select id="reportType" class="form-select text-capitalize" formControlName="reportType">
-                        @for (type of reportTypeOptions; track $index;){
+                        @for (type of visibleReportTypeOptions; track $index;){
                         <option [value]="type.id">{{ type.label }}</option>
                         }
                     </select>
@@ -71,7 +71,39 @@
                     }
                 </div>
                 }
-                @if (!isBeamProductionReport && !isBeamCompletionDateReport) {
+                @if (isMonthlySummaryReport) {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="summaryMonth" class="form-label small fw-semibold mb-1">
+                        Month:
+                    </label>
+                    <select id="summaryMonth" class="form-select text-capitalize" formControlName="summaryMonth">
+                        @for (name of monthOptions; track $index) {
+                        <option [ngValue]="$index + 1">{{ name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="summaryYear" class="form-label small fw-semibold mb-1">
+                        Year:
+                    </label>
+                    <select id="summaryYear" class="form-select" formControlName="summaryYear">
+                        @for (year of yearOptions; track year) {
+                        <option [ngValue]="year">{{ year }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                    <label for="compareWith" class="form-label small fw-semibold mb-1">
+                        Compare with:
+                    </label>
+                    <select id="compareWith" class="form-select" formControlName="compareWith">
+                        @for (option of compareOptions; track option.id) {
+                        <option [ngValue]="option.id">{{ option.label }}</option>
+                        }
+                    </select>
+                </div>
+                }
+                @if (!isBeamProductionReport && !isBeamCompletionDateReport && !isMonthlySummaryReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                     <label for="shift" class="form-label small fw-semibold mb-1">
                         Shift:
@@ -125,7 +157,7 @@
                 }
             </div>
             <!-- Machine Options -->
-            @if(isOptionsLoading){
+            @if(isOptionsLoading && !isMonthlySummaryReport){
             <div class="text-center text-muted py-3">
                 Loading...
             </div>
@@ -229,6 +261,15 @@
                 Show Report
             </button>
         </div>
+
+        @if (isMonthlySummaryReport && (monthlySummary || isReqAlive)) {
+        <app-monthly-summary [summary]="monthlySummary" [isLoading]="isReqAlive" />
+        }
+
+        @if (isProductionIntelligenceReport && (productionIntelligence || isReqAlive)) {
+        <app-production-intelligence [report]="productionIntelligence" [isLoading]="isReqAlive"
+            (trendDaysChange)="onIntelligenceTrendDaysChange($event)" />
+        }
 
         @if(reportData){
         <div [class]="isDevice ? '' : 'py-3'" id="print-section">

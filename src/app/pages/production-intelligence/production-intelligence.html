@@ -1,0 +1,119 @@
+<div class="pi-report">
+    @if (isLoading && !report) {
+    <div class="pi-state">Loading production intelligence...</div>
+    } @else if (!report) {
+    <div class="pi-state">No production intelligence data for the selected filters.</div>
+    } @else {
+    <app-production-intelligence-summary [report]="report" />
+    <app-priority-machines [report]="report" (viewDetails)="openDetails($event)" />
+    <app-maintenance-watchlist-table [report]="report" [isLoading]="isLoading"
+        (trendDaysChange)="trendDaysChange.emit($event)" (viewDetails)="openDetails($event)" />
+    <app-production-loss-analysis [report]="report" />
+    <app-recommended-actions [report]="report" />
+    }
+</div>
+
+@if (detailMachine) {
+<div class="pi-modal" (click)="closeDetails()">
+    <div class="pi-modal__card" (click)="$event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+            <div>
+                <h3 class="m-0">{{ detailMachine.machineName }}</h3>
+                <p class="pi-modal__sub mb-0">
+                    @if (isPriority(detailMachine)) {
+                    Priority machine · {{ detailMachine.primaryIssue }}
+                    } @else if (asWatchlist(detailMachine); as watch) {
+                    Maintenance watchlist · {{ watch.primaryTrend }}
+                    }
+                </p>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" (click)="closeDetails()"></button>
+        </div>
+
+        @if (isPriority(detailMachine)) {
+        <div class="pi-modal__stats">
+            <div><span>Efficiency</span><strong>{{ formatPercent(detailMachine.efficiency) }}</strong></div>
+            <div><span>Production</span><strong>{{ formatMeters(detailMachine.productionMeters) }}</strong></div>
+            <div><span>Picks</span><strong>{{ detailMachine.picks }}</strong></div>
+            <div><span>Average Speed</span><strong>{{ detailMachine.averageRpm }} RPM</strong></div>
+            <div><span>Total Stops</span><strong>{{ detailMachine.totalStops }}</strong></div>
+            <div><span>Downtime</span><strong>{{ formatHoursMinutes(detailMachine.downtimeMinutes) }}</strong></div>
+        </div>
+        <p class="pi-modal__why"><span>Why flagged</span>{{ detailMachine.explanation }}</p>
+        <div class="mb-3">Estimated production loss <strong>{{ formatMeters(detailMachine.estimatedProductionLoss) }}</strong></div>
+        @if (detailMachine.history30Average) {
+        <p class="small text-muted mb-2">
+            30-day average: {{ formatPercent(detailMachine.history30Average.efficiency) }} efficiency,
+            {{ formatHoursMinutes(detailMachine.history30Average.downtimeMinutes) }} downtime
+        </p>
+        }
+        @if (detailMachine.stopReasons.length) {
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Stop Reason</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Est. Loss</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (reason of detailMachine.stopReasons; track reason.reason) {
+                    <tr>
+                        <td>{{ reason.reason }}</td>
+                        <td>{{ reason.count }}</td>
+                        <td>{{ reason.durationMinutes }} min</td>
+                        <td>{{ formatMeters(reason.estimatedLossMeters) }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+        } @else if (asWatchlist(detailMachine); as watch) {
+        <div class="pi-modal__stats">
+            <div><span>Efficiency</span><strong>{{ watch.currentEfficiency > 0 ? formatPercent(watch.currentEfficiency) : 'No production data' }}</strong></div>
+            <div><span>Production</span><strong>{{ formatMeters(watch.productionMeters || 0) }}</strong></div>
+            <div><span>Picks</span><strong>{{ watch.picks || 0 }}</strong></div>
+            <div><span>Average Speed</span><strong>{{ watch.averageRpm || 0 }} RPM</strong></div>
+            <div><span>Total Stops</span><strong>{{ watch.totalStops || 0 }}</strong></div>
+            <div><span>Downtime</span><strong>{{ formatHoursMinutes(watch.downtimeMinutes || 0) }}</strong></div>
+        </div>
+        <p class="pi-modal__why"><span>Why flagged</span>{{ watch.explanation }}</p>
+        @if (watch.estimatedProductionLoss) {
+        <div class="mb-3">Estimated production loss <strong>{{ formatMeters(watch.estimatedProductionLoss) }}</strong></div>
+        }
+        @if (watch.history30Average?.efficiency; as avgEff) {
+        <p class="small text-muted mb-2">
+            30-day average: {{ formatPercent(avgEff) }} efficiency
+        </p>
+        }
+        @if (watch.stopReasons?.length) {
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Stop Reason</th>
+                        <th>Count</th>
+                        <th>Duration</th>
+                        <th>Est. Loss</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (reason of watch.stopReasons; track reason.reason) {
+                    <tr>
+                        <td>{{ reason.reason }}</td>
+                        <td>{{ reason.count }}</td>
+                        <td>{{ reason.durationMinutes }} min</td>
+                        <td>{{ formatMeters(reason.estimatedLossMeters) }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+        }
+    </div>
+</div>
+}

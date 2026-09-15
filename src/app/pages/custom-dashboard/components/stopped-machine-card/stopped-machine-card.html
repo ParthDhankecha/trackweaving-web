@@ -1,0 +1,16 @@
+@if (machine) {
+    <div class="stop-card" [class]="reasonConfig.className">
+        <div class="stop-card__code">{{ machine.machineCode }}</div>
+
+        <div class="stop-card__row">
+            <span class="stop-card__stat">{{ machine.stopTime }}</span>
+            <span class="stop-card__stat">{{ machine.efficiency }}%</span>
+        </div>
+    </div>
+} @else {
+    <div class="stop-card stop-card--filler">
+        <div class="stop-card__filler-icon">✅</div>
+        <div class="stop-card__filler-title">ALL CLEAR</div>
+        <div class="stop-card__filler-subtitle">No further alerts on this page</div>
+    </div>
+}

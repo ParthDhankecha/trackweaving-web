@@ -4,6 +4,8 @@ import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Observable } from 'rxjs';
 
 import { Reports } from '@src/app/pages/reports/reports';
+import { MonthlySummary } from '@src/app/pages/monthly-summary/monthly-summary';
+import { ProductionIntelligenceReport } from '@src/app/pages/production-intelligence/production-intelligence';
 import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 import { IResponse } from '@src/app/models/http-response.model';
 
@@ -24,7 +26,9 @@ interface IManufacturerReportNavState {
     DecimalPipe,
     DatePipe,
     NgTemplateOutlet,
-    CommonDropdown
+    CommonDropdown,
+    MonthlySummary,
+    ProductionIntelligenceReport
   ],
   templateUrl: '../../pages/reports/reports.html',
   styleUrl: '../../pages/reports/reports.scss'
