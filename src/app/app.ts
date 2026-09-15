@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { UtmTrackerService } from '@app/core/services/utm-tracker/utm-tracker';
 import { Toaster } from './shared/components/toaster/toaster';
 
 
@@ -14,6 +15,10 @@ import { Toaster } from './shared/components/toaster/toaster';
   styleUrl: './app.scss'
 })
 export class App {
+  private readonly utmTracker = inject(UtmTrackerService);
 
-  constructor() { }
+
+  constructor() {
+    this.utmTracker.startTracking();
+  }
 }
