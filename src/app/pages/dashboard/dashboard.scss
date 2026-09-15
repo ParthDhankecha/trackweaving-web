@@ -4,21 +4,23 @@
 }
 
 .attention-badges {
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    align-content: flex-start;
     gap: 0.3rem;
-    margin-bottom: 0.35rem;
-    padding: 0 0.1rem;
+    padding: 0.25rem 0.1rem 0.1rem;
 
     &--compact {
         gap: 0.2rem;
         margin-bottom: -0.2rem;
-        padding: 0 0.35rem;
-        margin-top: 0.2rem;
+        padding: 0 0.2rem;
+        padding: 0.2rem;
+        background-color: #ffffff;
 
         .attention-badges__reason {
-            font-size: 0.58rem;
+            font-size: 0.58em;
             padding: 0.06rem 0.35rem;
         }
     }
@@ -26,8 +28,8 @@
     &__reason {
         display: inline-flex;
         align-items: center;
-        border-radius: 999px;
-        font-size: 0.68rem;
+        border-radius: 1rem;
+        font-size: 0.68em;
         font-weight: 600;
         line-height: 1.25;
         padding: 0.12rem 0.45rem;
@@ -237,6 +239,12 @@
     padding: 0.35rem;
 }
 
+.card-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .dense-card {
     --dense-accent: #043a54;
     --dense-border: rgba(4, 58, 84, 0.55);
@@ -247,6 +255,7 @@
 
     display: flex;
     flex-direction: column;
+    height: 100%;
     border: 1.5px solid var(--dense-border);
     border-radius: 0.45rem;
     overflow: hidden;

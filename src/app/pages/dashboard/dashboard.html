@@ -1,4 +1,5 @@
-<div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column gap-3 position-relative">
+<div class="container-fluid bg-white min-vh-100 h-100 d-flex flex-column position-relative"
+    [class.gap-3]="!isFullscreen" [class.px-1]="isFullscreen">
     <app-header [loadFor]="dashboardHeaderMode" class="position-sticky top-0"
         [manufacturerWorkspaceId]="selectedWorkspaceId">
         <ng-container dashboard-content>
@@ -47,11 +48,13 @@
     </app-header>
 
 
-    <div class="flex-grow-1" [class.overflow-auto]="isDefaultLayout || isDenseLayout || isGroupedView">
+    <div class="flex-grow-1" [class.overflow-auto]="isDefaultLayout || isDenseLayout || isGroupedView"
+        [class.py-2]="isFullscreen">
         @if (isGroupedView) {
         <div class="d-flex flex-column gap-3 px-1">
             @for (group of groupedMachineLogs; track group.key) {
-            <section class="dashboard-group" [class.dashboard-group--collapsed]="isGroupCollapsed(group.key)">
+            @let _isGroupCollapsed = isGroupCollapsed(group.key);
+            <section class="dashboard-group" [class.dashboard-group--collapsed]="_isGroupCollapsed">
                 <header class="dashboard-group__header" role="button" tabindex="0"
                     (click)="toggleGroupCollapse(group.key)" (keydown.enter)="toggleGroupCollapse(group.key)"
                     (keydown.space)="$event.preventDefault(); toggleGroupCollapse(group.key)">
@@ -59,7 +62,7 @@
                         <span class="dashboard-group__toggle" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
                                 class="dashboard-group__chevron"
-                                [class.dashboard-group__chevron--collapsed]="isGroupCollapsed(group.key)">
+                                [class.dashboard-group__chevron--collapsed]="_isGroupCollapsed">
                                 <path
                                     d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06z" />
                             </svg>
@@ -91,7 +94,7 @@
                         </div>
                     </div>
                 </header>
-                @if (!isGroupCollapsed(group.key)) {
+                @if (!_isGroupCollapsed) {
                 <div class="d-grid m-0" [class]="rowClass" [class.g-2]="!isDenseLayout" [class.gap-2]="!isDenseLayout"
                     [class.row-gap-2]="!isDenseLayout">
                     @for (machineLog of group.machines; track $index) {
@@ -118,9 +121,13 @@
             @for(machineLog of machineLogs; track $index;){
             <div (dblclick)="doubleClickOnMachineCard(machineLog)">
                 @if (isDenseLayout) {
-                <ng-container *ngTemplateOutlet="denseMachineCardTemplate; context: { $implicit: machineLog }" />
+                <ng-container *ngTemplateOutlet="denseMachineCardTemplate; context: {
+                    $implicit: machineLog
+                }" />
                 } @else {
-                <ng-container *ngTemplateOutlet="machineCardTemplate; context: { $implicit: machineLog }" />
+                <ng-container *ngTemplateOutlet="machineCardTemplate; context: {
+                    $implicit: machineLog
+                }" />
                 }
             </div>
             }
@@ -194,10 +201,8 @@
         <div class="attention-badges" [class.attention-badges--compact]="compact">
             @for (badge of attentionReasonBadges(machineLog); track badge.title) {
             <span class="attention-badges__reason" [ngClass]="attentionGroupBadgeClass(machineLog)"
-                [attr.aria-label]="badge.title" tabindex="0"
-                (mouseenter)="showAttentionTooltip($event, badge.title)"
-                (mouseleave)="hideAttentionTooltip()"
-                (focus)="showAttentionTooltip($event, badge.title)"
+                [attr.aria-label]="badge.title" tabindex="0" (mouseenter)="showAttentionTooltip($event, badge.title)"
+                (mouseleave)="hideAttentionTooltip()" (focus)="showAttentionTooltip($event, badge.title)"
                 (blur)="hideAttentionTooltip()">
                 {{ badge.short }}
             </span>
@@ -211,84 +216,103 @@
         <article class="dense-card user-select-none c-pointer" [class.dense-card--stopped]="machineLog.currentStop"
             [class.dense-card--running]="!machineLog.currentStop">
             <header class="dense-card__header">
-                <span class="dense-card__code">{{ machineLog.machineCode }}</span>
+                <span class="dense-card__code">
+                    {{ machineLog.machineCode }}
+                </span>
                 <span class="dense-card__quality">
                     {{ machineLog.quality || '' }}{{machineLog.reed ? (' ' + machineLog.reed + ')') : ''}}
                 </span>
             </header>
+            <!-- Attention Badges -->
+            <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: {
+                $implicit: machineLog, compact: true
+            }" />
+            <div class="mini-card-body">
+                <div class="dense-card__stop" [class.blink-bg]="machineLog.currentStop">
+                    <span class="dense-card__stop-label">Stop</span>
+                    <span class="dense-card__stop-value">
+                        {{ machineLog.stopReason || '--' }}
+                    </span>
+                </div>
 
-            <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: { $implicit: machineLog, compact: true }" />
-
-            <div class="dense-card__stop" [class.blink-bg]="machineLog.currentStop">
-                <span class="dense-card__stop-label">Stop</span>
-                <span class="dense-card__stop-value">{{ machineLog.stopReason || '--' }}</span>
-            </div>
-
-            <div class="dense-card__metrics">
-                <div class="dense-card__col">
-                    @for (item of denseMetricKeys.leftKeys; track item.key) {
-                    <div class="dense-card__row">
-                        @if (metricDisplayMode === 'icon') {
-                        <span class="dense-card__icon" aria-hidden="true">
-                            <ng-container *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
-                        </span>
-                        } @else {
-                        <span class="dense-card__label">{{ item.label }}</span>
+                <div class="dense-card__metrics">
+                    <div class="dense-card__col">
+                        @for (item of denseMetricKeys.leftKeys; track item.key) {
+                        <div class="dense-card__row">
+                            @if (metricDisplayMode === 'icon') {
+                            <span class="dense-card__icon" aria-hidden="true">
+                                <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
+                                    $implicit: item.key
+                                }" />
+                            </span>
+                            } @else {
+                            <span class="dense-card__label">
+                                {{ item.label }}
+                            </span>
+                            }
+                            <span class="dense-card__value">
+                                {{ machineLog[item.key] || 0 }}
+                            </span>
+                        </div>
                         }
-                        <span class="dense-card__value">{{ machineLog[item.key] || 0 }}</span>
                     </div>
-                    }
-                </div>
 
-                <div class="dense-card__divider" aria-hidden="true"></div>
+                    <div class="dense-card__divider" aria-hidden="true"></div>
 
-                <div class="dense-card__col">
-                    @for (item of denseMetricKeys.rightKeys; track item.key) {
-                    <div class="dense-card__row"
-                        [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
-                        @if (metricDisplayMode === 'icon') {
-                        <span class="dense-card__icon" aria-hidden="true">
-                            <ng-container *ngTemplateOutlet="metricIconTemplate; context: { $implicit: item.key }" />
-                        </span>
-                        } @else {
-                        <span class="dense-card__label">{{ item.label }}</span>
+                    <div class="dense-card__col">
+                        @for (item of denseMetricKeys.rightKeys; track item.key) {
+                        <div class="dense-card__row"
+                            [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
+                            @if (metricDisplayMode === 'icon') {
+                            <span class="dense-card__icon" aria-hidden="true">
+                                <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
+                                    $implicit: item.key
+                                }" />
+                            </span>
+                            } @else {
+                            <span class="dense-card__label">
+                                {{ item.label }}
+                            </span>
+                            }
+                            <span class="dense-card__value">
+                                {{ machineLog[item.key] || 0 }}
+                            </span>
+                        </div>
                         }
-                        <span class="dense-card__value">{{ machineLog[item.key] || 0 }}</span>
                     </div>
-                    }
                 </div>
-            </div>
 
-            <footer class="dense-card__footer">
-                <div class="dense-card__progress progress" role="progressbar">
-                    <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
-                        [style.width.%]="(machineLog?.efficiency === 0 ? 100 : machineLog?.efficiency) || 0">
-                        {{(machineLog?.efficiency|number:'1.0-0')??0}}%
+                <footer class="dense-card__footer">
+                    <div class="dense-card__progress progress" role="progressbar">
+                        <div class="progress-bar" [class]="efficiencyClassName(machineLog.efficiency)"
+                            [style.width.%]="(machineLog?.efficiency === 0 ? 100 : machineLog?.efficiency) || 0">
+                            {{(machineLog?.efficiency|number:'1.0-0')??0}}%
+                        </div>
                     </div>
-                </div>
-                <div class="dense-card__duration">
-                    @if (machineLog.currentStop) {
-                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                        <path d="M4.5 2.5h2.5v11H4.5v-11zm4.5 0h2.5v11H9V2.5z" />
-                    </svg>
-                    } @else {
-                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                        <path d="M4 2.5v11l9-5.5-9-5.5z" />
-                    </svg>
-                    }
-                    <span>{{ machineLog.totalDuration || '00:00' }}</span>
-                </div>
-            </footer>
+                    <div class="dense-card__duration">
+                        @if (machineLog.currentStop) {
+                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M4.5 2.5h2.5v11H4.5v-11zm4.5 0h2.5v11H9V2.5z" />
+                        </svg>
+                        } @else {
+                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                        </svg>
+                        }
+                        <span>{{ machineLog.totalDuration || '00:00' }}</span>
+                    </div>
+                </footer>
+            </div>
         </article>
     </ng-template>
 
     <!-- Machine Card Template -->
     <ng-template #machineCardTemplate let-machineLog>
-        <div class="d-grid rounded border border-2 border-opacity-75 user-select-none c-pointer"
-            [ngClass]="{ 'border-secondary': machineLog.currentStop, 'border-primary': !machineLog.currentStop }">
+        <div class="card-wrap rounded border border-2 border-opacity-75 user-select-none c-pointer"
+            [class.border-secondary]="machineLog.currentStop" [class.border-primary]="!machineLog.currentStop">
             <!-- Card Header -->
             <div class="d-flex align-items-center gap-3 text-white rounded-top-1 py-1 px-2"
-                [ngClass]="{ 'bg-secondary': machineLog.currentStop, 'bg-primary': !machineLog.currentStop }">
+                [class.bg-secondary]="machineLog.currentStop" [class.bg-primary]="!machineLog.currentStop">
                 <small class="text-uppercase lh-1">
                     {{machineLog.machineCode}}
                 </small>
@@ -301,16 +325,16 @@
 
                 <div class="flex-shrink-0 d-flex align-items-center gap-1">
                     @if(machineLog.currentStop){
-                    <svg viewBox="0 0 65 71" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0"
-                        style="width: 0.7em; aspect-ratio: 1/1;">
-                        <path fill="#fff" stroke="currentColor" stroke-width="2"
-                            d="M10.8632 70.6166C8.02334 70.6062 5.30297 69.4723 3.29635 67.4627C1.28973 65.4531 0.159955 62.731 0.153809 59.8911V10.7237C0.154383 8.84461 0.64938 6.99872 1.58909 5.37144C2.5288 3.74416 3.88013 2.39278 5.50738 1.45302C7.13463 0.513266 8.98051 0.0182107 10.8596 0.0175787C12.7387 0.0169468 14.585 0.51076 16.2128 1.44942L58.7997 26.0331C60.4275 26.9731 61.7793 28.325 62.7192 29.953C63.659 31.581 64.1538 33.4276 64.1538 35.3074C64.1538 37.1872 63.659 39.0339 62.7192 40.6618C61.7793 42.2898 60.4275 43.6417 58.7997 44.5817L16.2128 69.1654C14.5882 70.111 12.743 70.6116 10.8632 70.6166ZM10.8632 4.38091C9.1836 4.38669 7.57453 5.05708 6.38767 6.24559C5.2008 7.4341 4.53263 9.04409 4.52917 10.7237V59.8911C4.52972 61.0022 4.82254 62.0936 5.37822 63.0558C5.9339 64.0179 6.7329 64.817 7.69501 65.3727C8.65713 65.9285 9.74851 66.2214 10.8596 66.222C11.9707 66.2226 13.0624 65.931 14.0252 65.3763L56.612 40.7927C57.5748 40.2367 58.3743 39.4371 58.9301 38.4743C59.486 37.5114 59.7786 36.4192 59.7786 35.3074C59.7786 34.1956 59.486 33.1034 58.9301 32.1406C58.3743 31.1777 57.5748 30.3781 56.612 29.8222L14.0252 5.23849C13.0641 4.68239 11.9736 4.38913 10.8632 4.38821V4.38091Z" />
-                    </svg>
-                    }@else {
                     <svg viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0"
                         style="width: 0.7em; aspect-ratio: 1/1;">
                         <path fill="#fff" stroke="currentColor" stroke-width="2"
                             d="M4.70588 0C3.4578 0 2.26085 0.495797 1.37832 1.37832C0.495797 2.26085 0 3.4578 0 4.70588V31.0588C0 32.3069 0.495797 33.5039 1.37832 34.3864C2.26085 35.2689 3.4578 35.7647 4.70588 35.7647H8.47059C9.71867 35.7647 10.9156 35.2689 11.7981 34.3864C12.6807 33.5039 13.1765 32.3069 13.1765 31.0588V4.70588C13.1765 3.4578 12.6807 2.26085 11.7981 1.37832C10.9156 0.495797 9.71867 0 8.47059 0H4.70588ZM11.2941 4.70588V31.0588C11.2941 31.8077 10.9966 32.5258 10.4671 33.0554C9.93761 33.5849 9.21943 33.8824 8.47059 33.8824H4.70588C3.95704 33.8824 3.23886 33.5849 2.70935 33.0554C2.17983 32.5258 1.88235 31.8077 1.88235 31.0588V4.70588C1.88235 3.95704 2.17983 3.23886 2.70935 2.70935C3.23886 2.17983 3.95704 1.88235 4.70588 1.88235H8.47059C9.21943 1.88235 9.93761 2.17983 10.4671 2.70935C10.9966 3.23886 11.2941 3.95704 11.2941 4.70588ZM23.5294 35.7647H27.2941C27.9121 35.7647 28.524 35.643 29.095 35.4065C29.6659 35.17 30.1847 34.8234 30.6217 34.3864C31.0587 33.9494 31.4053 33.4306 31.6418 32.8597C31.8783 32.2887 32 31.6768 32 31.0588V4.70588C32 4.0879 31.8783 3.47596 31.6418 2.90502C31.4053 2.33408 31.0587 1.8153 30.6217 1.37832C30.1847 0.941339 29.6659 0.594707 29.095 0.358214C28.524 0.121721 27.9121 0 27.2941 0H23.5294C22.2813 0 21.0844 0.495797 20.2019 1.37832C19.3193 2.26085 18.8235 3.4578 18.8235 4.70588V31.0588C18.8235 32.3069 19.3193 33.5039 20.2019 34.3864C21.0844 35.2689 22.2813 35.7647 23.5294 35.7647ZM20.7059 4.70588C20.7059 3.95704 21.0034 3.23886 21.5329 2.70935C22.0624 2.17983 22.7806 1.88235 23.5294 1.88235H27.2941C28.043 1.88235 28.7611 2.17983 29.2907 2.70935C29.8202 3.23886 30.1176 3.95704 30.1176 4.70588V31.0588C30.1176 31.8077 29.8202 32.5258 29.2907 33.0554C28.7611 33.5849 28.043 33.8824 27.2941 33.8824H23.5294C22.7806 33.8824 22.0624 33.5849 21.5329 33.0554C21.0034 32.5258 20.7059 31.8077 20.7059 31.0588V4.70588Z" />
+                    </svg>
+                    }@else {
+                    <svg viewBox="0 0 65 71" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0"
+                        style="width: 0.7em; aspect-ratio: 1/1;">
+                        <path fill="#fff" stroke="currentColor" stroke-width="2"
+                            d="M10.8632 70.6166C8.02334 70.6062 5.30297 69.4723 3.29635 67.4627C1.28973 65.4531 0.159955 62.731 0.153809 59.8911V10.7237C0.154383 8.84461 0.64938 6.99872 1.58909 5.37144C2.5288 3.74416 3.88013 2.39278 5.50738 1.45302C7.13463 0.513266 8.98051 0.0182107 10.8596 0.0175787C12.7387 0.0169468 14.585 0.51076 16.2128 1.44942L58.7997 26.0331C60.4275 26.9731 61.7793 28.325 62.7192 29.953C63.659 31.581 64.1538 33.4276 64.1538 35.3074C64.1538 37.1872 63.659 39.0339 62.7192 40.6618C61.7793 42.2898 60.4275 43.6417 58.7997 44.5817L16.2128 69.1654C14.5882 70.111 12.743 70.6116 10.8632 70.6166ZM10.8632 4.38091C9.1836 4.38669 7.57453 5.05708 6.38767 6.24559C5.2008 7.4341 4.53263 9.04409 4.52917 10.7237V59.8911C4.52972 61.0022 4.82254 62.0936 5.37822 63.0558C5.9339 64.0179 6.7329 64.817 7.69501 65.3727C8.65713 65.9285 9.74851 66.2214 10.8596 66.222C11.9707 66.2226 13.0624 65.931 14.0252 65.3763L56.612 40.7927C57.5748 40.2367 58.3743 39.4371 58.9301 38.4743C59.486 37.5114 59.7786 36.4192 59.7786 35.3074C59.7786 34.1956 59.486 33.1034 58.9301 32.1406C58.3743 31.1777 57.5748 30.3781 56.612 29.8222L14.0252 5.23849C13.0641 4.68239 11.9736 4.38913 10.8632 4.38821V4.38091Z" />
                     </svg>
                     }
                     <small class="text-uppercase lh-1">
@@ -318,9 +342,12 @@
                     </small>
                 </div>
             </div>
+            <!-- Attention Badges -->
+            <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: {
+                $implicit: machineLog, compact: false
+            }" />
             <!-- Card Body -->
             <div class="p-1 w-100">
-                <ng-container *ngTemplateOutlet="attentionBadgesTemplate; context: { $implicit: machineLog, compact: false }" />
                 <div class="d-flex align-items-center gap-2 rounded-2 border border-secondary py-0 px-2 mb-1"
                     [class.blink-bg]="machineLog.currentStop">
                     <small class="col text-capitalize fw-semibold box-content">
@@ -333,7 +360,7 @@
 
                 <div class="machine-metrics">
                     @for (item of machineCardKeys; track item.key) {
-                    <div class="d-flex align-items-center gap-1 rounded-1 box-content"
+                    <div class="d-flex align-items-center gap-1 rounded-1"
                         [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
                         <span class="flex-shrink-0" aria-hidden="true" style="padding: 0.125em;">
                             <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
@@ -343,7 +370,7 @@
                         <small class="lh-1 text-capitalize fw-semibold box-content">
                             {{ item.label }}
                         </small>
-                        <small class="flex-grow-1 px-1 text-end lh-1 text-primary fw-semibold box-content">
+                        <small class="flex-grow-1 px-1 text-end lh-1 text-primary fw-semibold flex-shrink-0">
                             {{ machineLog[item.key] || 0 }}
                         </small>
                     </div>
@@ -538,8 +565,8 @@
     </app-footer>
 
     @if (attentionTooltip.visible) {
-    <div class="attention-reason-tooltip" [style.top.px]="attentionTooltip.top"
-        [style.left.px]="attentionTooltip.left" role="tooltip">
+    <div class="attention-reason-tooltip" [style.top.px]="attentionTooltip.top" [style.left.px]="attentionTooltip.left"
+        role="tooltip">
         {{ attentionTooltip.text }}
     </div>
     }
@@ -611,7 +638,9 @@
             </svg>
         </button>
         <div class="bg-white rounded-2 fs-1">
-            <ng-container *ngTemplateOutlet="machineCardTemplate; context: { $implicit: selectedMachineLog }" />
+            <ng-container *ngTemplateOutlet="machineCardTemplate; context: {
+                $implicit: selectedMachineLog
+            }" />
         </div>
     </div>
     }
