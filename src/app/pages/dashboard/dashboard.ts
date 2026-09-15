@@ -21,7 +21,7 @@ import {
   LayoutOption, MachineType, MetricDisplayMode, GroupByOption, IMachineLogGroup, EFFICIENCY_BANDS,
   ATTENTION_GROUPS, AttentionGroup, IAttentionReason, STOP_KEY_LABELS
 } from '@src/app/models/machine.model';
-import { IAppConfigData } from '@src/app/models/utils.model';
+import { EToasterType, IAppConfigData } from '@src/app/models/utils.model';
 import StorageKeys from '@src/app/constants/storage-keys';
 import { ROUTES } from '@src/app/constants/app.routes';
 
@@ -763,6 +763,133 @@ export class Dashboard implements OnInit, OnDestroy {
     if (!Number.isFinite(beamLeft) || beamLeft < 1) return false;
     return beamLeft < this.beamLeftMin;
   }
+
+
+  protected canEditBeamLeft(machineLog: IMachineLog): boolean {
+    return !!machineLog?.canUpdateBeamLeft;
+  }
+
+  protected beamLeftEditor: {
+    open: boolean;
+    confirmStep: boolean;
+    saving: boolean;
+    machineLog: IMachineLog | null;
+    currentValue: number;
+    newValue: number | null;
+    loadedDate: string;
+    maxDate: string;
+  } = {
+      open: false,
+      confirmStep: false,
+      saving: false,
+      machineLog: null,
+      currentValue: 0,
+      newValue: null,
+      loadedDate: '',
+      maxDate: '',
+    };
+
+  protected onMetricClick(event: Event, key: string, machineLog: IMachineLog): void {
+    if (key !== 'beamLeft' || !this.canEditBeamLeft(machineLog)) return;
+    event.stopPropagation();
+    this.openBeamLeftEditor(machineLog);
+  }
+
+  protected openBeamLeftEditor(machineLog: IMachineLog): void {
+    const currentValue = Number(machineLog?.beamLeft) || 0;
+    this.beamLeftEditor = {
+      open: true,
+      confirmStep: false,
+      saving: false,
+      machineLog,
+      currentValue,
+      newValue: null,
+      loadedDate: '',
+      maxDate: moment().format('YYYY-MM-DD'),
+    };
+  }
+
+  protected closeBeamLeftEditor(): void {
+    if (this.beamLeftEditor.saving) return;
+    this.beamLeftEditor.open = false;
+    this.beamLeftEditor.confirmStep = false;
+    this.beamLeftEditor.machineLog = null;
+  }
+
+  protected formatBeamLoadedDate(date: string): string {
+    if (!date) return '';
+    const parsed = moment(date, 'YYYY-MM-DD', true);
+    return parsed.isValid() ? parsed.format('DD-MM-YYYY') : date;
+  }
+
+  private isValidBeamLoadedDate(date: string): boolean {
+    const parsed = moment(date, 'YYYY-MM-DD', true);
+    if (!parsed.isValid()) return false;
+    return !parsed.clone().startOf('day').isAfter(moment().startOf('day'));
+  }
+
+  protected goToBeamLeftConfirm(): void {
+    const value = Number(this.beamLeftEditor.newValue);
+    if (!Number.isFinite(value) || value < 0) {
+      this._coreService.utils.showToaster(EToasterType.Warning, 'Enter a valid beam left value.');
+      return;
+    }
+    if (!this.isValidBeamLoadedDate(this.beamLeftEditor.loadedDate)) {
+      this._coreService.utils.showToaster(EToasterType.Warning, 'Select a date. Future dates are not allowed.');
+      return;
+    }
+    this.beamLeftEditor.newValue = Math.round(value * 10) / 10;
+    this.beamLeftEditor.confirmStep = true;
+  }
+
+  protected backFromBeamLeftConfirm(): void {
+    this.beamLeftEditor.confirmStep = false;
+  }
+
+  protected confirmBeamLeftUpdate(): void {
+    const machineLog = this.beamLeftEditor.machineLog;
+    const beamLeft = Number(this.beamLeftEditor.newValue);
+    const date = this.beamLeftEditor.loadedDate;
+    if (!machineLog?.machineId || !Number.isFinite(beamLeft) || !this.isValidBeamLoadedDate(date) || this.beamLeftEditor.saving) return;
+
+    this.beamLeftEditor.saving = true;
+    this._apiFs.dashboard.updateBeamLeft({
+      machineId: String(machineLog.machineId),
+      beamLeft,
+      date,
+    }).subscribe({
+      next: (res: IResponse) => {
+        this.beamLeftEditor.saving = false;
+        if (res.code === 'OK') {
+          const updated = Number(res.data?.beamLeft);
+          const nextValue = Number.isFinite(updated) ? updated : beamLeft;
+          this.applyBeamLeftValue(machineLog, nextValue);
+          this._coreService.utils.showToaster(EToasterType.Success, 'Beam left updated.');
+          this.beamLeftEditor.open = false;
+          this.beamLeftEditor.confirmStep = false;
+          this.beamLeftEditor.machineLog = null;
+        } else {
+          this._coreService.utils.showToaster(EToasterType.Danger, res.message || 'Failed to update beam left.');
+        }
+      },
+      error: (err: any) => {
+        this.beamLeftEditor.saving = false;
+        const msg = err?.error?.message || 'Failed to update beam left.';
+        this._coreService.utils.showToaster(EToasterType.Danger, msg);
+      }
+    });
+  }
+
+  private applyBeamLeftValue(machineLog: IMachineLog, value: number): void {
+    machineLog.beamLeft = value;
+    const match = (m: IMachineLog) => (machineLog.machineId && m.machineId === machineLog.machineId) || m.machineCode === machineLog.machineCode;
+    const live = this.machineLogs.find(match);
+    if (live) live.beamLeft = value;
+    if (this.selectedMachineLog && match(this.selectedMachineLog)) {
+      this.selectedMachineLog.beamLeft = value;
+    }
+  }
+
 
   protected getStopColumns(machineType: MachineType = 'rapier'): { key: string; label: string }[] {
     return buildStopColumns(machineType);

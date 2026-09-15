@@ -22,11 +22,15 @@ export class Dashboard {
 
 
   getList(payload: { status: EMachineStatusIds; includeAttention?: boolean; groupBy?: string }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}/list`, payload);
+    return this._http.post(`${this._dashboardUrl}/list`, payload);
   }
 
   /** Fetches the TV/Andon custom dashboard snapshot for a factory section. */
   getCustom(payload: { section: SectionKey }): Observable<IResponse> {
     return this._http.post(`${this._dashboardUrl}/custom`, payload);
+  }
+
+  updateBeamLeft(payload: { machineId: string; beamLeft: number; date: string }): Observable<IResponse> {
+    return this._http.put(`${this._baseUrl}/beam-left`, payload);
   }
 }

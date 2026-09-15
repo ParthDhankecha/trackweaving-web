@@ -261,8 +261,10 @@
 
                     <div class="dense-card__col">
                         @for (item of denseMetricKeys.rightKeys; track item.key) {
-                        <div class="dense-card__row"
-                            [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
+                        @let _beamLeftKey = item.key === 'beamLeft';
+                        <div class="dense-card__row" [class.blink-bg]="_beamLeftKey && isLowBeamLeft(machineLog)"
+                            [class.beam-left-editable]="_beamLeftKey && canEditBeamLeft(machineLog)"
+                            (click)="onMetricClick($event, item.key, machineLog)">
                             @if (metricDisplayMode === 'icon') {
                             <span class="dense-card__icon" aria-hidden="true">
                                 <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
@@ -360,8 +362,11 @@
 
                 <div class="machine-metrics">
                     @for (item of machineCardKeys; track item.key) {
+                    @let _beamLeftKey = item.key === 'beamLeft';
                     <div class="d-flex align-items-center gap-1 rounded-1"
-                        [class.blink-bg]="item.key === 'beamLeft' && isLowBeamLeft(machineLog)">
+                        [class.blink-bg]="_beamLeftKey && isLowBeamLeft(machineLog)"
+                        [class.beam-left-editable]="_beamLeftKey && canEditBeamLeft(machineLog)"
+                        (click)="onMetricClick($event, item.key, machineLog)">
                         <span class="flex-shrink-0" aria-hidden="true" style="padding: 0.125em;">
                             <ng-container *ngTemplateOutlet="metricIconTemplate; context: {
                                 $implicit: item.key
@@ -645,3 +650,81 @@
     </div>
     }
 </app-modal-layer>
+
+
+@if (beamLeftEditor.open) {
+<div class="modal-backdrop fade show"></div>
+<div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ `${beamLeftEditor.confirmStep ? 'Confirm' : 'Update'} Beam Left` }}
+                </h5>
+                <button type="button" class="btn-close" [disabled]="beamLeftEditor.saving"
+                    (click)="closeBeamLeftEditor()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger beam-left-warning mb-3" role="alert">
+                    <strong>Please check before saving.</strong>
+                    Beam left for this machine will change from the selected date till today.
+                    Old reports will also change. This cannot be undone.
+                </div>
+                <p class="mb-2">
+                    Machine: <strong>{{ beamLeftEditor.machineLog?.machineCode }}</strong>
+                </p>
+                @if (!beamLeftEditor.confirmStep) {
+                <label for="beamLeftValue" class="form-label">
+                    Beam left (meters)
+                </label>
+                <input id="beamLeftValue" type="number" min="0" class="form-control"
+                    [(ngModel)]="beamLeftEditor.newValue" [disabled]="beamLeftEditor.saving"
+                    (keydown.enter)="$event.preventDefault()">
+                <small class="text-muted d-block mb-3">
+                    Enter remaining meters when the beam was loaded. Current: {{ beamLeftEditor.currentValue }}
+                </small>
+                <label for="beamLoadedDate" class="form-label">
+                    Loaded date <span class="text-danger">*</span>
+                </label>
+                <input id="beamLoadedDate" type="date" class="form-control" [(ngModel)]="beamLeftEditor.loadedDate"
+                    [max]="beamLeftEditor.maxDate" [disabled]="beamLeftEditor.saving" required
+                    (keydown.enter)="$event.preventDefault(); goToBeamLeftConfirm()">
+                <small class="text-muted d-block">
+                    Date the beam was loaded. Future dates are not allowed.
+                </small>
+                } @else {
+                <p class="mb-2">
+                    Set beam left to <strong>{{ beamLeftEditor.newValue }}</strong> meters
+                    from <strong>{{ formatBeamLoadedDate(beamLeftEditor.loadedDate) }}</strong>
+                    for <strong>{{ beamLeftEditor.machineLog?.machineCode }}</strong>?
+                </p>
+                <p class="mb-0 small text-danger fw-semibold">
+                    Records from this date till today will be updated.
+                </p>
+                }
+            </div>
+            <div class="modal-footer">
+                @if (!beamLeftEditor.confirmStep) {
+                <button type="button" class="btn btn-secondary" [disabled]="beamLeftEditor.saving"
+                    (click)="closeBeamLeftEditor()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" [disabled]="beamLeftEditor.saving"
+                    (click)="goToBeamLeftConfirm()">
+                    Next
+                </button>
+                } @else {
+                <button type="button" class="btn btn-secondary" [disabled]="beamLeftEditor.saving"
+                    (click)="backFromBeamLeftConfirm()">
+                    Back
+                </button>
+                <button type="button" class="btn btn-danger" [disabled]="beamLeftEditor.saving"
+                    (click)="confirmBeamLeftUpdate()">
+                    {{ beamLeftEditor.saving ? 'Saving...' : 'Confirm' }}
+                </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+}

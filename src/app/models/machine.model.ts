@@ -85,6 +85,8 @@ export interface IMachineLog {
     stops: number;
     beamLeft: number;
     setPicks: number;
+    machineId?: string;
+    canUpdateBeamLeft?: boolean;
     stopsData: {
         warp?: {
             duration: string; // "HH:mm"

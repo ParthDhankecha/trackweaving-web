@@ -498,6 +498,24 @@
     word-wrap: break-word;
 }
 
+.beam-left-editable {
+    cursor: pointer;
+    outline: 1px dashed transparent;
+    outline-offset: 1px;
+    border-radius: 0.25rem;
+
+    &:hover,
+    &:focus-visible {
+        outline-color: var(--bs-primary);
+        background: rgba(13, 110, 253, 0.08);
+    }
+}
+
+.beam-left-warning {
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
 @keyframes blinkBgCard {
     0% {
         background-color: #ffe8e8;
