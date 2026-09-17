@@ -8,6 +8,7 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import { AppSrc } from '@src/app/shared/directives/src';
 
 
 @Component({
@@ -15,7 +16,8 @@ import { EToasterType } from '@src/app/models/utils.model';
   imports: [
     Pagination,
     EntriesPerPageSelector,
-    UpsertOperator
+    UpsertOperator,
+    AppSrc
   ],
   templateUrl: './operators.html',
   styleUrl: './operators.scss'

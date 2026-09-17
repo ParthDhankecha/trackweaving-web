@@ -48,7 +48,7 @@ export const routes: Routes = [
     {// full-screen TV / Andon board for the weaving floor
         path: ROUTES.CUSTOM_DASHBOARD,
         title: APP_PAGE_TITLE.CUSTOM_DASHBOARD,
-        component: CustomDashboard,
+        loadComponent: () => import('./pages/custom-dashboard/custom-dashboard').then(m => m.CustomDashboard),
         canActivate: [authGuard],
     },
     {

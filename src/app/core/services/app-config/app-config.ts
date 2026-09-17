@@ -68,6 +68,7 @@ export class AppConfig {
   private readonly _configData: IAppConfigData = {
     publicUrl: '',
     clientUrl: '',
+    assetUrl: '',
     roles: undefined,
     userTypeOptions: [],
     access: undefined,
