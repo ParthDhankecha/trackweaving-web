@@ -42,6 +42,7 @@ export interface IUserTypeOption {
 export interface IAppConfigData {
     publicUrl: string;
     clientUrl: string;
+    assetUrl: string;
     roles?: IUserRoles;
     userTypeOptions?: IUserTypeOption[];
     access?: IUserAccess;

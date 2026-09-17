@@ -82,7 +82,7 @@ export class Reports {
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' },
-    { id: 'beamProductionReport', label: 'Beam Production Report' },
+    // { id: 'beamProductionReport', label: 'Beam Production Report' },
     { id: 'beamCompletionDateReport', label: 'Beam Completion Date Report' },
     { id: 'monthlySummary', label: 'Monthly Summary Report' },
     { id: 'productionIntelligence', label: 'Production Intelligence Report' }

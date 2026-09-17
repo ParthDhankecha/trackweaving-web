@@ -5,12 +5,14 @@ import { CoreFacadeService } from '@src/app/core/services/core-facade-service';
 import { ApiFacadeService } from '@src/app/services/api-facade-service';
 import { IResponse } from '@src/app/models/http-response.model';
 import { EToasterType } from '@src/app/models/utils.model';
+import { AppSrc } from '@src/app/shared/directives/src';
 
 
 @Component({
   selector: 'app-upsert-operator',
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AppSrc
   ],
   templateUrl: './upsert-operator.html',
   styleUrl: './upsert-operator.scss'
@@ -24,6 +26,9 @@ export class UpsertOperator implements OnInit, OnChanges {
   protected machineList: any[] = [];
   protected isReqAlive: boolean = false;
   protected alreadyAssignedIds: string[] = [];
+  protected profileFile: File | null = null;
+  protected profilePreview: string | null = null;
+  protected removeProfile: boolean = false;
 
   @Input('operatorData') operatorData: any;
   @Output('close') closeOrCancel = new EventEmitter<void>();
@@ -44,6 +49,9 @@ export class UpsertOperator implements OnInit, OnChanges {
     if (changes['operatorData']?.currentValue) {
       this.isEditMode = !!changes['operatorData']?.currentValue?._id;
       this.alreadyAssignedIds = [];
+      this.profileFile = null;
+      this.profilePreview = null;
+      this.removeProfile = false;
       this.operatorForm.patchValue({
         operatorName: this.operatorData?.operatorName || '',
         shift: this.shiftOptions.find((s) => s.value === this.operatorData?.shift)?.value ?? null,
@@ -106,6 +114,43 @@ export class UpsertOperator implements OnInit, OnChanges {
     this.alreadyAssignedIds = [];
   }
 
+  protected get existingProfile(): string | null {
+    if (this.removeProfile) return null;
+    return this.profilePreview || this.operatorData?.profile || null;
+  }
+
+  protected onProfileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!/^image\/(jpeg|jpg|png)$/i.test(file.type)) {
+      this._coreService.utils.showToaster(EToasterType.Danger, 'Please select a JPG or PNG image.');
+      input.value = '';
+      return;
+    }
+
+    this.profileFile = file;
+    this.removeProfile = false;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.profilePreview = typeof reader.result === 'string' ? reader.result : null;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  protected onRemoveProfile(profileInput?: HTMLInputElement): void {
+    if (!this.existingProfile) return;
+
+    this.profileFile = null;
+    this.profilePreview = null;
+    this.removeProfile = true;
+    if (profileInput) {
+      profileInput.value = '';
+    }
+  }
+
   protected onToggleMachine(event: Event, machineId?: string): void {
     const checked = (event.target as HTMLInputElement).checked;
     if (!machineId) {
@@ -136,16 +181,23 @@ export class UpsertOperator implements OnInit, OnChanges {
       return;
     }
 
-    const body = {
+    const formData = new FormData();
+    const data: any = {
       operatorName: String(this.operatorName?.value || '').trim(),
       shift: Number(this.shift?.value),
       machineIds: this.machineIds?.value || []
     };
+    if (this.isEditMode && this.removeProfile) data.removeProfile = true;
+
+    formData.append('data', JSON.stringify(data));
+    if (this.profileFile) {
+      formData.append('profile', this.profileFile);
+    }
 
     this.alreadyAssignedIds = [];
     this.isReqAlive = true;
     if (!this.isEditMode) {
-      this._apiFs.operator.create(body).subscribe({
+      this._apiFs.operator.create(formData).subscribe({
         next: (res: any) => {
           this.isReqAlive = false;
           if (res.code === 'CREATED') {
@@ -165,7 +217,7 @@ export class UpsertOperator implements OnInit, OnChanges {
       return;
     }
 
-    this._apiFs.operator.update(operatorId, body).subscribe({
+    this._apiFs.operator.update(operatorId, formData).subscribe({
       next: (res: any) => {
         this.isReqAlive = false;
         if (res.code === 'OK') {

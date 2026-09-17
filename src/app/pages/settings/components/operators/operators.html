@@ -29,6 +29,7 @@
             <thead class="table-dark bg-opacity-50">
                 <tr>
                     <th scope="col" class="w-1-percent">#</th>
+                    <th scope="col" class="w-1-percent">Profile</th>
                     <th scope="col" class="text-nowrap">
                         Operator Name
                     </th>
@@ -51,6 +52,9 @@
                     <th scope="row">
                         {{ (currentPage - 1) * pageSize + i + 1 }}
                     </th>
+                    <td>
+                        <img [appSrc]="item?.profile || ''" alt="" class="operator-list-profile rounded border object-fit-cover">
+                    </td>
                     <td class="text-capitalize">
                         {{item?.operatorName}}
                     </td>
@@ -77,7 +81,7 @@
                 </tr>
                 }@empty {
                 <tr>
-                    <td [attr.colspan]="hasAnyActionAccess ? 5 : 4" class="text-muted small text-center">
+                    <td [attr.colspan]="hasAnyActionAccess ? 6 : 5" class="text-muted small text-center">
                         No records found.
                     </td>
                 </tr>

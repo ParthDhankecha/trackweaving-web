@@ -11,16 +11,6 @@ export class HttpClient {
   private readonly _http = inject(_HttpClient);
   private baseUrl = 'https://trackweaving.com/api/v1/';// environment.apiUrl; // e.g., 'https://api.example.com'
 
-  /** Default headers */
-  private get headers(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      // Add Authorization token here if needed
-      // 'Authorization': `Bearer ${token}`
-    });
-  }
-
 
   /**
    * Generate HTTP options
@@ -30,34 +20,33 @@ export class HttpClient {
    * @return HTTP options
    */
   private httpOptions({ multipart = false, params = {} }): { headers: HttpHeaders; withCredentials: boolean; params: HttpParams } {
-    const contentType = multipart ? 'multipart/form-data' : 'application/json';
-    const headers = new HttpHeaders({
-      'Content-Type': contentType,
+    const headersConfig: Record<string, string> = {
       'Accept': 'application/json',
-      // Add Authorization token here if needed
-      // 'Authorization': `Bearer ${token}`
-    });
+      // 'Authorization': `Bearer ${token}`// Add Authorization token if required
+    };
+    if (!multipart) headersConfig['Content-Type'] = 'application/json';
+
     return {
-      headers: headers,
+      headers: new HttpHeaders(headersConfig),
       withCredentials: false,
       params: new HttpParams({ fromObject: params })
     };
   }
 
-  /**
-   * Handle API errors
-   */
-  private handleError(error: HttpErrorResponse) {
-    let errorMsg = '';
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMsg = `Error: ${error.error.message}`;
-    } else {
-      // Server-side error
-      errorMsg = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    return throwError(() => new Error(errorMsg));
-  }
+  // /**
+  //  * Handle API errors
+  //  */
+  // private handleError(error: HttpErrorResponse) {
+  //   let errorMsg = '';
+  //   if (error.error instanceof ErrorEvent) {
+  //     // Client-side error
+  //     errorMsg = `Error: ${error.error.message}`;
+  //   } else {
+  //     // Server-side error
+  //     errorMsg = `Error Code: ${error.status}\nMessage: ${error.message}`;
+  //   }
+  //   return throwError(() => new Error(errorMsg));
+  // }
 
 
   /**

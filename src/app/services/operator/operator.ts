@@ -17,12 +17,12 @@ export class Operator {
     return this._http.post(`${this._baseUrl}/list`, payload);
   }
 
-  create(payload: { operatorName: string, shift: number, machineIds?: string[] }): Observable<IResponse> {
-    return this._http.post(`${this._baseUrl}`, payload);
+  create(payload: FormData): Observable<IResponse> {
+    return this._http.post(`${this._baseUrl}`, payload, { multipart: true });
   }
 
-  update(operatorId: string, payload: { operatorName?: string, shift?: number, machineIds?: string[] }): Observable<IResponse> {
-    return this._http.put(`${this._baseUrl}/${operatorId}`, payload);
+  update(operatorId: string, payload: FormData): Observable<IResponse> {
+    return this._http.put(`${this._baseUrl}/${operatorId}`, payload, { multipart: true });
   }
 
   delete(operatorId: string): Observable<IResponse> {
