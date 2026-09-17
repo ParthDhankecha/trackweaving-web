@@ -51,7 +51,6 @@
                             </th>
                             <th scope="col">Uid</th>
                             <th scope="col">Mobile</th>
-                            <th scope="col">Email</th>
                             <th scope="col" class="text-center text-nowrap">
                                 Is Active
                             </th>
@@ -77,7 +76,6 @@
                             </td>
                             <td>{{ user?.workspaceId?.uid }}</td>
                             <td>{{ user?.mobile || '-' }}</td>
-                            <td>{{ user?.email || '-' }}</td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex p-0">
                                     <input class="form-check-input mx-auto fs-5" type="checkbox"
@@ -106,7 +104,7 @@
                         </tr>
                         }@empty {
                         <tr>
-                            <td colspan="11" class="text-center">No users found.</td>
+                            <td colspan="10" class="text-center">No users found.</td>
                         </tr>
                         }
                     </tbody>

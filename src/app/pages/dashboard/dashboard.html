@@ -51,7 +51,7 @@
     <div class="flex-grow-1" [class.overflow-auto]="isDefaultLayout || isDenseLayout || isGroupedView"
         [class.py-2]="isFullscreen">
         @if (isGroupedView) {
-        <div class="d-flex flex-column gap-3 px-1">
+        <div class="d-flex flex-column gap-75">
             @for (group of groupedMachineLogs; track group.key) {
             @let _isGroupCollapsed = isGroupCollapsed(group.key);
             <section class="dashboard-group" [class.dashboard-group--collapsed]="_isGroupCollapsed">
