@@ -40,7 +40,7 @@
                         }
                     </select>
                 </div>
-                @if (isDateRangeReport) {
+                @if (isFullDateRangeReport) {
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-2" [class.col-6]="isDevice">
                     <label for="startDate" class="form-label small fw-semibold mb-1">
                         From Date:
@@ -66,6 +66,21 @@
                         }
                         @if (endDate.errors['invalidRange']) {
                         <span>End date must be after or same as From date.</span>
+                        }
+                    </div>
+                    }
+                </div>
+                }
+                @if (isStopTimelineReport) {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-2" [class.col-6]="isDevice">
+                    <label for="startDate" class="form-label small fw-semibold mb-1">
+                        Date:
+                    </label>
+                    <input type="date" id="startDate" class="form-control" formControlName="startDate">
+                    @if (startDate && startDate.touched && startDate.errors) {
+                    <div class="invalid-feedback d-block">
+                        @if (startDate.errors['required']) {
+                        <span>Date is required.</span>
                         }
                     </div>
                     }
@@ -279,7 +294,11 @@
                     <h2 class="font-semibold fs-5 m-0 text-break">
                         {{reportData?.reportTitle}}
                     </h2>
-                    @if (isDateRangeReport) {
+                    @if (isStopTimelineReport && reportData?.fromDate) {
+                    <div class="small text-muted mt-md-1">
+                        Date:&nbsp;<strong>{{ reportData.fromDate | date:'dd-MMM-yyyy' }}</strong>
+                    </div>
+                    } @else if (isFullDateRangeReport) {
                     <div class="small text-muted mt-md-1">
                         From&nbsp; <strong>{{ reportData?.fromDate | date:'dd-MMM-yyyy' }}</strong>
                         &nbsp;to&nbsp;

@@ -190,6 +190,11 @@ export class Reports {
     return !this.isBeamCompletionDateReport && !this.isMonthlySummaryReport;
   }
 
+  /** From + to date pickers (most reports). Stop timeline uses a single date only. */
+  protected get isFullDateRangeReport(): boolean {
+    return this.isDateRangeReport && !this.isStopTimelineReport;
+  }
+
   protected get isQualityWiseReport(): boolean {
     return this.reportType?.value === 'qualityProductionReport';
   }
@@ -601,6 +606,16 @@ export class Reports {
       : moment().format('YYYY-MM-DD');
     this.startDate?.patchValue(date, { emitEvent: false });
     this.endDate?.patchValue(date, { emitEvent: false });
+    this.syncStopTimelineEndDate();
+  }
+
+  /** Stop timeline API expects one day; keep endDate aligned with startDate. */
+  private syncStopTimelineEndDate(): void {
+    if (!this.isStopTimelineReport) return;
+    const day = this.startDate?.value;
+    if (day) {
+      this.endDate?.patchValue(day, { emitEvent: false });
+    }
   }
 
   protected syncReportTypeValidators(): void {
@@ -777,6 +792,7 @@ export class Reports {
       this.syncReportTypeValidators();
 
       this.applyDefaultDatesForReportType();
+      this.syncStopTimelineEndDate();
       this.summaryMonth?.patchValue(this.defaultSummaryPeriod.month, { emitEvent: false });
       this.summaryYear?.patchValue(this.defaultSummaryPeriod.year, { emitEvent: false });
       this.reportData = null;
@@ -809,6 +825,11 @@ export class Reports {
       takeUntil(this.subscriptionHandler$)
     ).subscribe(() => {
       this.syncCustomStopMinutesControl();
+    });
+    this.startDate?.valueChanges.pipe(
+      takeUntil(this.subscriptionHandler$)
+    ).subscribe(() => {
+      this.syncStopTimelineEndDate();
     });
   }
 
@@ -960,7 +981,10 @@ export class Reports {
       reportType: filter.reportType,
     };
 
-    if (this.isDateRangeReport) {
+    if (this.isStopTimelineReport) {
+      payload.startDate = filter.startDate;
+      payload.endDate = filter.startDate;
+    } else if (this.isDateRangeReport) {
       payload.startDate = filter.startDate;
       payload.endDate = filter.endDate;
     }
@@ -1011,6 +1035,7 @@ export class Reports {
           if (filter.reportType === 'stopTimelineReport') {
             this.reportStopColumns = [];
             this.stopTimelineViewMode = 'graph';
+            this.reportData.toDate = filter.startDate;
             this.stopTimelineData = (res.data || {}) as IStopTimelineReport;
             this.syncStopTimelineReportRows();
             return;

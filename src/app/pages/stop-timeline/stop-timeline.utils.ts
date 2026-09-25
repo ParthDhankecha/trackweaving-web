@@ -24,6 +24,9 @@ export const STOP_CATEGORY_LABELS: Record<string, string> = {
 
 const DEFAULT_STOP_COLOR = '#6c757d';
 
+/** IST — matches backend factory timezone (server UTC, shift wall clock IST). */
+export const WORKSPACE_UTC_OFFSET_MINUTES = 330;
+
 export function stopCategoryColor(category: string): string {
     return STOP_CATEGORY_COLORS[category] ?? DEFAULT_STOP_COLOR;
 }
@@ -32,13 +35,20 @@ export function stopCategoryLabel(category: string): string {
     return STOP_CATEGORY_LABELS[category] ?? category;
 }
 
-/** Fixed 24h clock labels (avoids locale fragments like overlapping AM/PM text in SVG). */
+/** 24h clock in factory IST (not browser local timezone). */
 export function formatTimelineClock(value: string | Date): string {
     const date = typeof value === 'string' ? new Date(value) : value;
     if (!value || Number.isNaN(date.getTime())) return '—';
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    const parts = getWorkspaceTimeParts(date);
+    return `${parts.hours.toString().padStart(2, '0')}:${parts.minutes.toString().padStart(2, '0')}`;
+}
+
+function getWorkspaceTimeParts(date: Date): { hours: number; minutes: number } {
+    const shifted = new Date(date.getTime() + WORKSPACE_UTC_OFFSET_MINUTES * 60_000);
+    return {
+        hours: shifted.getUTCHours(),
+        minutes: shifted.getUTCMinutes(),
+    };
 }
 
 export function collectStopCategoriesFromReport(report: IStopTimelineReport | null): string[] {
@@ -58,6 +68,17 @@ export function collectStopCategoriesFromReport(report: IStopTimelineReport | nu
     return STOP_KEY_ORDER.filter((key) => found.has(key));
 }
 
+/** Start of calendar day in IST, as UTC epoch ms (for comparing report dates). */
+export function startOfWorkspaceCalendarDay(date: Date): number {
+    const shifted = new Date(date.getTime() + WORKSPACE_UTC_OFFSET_MINUTES * 60_000);
+    const dayStartUtc = Date.UTC(
+        shifted.getUTCFullYear(),
+        shifted.getUTCMonth(),
+        shifted.getUTCDate()
+    );
+    return dayStartUtc - WORKSPACE_UTC_OFFSET_MINUTES * 60_000;
+}
+
 /**
  * Green “running” fill within the shift track.
  * Past report dates → full width. Today → fill to current time (or empty if shift not started).
@@ -68,8 +89,8 @@ export function computeRunningFillPct(shiftWindow: { start: string; end: string 
     const duration = shiftEnd - shiftStart;
     if (duration <= 0) return 100;
 
-    const isReportDayToday = startOfLocalCalendarDay(new Date(reportDate)).getTime()
-        === startOfLocalCalendarDay(new Date()).getTime();
+    const isReportDayToday = startOfWorkspaceCalendarDay(new Date(reportDate))
+        === startOfWorkspaceCalendarDay(new Date());
 
     if (!isReportDayToday) {
         return 100;
@@ -80,10 +101,6 @@ export function computeRunningFillPct(shiftWindow: { start: string; end: string 
     if (now <= shiftStart) return 0;
 
     return Math.min(100, Math.max(0, ((now - shiftStart) / duration) * 100));
-}
-
-function startOfLocalCalendarDay(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export function buildCategoryLegendItems(categories: string[]): { key: string; label: string; color: string }[] {
