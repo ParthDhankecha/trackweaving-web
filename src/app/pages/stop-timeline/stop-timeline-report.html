@@ -1,0 +1,119 @@
+@if (report) {
+<div class="stop-timeline">
+    @if (!report.shiftTimingConfigured) {
+    <div class="alert alert-warning py-2 px-3 small mb-3">
+        Shift start/end times are not fully configured for this workspace. Timelines use calendar-day bounds where
+        shift timing is missing.
+    </div>
+    }
+
+    <div class="stop-timeline__legend d-flex flex-wrap align-items-center gap-3 mb-3">
+        <span class="small fw-semibold text-muted">Stop types</span>
+        @for (item of categoryLegend; track item.key) {
+        <span class="legend-chip">
+            <i class="legend-chip__swatch" [style.background]="item.color"></i>
+            {{ item.label }}
+        </span>
+        }
+        <span class="legend-chip legend-chip--running ms-md-2">
+            <i class="legend-chip__swatch legend-chip__swatch--running"></i>
+            Running
+        </span>
+    </div>
+
+    @if (segments.length > 1) {
+    <div class="stop-timeline__tabs d-flex flex-wrap gap-2 mb-3">
+        @for (segment of segments; track segmentKey(segment, $index); let idx = $index) {
+        <button type="button" class="btn btn-sm"
+            [class.btn-primary]="selectedSegmentIndex === idx"
+            [class.btn-outline-secondary]="selectedSegmentIndex !== idx"
+            (click)="selectSegment(idx)">
+            {{ segment.reportDate | date:'dd-MMM-yyyy' }} · {{ segment.shiftLabel }}
+        </button>
+        }
+    </div>
+    }
+
+    @if (activeSegment && segmentView) {
+    <div class="timeline-card">
+        <div class="timeline-card__header">
+            <div>
+                <h3 class="timeline-card__title">
+                    {{ activeSegment.reportDate | date:'dd MMM yyyy' }} — {{ activeSegment.shiftLabel }}
+                </h3>
+                <p class="timeline-card__subtitle mb-0">
+                    Shift window:
+                    <strong>{{ activeSegment.shiftWindow.startTimeLabel }}</strong>
+                    to
+                    <strong>{{ activeSegment.shiftWindow.endTimeLabel }}</strong>
+                    ({{ activeSegment.shiftWindow.durationMinutes }} min)
+                </p>
+            </div>
+        </div>
+
+        <div class="timeline-chart" (mouseleave)="clearHover()">
+            @if (hoveredStop) {
+            <div class="timeline-tooltip" role="status"
+                [style.left.px]="tooltipLeft"
+                [style.top.px]="tooltipTop">
+                <strong>{{ hoveredStop.machineCode }}</strong>
+                <div>{{ hoveredStop.stopReason }}</div>
+                <div class="timeline-tooltip__muted">{{ stopCategoryLabel(hoveredStop.category) }}</div>
+                <div>{{ formatTimelineClock(hoveredStop.from) }} → {{ formatTimelineClock(hoveredStop.to) }}</div>
+                <div>Duration: {{ hoveredStop.stopTime }}</div>
+            </div>
+            }
+
+            <div class="timeline-chart__grid">
+                <div class="timeline-chart__axis-spacer"></div>
+                <div class="timeline-chart__plot">
+                    <div class="timeline-chart__axis">
+                        @for (label of segmentView.axisLabels; track label.pct) {
+                        <span class="timeline-chart__axis-label" [style.left.%]="label.pct">
+                            {{ label.text }}
+                        </span>
+                        }
+                    </div>
+                    @for (label of segmentView.axisLabels; track label.pct) {
+                    <span class="timeline-chart__grid-line" [style.left.%]="label.pct"></span>
+                    }
+                </div>
+                <div class="timeline-chart__total-spacer"></div>
+            </div>
+
+            @for (row of segmentView.rows; track row.machineId) {
+            <div class="timeline-row">
+                <div class="timeline-row__code" [title]="row.machineCode">{{ row.machineCode }}</div>
+                <div class="timeline-row__track" role="img"
+                    [attr.aria-label]="'Stop timeline for machine ' + row.machineCode">
+                    <div class="timeline-row__running" [style.width.%]="segmentView.runningFillPct"></div>
+                    @for (block of row.stops; track block.key) {
+                    <button type="button" class="timeline-row__stop"
+                        [style.left.%]="block.leftPct"
+                        [style.width.%]="block.widthPct"
+                        [style.background-color]="block.color"
+                        (mouseenter)="onStopHover($event, block.stop, row.machineCode)"
+                        (mouseleave)="onStopLeave($event)"
+                        (focus)="onStopFocus($event, block.stop, row.machineCode)"
+                        (blur)="onStopBlur()"
+                        [attr.aria-label]="block.stop.stopReason + ', ' + block.stop.stopTime">
+                    </button>
+                    }
+                </div>
+                <div class="timeline-row__total" [title]="'Total stop time ' + row.totalStopTime">
+                    {{ row.totalStopTime }}
+                </div>
+            </div>
+            }
+        </div>
+
+        <p class="small text-muted mb-0 mt-2">
+            Hover a colored block to see the exact stop reason and time. The right column shows total stopped time
+            (HH:MM:SS) for each machine in this shift.
+        </p>
+    </div>
+    } @else {
+    <div class="text-center text-muted py-4">No timeline data for the selected filters.</div>
+    }
+</div>
+}

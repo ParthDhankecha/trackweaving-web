@@ -305,6 +305,22 @@
                         }
                     </div>
                     }
+                    @if (isStopTimelineReport) {
+                    <div class="d-flex flex-wrap align-items-center column-gap-3 row-gap-2 user-select-none me-md-3">
+                        <span class="small fw-semibold text-nowrap me-2">View:</span>
+                        @for (option of stopTimelineViewOptions; track option.id) {
+                        <div class="d-inline-flex align-items-center gap-1 text-nowrap">
+                            <input type="radio" [id]="'stop-timeline-view-' + option.id" name="stopTimelineViewMode"
+                                class="form-check-input m-0" [value]="option.id"
+                                [checked]="stopTimelineViewMode === option.id"
+                                (change)="onStopTimelineViewModeChange(option.id)">
+                            <label [for]="'stop-timeline-view-' + option.id" class="form-check-label small mb-0">
+                                {{ option.label }}
+                            </label>
+                        </div>
+                        }
+                    </div>
+                    }
                     @if (showBy24HoursOption) {
                     <div
                         class="d-inline-flex align-items-center gap-1 mb-1 mb-sm-0 me-xl-2 user-select-none text-nowrap">
@@ -373,6 +389,64 @@
             <div class="table-responsive" [class.px-2]="isDevice" (scroll)="onReportTableScroll($event)"
                 [class.device-table]="isDevice" #reportTableScroll>
                 @switch(reportData?.reportType){
+                @case('stopTimelineReport'){
+                @if (isStopTimelineGraphView) {
+                <app-stop-timeline-report [report]="stopTimelineData" />
+                } @else {
+                <table class="table table-bordered" #reportTable>
+                    <thead class="table-dark text-center align-middle">
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Machine</th>
+                            <th>Category</th>
+                            <th>Stop Reason</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Stop Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle text-center">
+                        @for (row of stoppageTableRows; track $index) {
+                        <tr class="small" [class.custom-tr-bg]="isNightShift(row.shift)">
+                            @if (row.showDate) {
+                            <td [attr.rowspan]="row.dateRowspan">
+                                {{ row.reportDate | date:'dd-MMM-yyyy' }}
+                            </td>
+                            }
+                            @if (row.showShift) {
+                            <td [attr.rowspan]="row.shiftRowspan">
+                                {{ row.shiftLabel }}
+                            </td>
+                            }
+                            @if (row.showMachine) {
+                            <td [attr.rowspan]="row.machineRowspan">
+                                {{ row.machineCode }}
+                            </td>
+                            }
+                            <td class="text-capitalize">{{ row.category }}</td>
+                            <td>{{ row.stopReason }}</td>
+                            <td class="text-nowrap">{{ row.from | date:'hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.to | date:'hh:mm:ss a' }}</td>
+                            <td class="text-nowrap">{{ row.stopTime }}</td>
+                        </tr>
+                        }@empty {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                No stops recorded for the selected machines and shift window.
+                            </td>
+                        </tr>
+                        }
+                        @if (stoppageTableRows.length) {
+                        <tr class="custom-tr-bg fw-semibold">
+                            <td colspan="7" class="text-end text-uppercase">Total Stops</td>
+                            <td>{{ reportData?.totalStops }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                }
+                }
                 @case('stoppageReport'){
                 <table class="table table-bordered" #reportTable>
                     <thead class="table-dark text-center align-middle">

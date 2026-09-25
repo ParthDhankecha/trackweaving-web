@@ -44,16 +44,18 @@ export class ExportData {
   async exportTableToPDF(reportData: any, options?: { isDevice: boolean, action?: TExportAction }): Promise<void> {
     const title = reportData.reportTitle || 'Report';
     const isStoppageReport = reportData.reportType === 'stoppageReport';
+    const isStopTimelineReport = reportData.reportType === 'stopTimelineReport';
     const isBeamProductionReport = reportData.reportType === 'beamProductionReport';
     const isBeamCompletionDateReport = reportData.reportType === 'beamCompletionDateReport';
     const isQualityWiseReport = reportData.reportType === 'qualityProductionReport';
     const isBy24Hours = !!reportData.isBy24Hours;
     const stopColumns = reportData.stopColumns || this.resolveStopColumns(reportData.list || []);
     const showBeamCompletionDate = !!reportData.showBeamCompletionDateColumn || this.hasBeamCompletionDate(reportData);
-    const isPortrait = isStoppageReport || isBeamProductionReport || isBeamCompletionDateReport;
+    const isPortrait = isStoppageReport || isStopTimelineReport || isBeamProductionReport || isBeamCompletionDateReport;
 
+    const portraitColspan = isStopTimelineReport ? 8 : 7;
     const tableColspan = isBy24Hours ? (4 + ((reportData.shiftColumns?.length ?? 0) * 2) + (showBeamCompletionDate ? 1 : 0))
-      : (isBeamCompletionDateReport ? 5 : (isPortrait ? 7 : (showBeamCompletionDate ? 12 : 11) + stopColumns.length * 2 + 2));
+      : (isBeamCompletionDateReport ? 5 : (isPortrait ? portraitColspan : (showBeamCompletionDate ? 12 : 11) + stopColumns.length * 2 + 2));
 
     const content: any[] = [
       { text: title, style: 'header' },
@@ -87,8 +89,11 @@ export class ExportData {
       });
     } else {
       let bodyData;
-      if (isStoppageReport) {
-        bodyData = this.buildStoppageTableBody(reportData);
+      if (isStoppageReport || isStopTimelineReport) {
+        bodyData = this.buildStoppageTableBody({
+          ...reportData,
+          list: reportData.entries || reportData.list || reportData.stoppageTableRows || []
+        }, isStopTimelineReport);
       } else if (isBeamProductionReport) {
         bodyData = this.buildBeamLeftTableBody(reportData);
       } else if (isBeamCompletionDateReport) {
@@ -684,16 +689,22 @@ export class ExportData {
     return body;
   }
 
-  protected buildStoppageTableBody(reportData: any) {
-    const body: any[] = [[
+  protected buildStoppageTableBody(reportData: any, includeCategory = false) {
+    const headerRow: any[] = [
       { text: 'Date', style: 'tableHeader' },
       { text: 'Shift', style: 'tableHeader' },
       { text: 'Machine', style: 'tableHeader' },
+    ];
+    if (includeCategory) {
+      headerRow.push({ text: 'Category', style: 'tableHeader' });
+    }
+    headerRow.push(
       { text: 'Stop Reason', style: 'tableHeader' },
       { text: 'From', style: 'tableHeader' },
       { text: 'To', style: 'tableHeader' },
       { text: 'Stop Time', style: 'tableHeader' }
-    ]];
+    );
+    const body: any[] = [headerRow];
 
     const rows = reportData.stoppageTableRows || reportData.list || [];
     rows.forEach((row: any) => {
@@ -727,6 +738,9 @@ export class ExportData {
         );
       }
 
+      if (includeCategory) {
+        tableRow.push({ text: row.category || '-', style: cellStyle });
+      }
       tableRow.push(
         { text: row.stopReason || '-', style: cellStyle },
         { text: this.formatDateTime(row.from), style: cellStyle },
@@ -738,7 +752,7 @@ export class ExportData {
 
     if (rows.length) {
       body.push([
-        ...this.colSpanCells('Total Stops', 6, this.grandTotalFill, { alignment: 'right' }),
+        ...this.colSpanCells('Total Stops', includeCategory ? 7 : 6, this.grandTotalFill, { alignment: 'right' }),
         { text: reportData.totalStops ?? 0, ...this.grandTotalFill }
       ]);
     }

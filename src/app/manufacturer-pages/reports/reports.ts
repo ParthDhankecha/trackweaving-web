@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { Reports } from '@src/app/pages/reports/reports';
 import { MonthlySummary } from '@src/app/pages/monthly-summary/monthly-summary';
 import { ProductionIntelligenceReport } from '@src/app/pages/production-intelligence/production-intelligence';
+import { StopTimelineReport } from '@src/app/pages/stop-timeline/stop-timeline-report';
 import { CommonDropdown } from '@src/app/shared/components/common-dropdown/common-dropdown';
 import { IResponse } from '@src/app/models/http-response.model';
 
@@ -28,7 +29,8 @@ interface IManufacturerReportNavState {
     NgTemplateOutlet,
     CommonDropdown,
     MonthlySummary,
-    ProductionIntelligenceReport
+    ProductionIntelligenceReport,
+    StopTimelineReport
   ],
   templateUrl: '../../pages/reports/reports.html',
   styleUrl: '../../pages/reports/reports.scss'

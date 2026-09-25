@@ -20,6 +20,8 @@ import StorageKeys from '@src/app/constants/storage-keys';
 import { monthNames, previousMonth } from '../monthly-summary/monthly-summary.utils';
 import { MonthlySummary } from '../monthly-summary/monthly-summary';
 import { ProductionIntelligenceReport } from '../production-intelligence/production-intelligence';
+import { StopTimelineReport } from '../stop-timeline/stop-timeline-report';
+import { IStopTimelineReport } from '@src/app/models/stop-timeline.model';
 
 interface IReportNavState {
   reportType?: string;
@@ -41,7 +43,8 @@ type TExportAction = 'download' | 'share';
     NgTemplateOutlet,
     CommonDropdown,
     MonthlySummary,
-    ProductionIntelligenceReport
+    ProductionIntelligenceReport,
+    StopTimelineReport
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
@@ -80,6 +83,7 @@ export class Reports {
   ];
   protected readonly reportTypeOptions: { id: string, label: string }[] = [
     { id: 'productionShiftWise', label: 'Production Shiftwise Report' },
+    { id: 'stopTimelineReport', label: 'Stop Timeline Report' },
     { id: 'qualityProductionReport', label: 'Quality Production Report' },
     { id: 'stoppageReport', label: 'Stoppage Report' },
     // { id: 'beamProductionReport', label: 'Beam Production Report' },
@@ -130,10 +134,16 @@ export class Reports {
   protected stoppageTableRows: any[] = [];
   protected stopTimeSelectionError: boolean = false;
   protected stoppageViewMode: 'machineWise' | 'timeWise' = 'machineWise';
+  protected stopTimelineViewMode: 'graph' | 'table' = 'graph';
+  protected stopTimelineData: IStopTimelineReport | null = null;
   protected by24Hours: boolean = false;
   protected readonly stoppageViewOptions: { id: 'machineWise' | 'timeWise'; label: string }[] = [
     { id: 'machineWise', label: 'Machine Wise' },
     { id: 'timeWise', label: 'Time Wise (Descending)' }
+  ];
+  protected readonly stopTimelineViewOptions: { id: 'graph' | 'table'; label: string }[] = [
+    { id: 'graph', label: 'Timeline Graph' },
+    { id: 'table', label: 'Table Entries' }
   ];
 
 
@@ -158,6 +168,14 @@ export class Reports {
 
   protected get isStoppageReport(): boolean {
     return this.reportType?.value === 'stoppageReport';
+  }
+
+  protected get isStopTimelineReport(): boolean {
+    return this.reportType?.value === 'stopTimelineReport';
+  }
+
+  protected get isStopTimelineGraphView(): boolean {
+    return this.stopTimelineViewMode === 'graph';
   }
 
   protected get isBeamProductionReport(): boolean {
@@ -435,6 +453,8 @@ export class Reports {
     this.reportStopColumns = [];
     this.stoppageTableRows = [];
     this.stoppageViewMode = 'machineWise';
+    this.stopTimelineViewMode = 'graph';
+    this.stopTimelineData = null;
     this.by24Hours = false;
     this.reportDataBy24Hours = null;
     this.machineIds?.patchValue(null, { emitEvent: false });
@@ -700,12 +720,29 @@ export class Reports {
     this.reportData.stoppageTableRows = this.stoppageTableRows;
   }
 
+  protected onStopTimelineViewModeChange(mode: 'graph' | 'table'): void {
+    this.stopTimelineViewMode = mode;
+    if (!this.reportData) return;
+    this.reportData.stopTimelineViewMode = mode;
+  }
+
   private syncStoppageReportRows(): void {
     if (!this.reportData?.list) return;
 
     this.prepareStoppageTableRows(this.reportData.list);
     this.reportData.stoppageViewMode = this.stoppageViewMode;
     this.reportData.stoppageTableRows = this.stoppageTableRows;
+  }
+
+  private syncStopTimelineReportRows(): void {
+    const entries = this.stopTimelineData?.entries || [];
+    this.reportData.list = entries;
+    this.prepareStoppageTableRows(entries);
+    this.reportData.stopTimelineViewMode = this.stopTimelineViewMode;
+    this.reportData.stoppageTableRows = this.stoppageTableRows;
+    this.reportData.entries = entries;
+    this.reportData.segments = this.stopTimelineData?.segments || [];
+    this.reportData.totalStops = this.stopTimelineData?.totalStops ?? entries.length;
   }
 
 
@@ -750,6 +787,8 @@ export class Reports {
       this.reportStopColumns = [];
       this.stoppageTableRows = [];
       this.stoppageViewMode = 'machineWise';
+      this.stopTimelineViewMode = 'graph';
+      this.stopTimelineData = null;
       this.by24Hours = false;
       this.reportDataBy24Hours = null;
       this.machineColumnInitialLeft = 0;
@@ -964,7 +1003,16 @@ export class Reports {
           if (filter.reportType === 'stoppageReport') {
             this.reportStopColumns = [];
             this.stoppageViewMode = 'machineWise';
+            this.stopTimelineData = null;
             this.syncStoppageReportRows();
+            return;
+          }
+
+          if (filter.reportType === 'stopTimelineReport') {
+            this.reportStopColumns = [];
+            this.stopTimelineViewMode = 'graph';
+            this.stopTimelineData = (res.data || {}) as IStopTimelineReport;
+            this.syncStopTimelineReportRows();
             return;
           }
 
@@ -1001,6 +1049,7 @@ export class Reports {
         this.reportStopColumns = [];
         this.showBeamCompletionDateColumn = false;
         this.stoppageTableRows = [];
+        this.stopTimelineData = null;
         this.by24Hours = false;
         this.reportDataBy24Hours = null;
         const msg = err?.error.message || 'An error occurred while generating the report';
